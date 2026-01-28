@@ -1,7 +1,10 @@
+import React from "react";
+
 const Logo = () => {
     return (
         <section>
-            <h1 className="text-#00ABB6">Daily<span className="font-bold">Set</span></h1>
+                <span className="text-[#00ABB6]">Daily</span>
+                <span className="font-bold text-[#FE632F]">Set</span>
         </section>
     )
 }
