@@ -23,7 +23,7 @@ export const Footer: React.FC = () => (
       <text y="45" fill="#94a3b8" style={{ fontSize: '13px', fontFamily: 'Inter' }}>Madrid, España</text>
     </g>
 
-    {/* Columna 3: Redes Sociales (Sin Emojis) */}
+    {/* Columna 3: Redes Sociales */}
     <g transform="translate(750, 1150)">
       <text fill="#ffffff" style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'Inter' }}>Síguenos</text>
       
