@@ -42,3 +42,5 @@ export const FormularioRegistro = () => {
         </form>
     );
 };
+
+// hacer de nuevo

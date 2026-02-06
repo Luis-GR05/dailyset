@@ -9,6 +9,10 @@ export { default as Card } from './ui/Card';
 export { default as Loading } from './ui/Loading';
 
 export { default as LoginForm } from './forms/LoginForm';
-export { default as RegisterForm } from './forms/RegisterForm';
+export { default as RegisterForm } from './forms/FormularioRegistro';
 
 export { default as Logo } from './shared/Logo';
+
+export { ExerciseCard, WorkoutCard } from './ui/Card';
+
+export { PrimaryButton, SecondaryButton } from './ui/Button';
