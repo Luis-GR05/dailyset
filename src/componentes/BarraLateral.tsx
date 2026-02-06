@@ -1,7 +1,7 @@
 const BarraLateral = () => {
     return (
         <section>
-            
+
         </section>
     );
 };

@@ -8,8 +8,8 @@ export default {
     extend: {
       colors: {
         brand: {
-          blue: '#00ABB6',
-          yellow: '#FE632F',
+          blue: '#2F31F5',
+          yellow: '#DBF059',
         }
       },
       fontFamily: {

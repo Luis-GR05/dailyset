@@ -1,19 +1,44 @@
 export const FormularioRegistro = () => {
     return (
-        <>
-            <div className="flex justify-center items-center min-h-screen">
-                <h1 className="text-blue-500 font-bold text-2xl">Formulario de Registro</h1>
-                <form className="space-y-4">
-                    <div>
-                        <label htmlFor="email" className="block text-blue-500 font-medium">Email:</label>
-                        <input type="email" id="email" name="email" required className="border border-blue-500 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                    </div>
-                    <div>
-                        <label htmlFor="contraseña">Contraseña:</label>
-                        <input type="password" id="contraseña" name="contraseña" required className="border border-blue-500 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                    </div>
-                </form>
+        <form className="space-y-4">
+            <div>
+                <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-1">
+                    Email
+                </label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="ejemplo@email.com"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#2F31F5] focus:border-[#2F31F5]"
+                />
             </div>
-        </>
-    )
-}
+
+            <div>
+                <label htmlFor="contraseña" className="block text-gray-700 text-sm font-medium mb-1">
+                    Contraseña
+                </label>
+                <input
+                    type="password"
+                    id="contraseña"
+                    name="contraseña"
+                    required
+                    placeholder="••••••••"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#2F31F5] focus:border-[#2F31F5]"
+                />
+            </div>
+
+            <div className="flex items-center">
+                <input
+                    id="recordar"
+                    type="checkbox"
+                    className="h-4 w-4 text-[#2F31F5] focus:ring-[#2F31F5] border-gray-300 rounded"
+                />
+                <label htmlFor="recordar" className="ml-2 text-sm text-gray-600">
+                    Recordar mi sesión
+                </label>
+            </div>
+        </form>
+    );
+};
