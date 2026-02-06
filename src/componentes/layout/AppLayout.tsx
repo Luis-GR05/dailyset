@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 
-const Pantalla = ({ children }: { children?: ReactNode }) => {
+const AppLayout = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="bg-black min-h-screen w-full">
       {children}
@@ -8,4 +8,4 @@ const Pantalla = ({ children }: { children?: ReactNode }) => {
   );
 };
 
-export default Pantalla;
+export default AppLayout;
