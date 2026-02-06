@@ -1,4 +1,4 @@
-import { FormularioRegistro } from "../componentes/FormularioRegistro";
+import { FormularioRegistro } from "../componentes/forms/FormularioRegistro";
 import { BotonRegistro } from "../componentes/BotonRegistro";
 
 export const Login = () => {
