@@ -5,7 +5,7 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md space-y-8 bg-neutral-800/30 p-8 rounded-3xl border border-white/5 backdrop-blur-sm">
-                1
+                
                 {/* Cabecera del Login */}
                 <div className="flex flex-col items-center space-y-4">
                     <Logo />
