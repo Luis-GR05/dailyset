@@ -1,4 +1,4 @@
-import AppLayout from './AppLayout';
+import { AppLayout } from "../componentes";
 
 export default function ProgressPage() {
   return (

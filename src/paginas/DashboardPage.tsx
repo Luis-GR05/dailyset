@@ -1,6 +1,4 @@
-import AppLayout from './AppLayout';
-import { ExerciseCard } from './Card';
-import Boton from './Boton';
+import { AppLayout, Boton, ExerciseCard } from "../componentes";
 
 export default function Dashboard() {
   return (

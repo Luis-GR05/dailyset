@@ -1,4 +1,4 @@
-import AppLayout from './AppLayout';
+import { AppLayout } from '../componentes';
 import Boton from '../componentes/ui/Boton';
 import Input from '../componentes/ui/Input';
 
