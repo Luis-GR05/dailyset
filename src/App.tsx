@@ -10,7 +10,6 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        {/* Añade más rutas aquí */}
       </Routes>
     </Router>
   );
