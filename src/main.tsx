@@ -1,12 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './styles/global.css';
 
-// Importamos la página de Login  tu carpeta de páginas
-import { Login } from './paginas/Login'
+const rootElement = document.getElementById('root');
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Login />
-  </StrictMode>,
-)
+if (!rootElement) {
+  throw new Error("No se encontró el elemento root. Revisa tu index.html");
+}
+
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

@@ -1,7 +1,6 @@
 import { LoginForm } from "../componentes";
 import Logo from "../componentes/Logo";
 
-
 export default function LoginPage() {
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">

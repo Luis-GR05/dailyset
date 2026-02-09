@@ -1,8 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap');
+@import "tailwindcss";
 
 @layer base {
     :root {
@@ -72,20 +69,15 @@
 
 @layer components {
     .card {
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: var(--radius-lg);
-        backdrop-filter: blur(12px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: var(--color-neutral-800);
+        border: 1px solid var(--color-neutral-700);
+        border-radius: 0.75rem;
+        transition: all 0.2s;
     }
 
     .card-active {
         border-color: var(--color-accent-500);
         box-shadow: 0 0 0 1px var(--color-accent-500), 0 0 20px rgba(212, 248, 70, 0.1);
-    }
-
-    .card-hover {
-        @apply card;
     }
 
     .card-hover:hover {

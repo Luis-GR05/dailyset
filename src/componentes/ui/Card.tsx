@@ -6,11 +6,9 @@ interface CardProps {
 
 export default function Card({ children, className = '', hoverable = true }: CardProps) {
     return (
-        <>
-            <div className={`bg-neutral-800 rounded-xl border border-neutral-700${hoverable ? 'hover:border-neutral-600 transition-all duration-200' : ''}${className}`}>
-                {children}
-            </div>
-        </>
+        <div className={`card ${hoverable ? 'hover:border-neutral-500 ' : ''} ${className}`}>
+            {children}
+        </div>
     );
 }
 
