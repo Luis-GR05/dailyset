@@ -7,6 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
+<<<<<<< HEAD
+        brand: {
+          blue: '#2F31F5',
+          yellow: '#DBF059',
+=======
         // Mapeo directo a las variables CSS
         black: 'var(--color-black)',
         white: 'var(--color-white)',
@@ -34,6 +39,7 @@ export default {
         accent: {
           DEFAULT: 'var(--color-accent-500)',
           hover: 'var(--color-accent-hover)',
+>>>>>>> 9e3abd4cde766766c1e3c04d4dcfb76e5a0ab021
         }
       },
       fontFamily: {

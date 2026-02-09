@@ -1,4 +1,5 @@
-import { AppLayout, Button } from '../componentes';
+import { AppLayout } from '../componentes';
+import { Boton } from '../componentes/ui/Boton.tsx '
 
 export default function LandingPage() {
   return (
@@ -8,7 +9,7 @@ export default function LandingPage() {
         <p className="text-neutral-400 text-center mb-8">
           La app definitiva para tus entrenamientos de fuerza
         </p>
-        <Button variant="primary">Comenzar ahora</Button>
+        <Boton variant="primary">Comenzar ahora</Boton>
       </div>
     </AppLayout>
   );
