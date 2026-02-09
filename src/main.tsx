@@ -1,18 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-<<<<<<< HEAD
-import BarraLateral from './componentes/BarraLateral'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './styles/global.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BarraLateral />
-=======
-import { Login } from './paginas/Login'
+const rootElement = document.getElementById('root');
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Login />
->>>>>>> 9e3abd4cde766766c1e3c04d4dcfb76e5a0ab021
-  </StrictMode>,
-)
+if (!rootElement) {
+  throw new Error("No se encontró el elemento root. Revisa tu index.html");
+}
+
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
