@@ -1,7 +1,7 @@
 import FormularioRegistro from '../componentes/forms/FormularioRegistro';
 import Logo from '../componentes/Logo';
 
-export default function RegisterPage() {
+export default function RegistroPage() {
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md space-y-8 bg-neutral-800/20 p-8 rounded-3xl border border-white/5 backdrop-blur-xl">

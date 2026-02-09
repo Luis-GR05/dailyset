@@ -1,5 +1,5 @@
 import { AppLayout } from '../componentes';
-import { Boton } from '../componentes/ui/Boton.tsx '
+import { Boton } from '../componentes';
 
 export default function LandingPage() {
   return (
