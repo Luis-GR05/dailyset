@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -14,3 +15,17 @@ ReactDOM.createRoot(rootElement).render(
     <App />
   </React.StrictMode>
 );
+=======
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+
+// Importamos la página de Login  tu carpeta de páginas
+import { Login } from './paginas/Login'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Login />
+  </StrictMode>,
+)
+>>>>>>> 32f1c48342ab69bc6cfdb179f98bf1f650acf3b6
