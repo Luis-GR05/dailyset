@@ -2,7 +2,7 @@ import { AppLayout } from '../componentes';
 import Boton from '../componentes/ui/Boton';
 import Input from '../componentes/ui/Input';
 
-export default function ProfilePage() {
+export default function PerfilPage() {
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-10">

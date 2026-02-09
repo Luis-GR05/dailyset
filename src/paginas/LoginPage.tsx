@@ -1,6 +1,5 @@
 import { LoginForm } from "../componentes";
 import Logo from "../componentes/Logo";
-import { LoginForm } from "../componentes";
 
 export default function LoginPage() {
     return (

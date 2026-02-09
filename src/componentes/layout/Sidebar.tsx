@@ -4,9 +4,10 @@ export default function Sidebar() {
     const location = useLocation();
 
     const menuItems = [
-        { name: 'Dashboard', path: '/' },
+        { name: 'Dashboard', path: '/dashboard' },
         { name: 'Ejercicios', path: '/ejercicios' },
         { name: 'Progreso', path: '/progreso' },
+        { name: 'Perfil', path: '/perfil' },
     ];
 
     return (
