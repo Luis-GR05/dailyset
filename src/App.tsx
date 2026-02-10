@@ -10,7 +10,7 @@ import EjerciciosPage from './paginas/EjerciciosPage';
 import EjercicioDetallePage from './paginas/EjercicioDetallePage';
 import EstadisticasPage from './paginas/EstadisticasPage';
 import PerfilPage from './paginas/PerfilPage';
-import PerfilConfigPage from './paginas/PerfilConfigPage';
+import PerfilConfigPage from './paginas/PerfilConfig';
 
 function App() {
   return (
