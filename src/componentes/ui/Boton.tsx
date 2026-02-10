@@ -1,18 +1,25 @@
 interface BotonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
-    variant?: 'primary' | 'secondary' | 'outline';
+    variant?: "primary" | "secondary" | "outline";
 }
 
 export default function Boton({
     children,
-    variant = 'primary',
-    className = '',
+    variant = "primary",
+    className = "",
     ...props
 }: BotonProps) {
-    const variantClass = variant === 'primary' ? 'btn-primary' : variant === 'secondary' ? 'btn-secondary' : 'btn-outline';
+    const variants = {
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        outline: "border-2 border-white/10 text-white hover:bg-white/5",
+    };
 
     return (
-        <button className={`btn ${variantClass} ${className}`} {...props}>
+        <button
+            className={`btn ${variants[variant]} ${className}`}
+            {...props}
+        >
             {children}
         </button>
     );

@@ -1,36 +1,41 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
+import Logo from "../shared/Logo";
 
 export default function Sidebar() {
-    const location = useLocation();
+  const location = useLocation();
 
-    const menuItems = [
-        { name: 'Dashboard', path: '/dashboard' },
-        { name: 'Ejercicios', path: '/ejercicios' },
-        { name: 'Progreso', path: '/progreso' },
-        { name: 'Perfil', path: '/perfil' },
-    ];
+  const menuItems = [
+    { nombre: "Dashboard", ruta: "/dashboard" },
+    { nombre: "Mis rutinas", ruta: "/mis-rutinas" },
+    { nombre: "Historial", ruta: "/historial" },
+    { nombre: "Ejercicios", ruta: "/ejercicios" },
+    { nombre: "Estadísticas", ruta: "/estadisticas" },
+    { nombre: "Perfil", ruta: "/perfil" },
+  ];
 
-    return (
-        <aside className="w-64 bg-black border-r border-white/5 p-6 flex flex-col h-full">
-            <div className="mb-10 px-4">
-                <span className="text-xl font-black uppercase tracking-tighter italic">DailySet</span>
-            </div>
-            
-            <nav className="flex-1 space-y-2">
-                {menuItems.map((item) => (
-                    <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`block py-3 px-4 rounded-xl font-bold transition-all ${
-                            location.pathname === item.path 
-                            ? 'bg-accent text-black shadow-[0_0_15px_rgba(212,248,70,0.2)]' 
-                            : 'text-neutral-500 hover:text-white hover:bg-white/5'
-                        }`}
-                    >
-                        {item.name}
-                    </Link>
-                ))}
-            </nav>
-        </aside>
-    );
+  return (
+    <aside className="w-48 bg-black border-r border-white/5 p-6 flex flex-col h-full">
+      <div className="mb-8">
+        <Link to="/dashboard">
+          <Logo size="sm" />
+        </Link>
+      </div>
+
+      <nav className="flex-1 space-y-1">
+        {menuItems.map((item) => (
+          <Link
+            key={item.ruta}
+            to={item.ruta}
+            className={`block py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/")
+                ? "bg-[#DBF059] text-black"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            {item.nombre}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
 }
