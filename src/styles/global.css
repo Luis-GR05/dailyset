@@ -6,6 +6,9 @@
         --color-black: #050505;
         --color-white: #FFFFFF;
 
+        --color-brand-accent: #DBF059;
+        --color-brand-primary: #2F31F5;
+
         --color-neutral-700: #121212;
         --color-neutral-800: #262626;
         --color-neutral-900: #404040;
@@ -180,6 +183,27 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+    }
+
+    /* Scrollbar bonita global */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #404040;
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #525252;
+    }
+
+    /* Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #404040 transparent;
     }
 
     .scrollbar-hide::-webkit-scrollbar {
