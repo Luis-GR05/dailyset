@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-neutral-800 px-6 py-3">
+    <header className="sticky top-0 z-40 bg-black backdrop-blur-md border-b px-6 py-3 h-28">
       <div className="flex items-center justify-end max-w-7xl mx-auto">
         <Link to="/login">
           <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 transition-all text-sm">
