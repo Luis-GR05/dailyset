@@ -14,10 +14,10 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-48 bg-black border-r border-white/5 p-6 flex flex-col h-full">
+    <aside className="w-72 bg-black p-6 flex flex-col h-full">
       <div className="mb-8">
         <Link to="/dashboard">
-          <Logo size="sm" />
+          <Logo size="lg" />
         </Link>
       </div>
 
@@ -26,7 +26,7 @@ export default function Sidebar() {
           <Link
             key={item.ruta}
             to={item.ruta}
-            className={`block py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+            className={`block py-2 px-3 rounded-lg text-lg font-medium transition-all ${
               location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/")
                 ? "bg-[#DBF059] text-black"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
