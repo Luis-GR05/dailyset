@@ -41,16 +41,35 @@ export default function DashboardPage() {
         </div>
 
         <Card className="p-6" hoverable={false}>
-          <div className="flex items-center gap-8">
-            <div className="w-32 h-32 bg-neutral-800 rounded-full flex items-center justify-center">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-neutral-800 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="text-center">
-                <p className="text-white font-bold">Progreso</p>
-                <p className="text-white font-bold">Semanal</p>
+                <p className="text-white font-bold text-sm md:text-base">Progreso</p>
+                <p className="text-white font-bold text-sm md:text-base">Semanal</p>
               </div>
             </div>
 
+<<<<<<< HEAD
             <div className="flex-1 h-64">
               <ColumnChart data={diasSemana.map(d => ({ day: d.dia, volume: d.valor1 }))} />
+=======
+            <div className="flex-1 w-full flex items-end justify-around h-32 md:h-40 gap-2 md:gap-4">
+              {diasSemana.map((dia, index) => (
+                <div key={index} className="flex flex-col items-center gap-2">
+                  <div className="flex items-end gap-1 h-24 md:h-32">
+                    <div
+                      className="w-4 md:w-6 bg-[#DBF059] rounded-t"
+                      style={{ height: `${dia.valor1}%` }}
+                    ></div>
+                    <div
+                      className={`w-4 md:w-6 rounded-t ${dia.rojo ? "bg-red-500" : "bg-[#4361EE]"}`}
+                      style={{ height: `${dia.valor2 || 10}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-white font-bold text-xs md:text-base">{dia.dia}</span>
+                </div>
+              ))}
+>>>>>>> a15438fe85adee0d31f54bcead1227e49c79fcdc
             </div>
           </div>
         </Card>

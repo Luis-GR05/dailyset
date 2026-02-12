@@ -23,13 +23,13 @@ export default function MisRutinasPage() {
         <>
             <AppLayout>
                 <div className="space-y-6">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center justify-between">
                         <TituloPagina titulo="Mis Rutinas" />
                         <BotonPrimario>+ Crear Rutina</BotonPrimario>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                        <span className="text-white font-bold text-sm">Filtros:</span>
+                    <div className="flex items-center gap-4">
+                        <span className="text-white font-bold">Filtros:</span>
                         {filtros.map((filtro, index) => (
                             <FiltroBoton key={index} nombre={filtro.nombre} activo={filtro.activo} />
                         ))}

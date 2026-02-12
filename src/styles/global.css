@@ -41,6 +41,18 @@
         --radius-pill: 9999px;
     }
 
+    @media (prefers-color-scheme: light) {
+        :root {
+            --color-black: #FFFFFF; 
+            --color-white: #050505; 
+
+            --color-neutral-700: #F5F5F5; 
+            --color-neutral-800: #E5E5E5; 
+            --color-neutral-900: #D4D4D4;
+            
+        }
+    }
+
     * {
         margin: 0;
         padding: 0;
@@ -53,6 +65,7 @@
         background-color: var(--color-black);
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -60,9 +73,15 @@
         letter-spacing: -0.02em;
     }
 
-    h1 { font-size: 2.5rem; font-weight: 900; line-height: 1.1; }
-    h2 { font-size: 2rem; font-weight: 800; }
-    h3 { font-size: 1.5rem; font-weight: 700; }
+    h1 { font-size: 1.75rem; font-weight: 900; line-height: 1.1; }
+    h2 { font-size: 1.5rem; font-weight: 800; }
+    h3 { font-size: 1.25rem; font-weight: 700; }
+
+    @media (min-width: 768px) {
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+    }
 
     input, textarea, select {
         outline: none;
@@ -147,6 +166,9 @@
         border-radius: var(--radius-md);
         color: white;
         transition: all 0.2s;
+
+        color: var(--color-white); 
+    background-color: var(--color-neutral-700);
     }
 
     .input:focus {
