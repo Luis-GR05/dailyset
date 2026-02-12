@@ -46,11 +46,11 @@ export default function PerfilConfigPage() {
         <div className="space-y-4">
           <h3 className="text-neutral-400 text-xs uppercase tracking-wide">Seguridad</h3>
 
-          <div className="flex gap-4">
-            <button className="flex-1 bg-[#DBF059] text-black py-4 rounded-2xl font-bold hover:bg-[#c8dc42] transition-all">
+          <div className="flex flex-col md:flex-row gap-4">
+            <button className="flex-1 bg-[#DBF059] text-black py-3 md:py-4 rounded-2xl font-bold hover:bg-[#c8dc42] transition-all text-sm md:text-base">
               Cambiar contraseña
             </button>
-            <button className="flex-1 border-2 border-red-500 text-red-500 py-4 rounded-2xl font-bold hover:bg-red-500/10 transition-all border-dashed">
+            <button className="flex-1 border-2 border-red-500 text-red-500 py-3 md:py-4 rounded-2xl font-bold hover:bg-red-500/10 transition-all border-dashed text-sm md:text-base">
               Eliminar cuenta
             </button>
           </div>

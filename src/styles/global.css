@@ -60,9 +60,15 @@
         letter-spacing: -0.02em;
     }
 
-    h1 { font-size: 2.5rem; font-weight: 900; line-height: 1.1; }
-    h2 { font-size: 2rem; font-weight: 800; }
-    h3 { font-size: 1.5rem; font-weight: 700; }
+    h1 { font-size: 1.75rem; font-weight: 900; line-height: 1.1; }
+    h2 { font-size: 1.5rem; font-weight: 800; }
+    h3 { font-size: 1.25rem; font-weight: 700; }
+
+    @media (min-width: 768px) {
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+    }
 
     input, textarea, select {
         outline: none;

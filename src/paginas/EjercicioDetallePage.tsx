@@ -14,7 +14,7 @@ export default function EjercicioDetallePage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <TituloPagina titulo={ejercicio.nombre} />
           <BotonPrimario>+ Añadir a Rutina</BotonPrimario>
         </div>
