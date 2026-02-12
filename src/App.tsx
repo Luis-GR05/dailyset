@@ -1,24 +1,33 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './paginas/LoginPage';
-import RegistroPage from './paginas/RegistroPage';
-import DashboardPage from './paginas/DashboardPage';
-import EjerciciosPage from './paginas/EjerciciosPage';
-import ProgresoPage from './paginas/ProgresoPage';
 import LandingPage from './paginas/LandingPage';
+import LoginPage from './paginas/LoginPage';
+import DashboardPage from './paginas/DashboardPage';
+import MisRutinasPage from './paginas/MisRutinasPage';
+import EntrenamientoPage from './paginas/EntrenamientoPage';
+import HistorialPage from './paginas/HistorialPage';
+import HistorialDiaPage from './paginas/HistorialDiaPage';
+import EjerciciosPage from './paginas/EjerciciosPage';
+import EjercicioDetallePage from './paginas/EjercicioDetallePage';
+import EstadisticasPage from './paginas/EstadisticasPage';
 import PerfilPage from './paginas/PerfilPage';
+import PerfilConfigPage from './paginas/PerfilConfig';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/registro" element={<RegistroPage />} />
-
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/mis-rutinas" element={<MisRutinasPage />} />
+        <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
+        <Route path="/historial" element={<HistorialPage />} />
+        <Route path="/historial/:fecha" element={<HistorialDiaPage />} />
         <Route path="/ejercicios" element={<EjerciciosPage />} />
-        <Route path="/progreso" element={<ProgresoPage />} />
+        <Route path="/ejercicios/:id" element={<EjercicioDetallePage />} />
+        <Route path="/estadisticas" element={<EstadisticasPage />} />
         <Route path="/perfil" element={<PerfilPage />} />
+        <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
       </Routes>
     </Router>
   );

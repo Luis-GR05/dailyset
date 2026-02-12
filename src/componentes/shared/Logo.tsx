@@ -5,7 +5,7 @@ interface LogoProps {
 export default function Logo({ size = 'md' }: LogoProps) {
   const sizeClasses = {
     sm: 'text-base',
-    md: 'text-lg',
+    md: 'text-2xl',
     lg: 'text-4xl',
   };
 
