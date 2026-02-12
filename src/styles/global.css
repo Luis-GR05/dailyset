@@ -41,6 +41,18 @@
         --radius-pill: 9999px;
     }
 
+    @media (prefers-color-scheme: light) {
+        :root {
+            --color-black: #FFFFFF; 
+            --color-white: #050505; 
+
+            --color-neutral-700: #F5F5F5; 
+            --color-neutral-800: #E5E5E5; 
+            --color-neutral-900: #D4D4D4;
+            
+        }
+    }
+
     * {
         margin: 0;
         padding: 0;
@@ -53,6 +65,7 @@
         background-color: var(--color-black);
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -147,6 +160,9 @@
         border-radius: var(--radius-md);
         color: white;
         transition: all 0.2s;
+
+        color: var(--color-white); 
+    background-color: var(--color-neutral-700);
     }
 
     .input:focus {
