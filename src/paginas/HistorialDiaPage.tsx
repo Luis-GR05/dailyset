@@ -64,16 +64,16 @@ export default function HistorialDiaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/historial">
-            <button className="text-white hover:text-neutral-300 transition-all">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+          <Link to="/historial" className="self-start md:self-auto">
+            <button className="text-white hover:text-neutral-300 transition-all p-2 -ml-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           </Link>
-          <Card className="px-6 py-4 flex-1" hoverable={false}>
-            <h1 className="text-xl font-bold text-white text-center">Lunes, 24 de Enero, 2026</h1>
+          <Card className="px-6 py-4 flex-1 w-full" hoverable={false}>
+            <h1 className="text-lg md:text-xl font-bold text-white text-center">Lunes, 24 de Enero, 2026</h1>
           </Card>
         </div>
 

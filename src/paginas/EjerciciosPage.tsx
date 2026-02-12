@@ -25,19 +25,19 @@ export default function EjerciciosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <TituloPagina titulo="Ejercicios" />
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <Input
               type="text"
               placeholder="Buscar ejercicio..."
-              className="bg-neutral-900 border-neutral-800 rounded-2xl px-6 py-4"
+              className="bg-neutral-900 border-neutral-800 rounded-2xl px-4 py-3 md:px-6 md:py-4 w-full"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-white font-bold">Filtros:</span>
+        <div className="flex flex-wrap items-center gap-2 md:gap-4">
+          <span className="text-white font-bold text-sm">Filtros:</span>
           {filtros.map((filtro, index) => (
             <FiltroBoton key={index} nombre={filtro.nombre} activo={filtro.activo} />
           ))}
