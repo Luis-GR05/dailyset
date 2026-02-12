@@ -12,17 +12,17 @@ interface LineChartElementProps {
 
 export default function LineChartElement({ items, title }: LineChartElementProps) {
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+    <>
+      <h3 className="text-lg font-semibold mb-2 text-[var(--color-brand-accent)]">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={items}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-white)" />
+          <XAxis dataKey="name" stroke="var(--color-white)" />
+          <YAxis stroke="var(--color-white)" />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} />
+          <Line type="monotone" dataKey="value" stroke="var(--color-brand-accent)" strokeWidth={2} />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </>
   );
 }

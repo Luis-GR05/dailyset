@@ -16,7 +16,7 @@ export default function EstadisticasPage() {
                     <TituloPagina titulo="Progreso General" />
 
                     <Card className="p-6" hoverable={false}>
-                        <LineChartElement items={[{ name: "Ene", value: 20 }, { name: "Feb", value: 30 }, { name: "Mar", value: 40 }, { name: "Abr", value: 50 }]} title={"Estadísticas de Progreso"} />
+                        <LineChartElement items={[{ name: "Ene", value: 0 }, { name: "Feb", value: 30 }, { name: "Mar", value: 40 }, { name: "Abr", value: 50 }]} title={"Estadísticas de Progreso"} />
                     </Card>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
