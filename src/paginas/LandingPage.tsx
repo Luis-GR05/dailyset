@@ -38,7 +38,7 @@ export default function LandingPage() {
           <p className="text-center text-neutral-400 mb-14 max-w-lg mx-auto">
             Diseña tus rutinas y deja que la app gestione el entrenamiento por ti
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-6 text-center hover:border-[#DBF059]/30 transition-all">
               <div className="w-24 h-24 bg-neutral-700 rounded-xl mx-auto mb-4 flex items-center justify-center">
@@ -76,7 +76,7 @@ export default function LandingPage() {
       <section className="py-20 px-8">
         <div className="max-w-5xl mx-auto">
           <h3 className="text-center text-2xl font-display font-bold mb-14">Cómo funciona DailySet</h3>
-          
+
           <div className="flex flex-col md:flex-row items-center justify-center gap-8">
             <div className="flex flex-col items-center">
               <div className="w-14 h-14 bg-[#DBF059] text-black rounded-full flex items-center justify-center font-display font-black text-xl mb-4">
@@ -110,7 +110,7 @@ export default function LandingPage() {
         <div className="absolute -top-20 right-10 w-80 h-80 bg-[#DBF059]/20 blur-[120px] rounded-full"></div>
         <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-[#4361EE]/25 blur-[100px] rounded-full"></div>
         <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-[#DBF059]/10 blur-[80px] rounded-full"></div>
-        
+
         <div className="relative max-w-2xl mx-auto text-center bg-[#4361EE] rounded-3xl p-14">
           <h3 className="text-3xl md:text-4xl font-display font-black mb-4">
             Deja el papel en el pasado.
