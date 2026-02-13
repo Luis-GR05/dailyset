@@ -1,4 +1,6 @@
+import { Line } from "recharts";
 import { AppLayout, TituloPagina, CardEstadistica, Card } from "../componentes";
+import LineChartElement from "../componentes/charts/LineChartElement";
 
 export default function EstadisticasPage() {
     const estadisticas = [
@@ -14,17 +16,7 @@ export default function EstadisticasPage() {
                     <TituloPagina titulo="Progreso General" />
 
                     <Card className="p-6" hoverable={false}>
-                        <h3 className="text-[#DBF059] font-bold mb-4">Gráfica</h3>
-                        <div className="h-48">
-                            <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
-                                <path
-                                    d="M 0 100 Q 50 80, 100 60 T 200 40 T 300 70 T 400 50"
-                                    fill="none"
-                                    stroke="#DBF059"
-                                    strokeWidth="3"
-                                />
-                            </svg>
-                        </div>
+                        <LineChartElement items={[{ name: "Ene", value: 0 }, { name: "Feb", value: 30 }, { name: "Mar", value: 40 }, { name: "Abr", value: 50 }]} title={"Estadísticas de Progreso"} />
                     </Card>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
