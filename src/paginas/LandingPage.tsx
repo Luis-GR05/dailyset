@@ -39,11 +39,7 @@ export default function LandingPage() {
             Diseña tus rutinas y deja que la app gestione el entrenamiento por ti
           </p>
 
-<<<<<<< HEAD
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-=======
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
->>>>>>> a15438fe85adee0d31f54bcead1227e49c79fcdc
             <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-6 text-center hover:border-[#DBF059]/30 transition-all">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-neutral-700 rounded-xl mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 md:w-10 md:h-10 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,15 +75,9 @@ export default function LandingPage() {
 
       <section className="py-12 md:py-20 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
-<<<<<<< HEAD
-          <h3 className="text-center text-2xl font-display font-bold mb-14">Cómo funciona DailySet</h3>
-
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-=======
           <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-10 md:mb-14">Cómo funciona DailySet</h3>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
->>>>>>> a15438fe85adee0d31f54bcead1227e49c79fcdc
             <div className="flex flex-col items-center">
               <div className="w-14 h-14 bg-[#DBF059] text-black rounded-full flex items-center justify-center font-display font-black text-xl mb-4">
                 1
@@ -121,13 +111,8 @@ export default function LandingPage() {
         <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-[#4361EE]/25 blur-[100px] rounded-full"></div>
         <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-[#DBF059]/10 blur-[80px] rounded-full"></div>
 
-<<<<<<< HEAD
-        <div className="relative max-w-2xl mx-auto text-center bg-[#4361EE] rounded-3xl p-14">
-          <h3 className="text-3xl md:text-4xl font-display font-black mb-4">
-=======
         <div className="relative max-w-2xl mx-auto text-center bg-[#4361EE] rounded-3xl p-8 md:p-14">
           <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-black mb-4">
->>>>>>> a15438fe85adee0d31f54bcead1227e49c79fcdc
             Deja el papel en el pasado.
           </h3>
           <p className="text-white/80 mb-6 md:mb-8 text-sm md:text-base">
