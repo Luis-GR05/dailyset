@@ -8,7 +8,7 @@ interface CardProps {
 
 export default function Card({ children, className = '', hoverable = true }: CardProps) {
   return (
-    <div className={`bg-neutral-900 rounded-2xl border border-neutral-800 ${hoverable ? 'hover:border-neutral-600 transition-all' : ''} ${className}`}>
+    <div className={`card ${hoverable ? 'card-hover' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -61,11 +61,10 @@ interface CardMesProps {
 export function CardMes({ nombre, seleccionado }: CardMesProps) {
   return (
     <div
-      className={`bg-neutral-900 rounded-2xl p-6 border transition-all cursor-pointer text-center ${
-        seleccionado
+      className={`bg-neutral-900 rounded-2xl p-6 border transition-all cursor-pointer text-center ${seleccionado
           ? "border-[#DBF059]"
           : "border-neutral-800 hover:border-neutral-600"
-      }`}
+        }`}
     >
       <h3 className="font-bold text-white mb-4">{nombre}</h3>
       <div className="w-16 h-16 mx-auto border-2 border-neutral-600 rounded-xl flex items-center justify-center">
