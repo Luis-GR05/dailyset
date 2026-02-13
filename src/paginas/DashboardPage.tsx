@@ -1,4 +1,5 @@
 import { AppLayout, TituloPagina, Card } from "../componentes";
+import ColumnChart from "../componentes/charts/columnChart";
 
 export default function DashboardPage() {
   const rutinas = [
@@ -8,11 +9,13 @@ export default function DashboardPage() {
   ];
 
   const diasSemana = [
-    { dia: "L", valor1: 60, valor2: 40 },
-    { dia: "M", valor1: 80, valor2: 50 },
-    { dia: "X", valor1: 20, valor2: 0, rojo: true },
-    { dia: "J", valor1: 90, valor2: 70 },
-    { dia: "V", valor1: 50, valor2: 30 },
+    { dia: "L", valor1: 1860},
+    { dia: "M", valor1: 2380},
+    { dia: "X", valor1: 2220},
+    { dia: "J", valor1: 4590},
+    { dia: "V", valor1: 1250},
+    { dia: "S", valor1: 0},
+    { dia: "D", valor1: 6220},
   ];
 
   return (
@@ -37,31 +40,25 @@ export default function DashboardPage() {
           ))}
         </div>
 
+
         <Card className="p-6" hoverable={false}>
-          <div className="flex items-center gap-8">
-            <div className="w-32 h-32 bg-neutral-800 rounded-full flex items-center justify-center">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-neutral-800 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="text-center">
-                <p className="text-white font-bold">Progreso</p>
-                <p className="text-white font-bold">Semanal</p>
+                <p className="text-white font-bold text-sm md:text-base">Progreso</p>
+                <p className="text-white font-bold text-sm md:text-base">Semanal</p>
               </div>
             </div>
 
-            <div className="flex-1 flex items-end justify-around h-40 gap-4">
-              {diasSemana.map((dia, index) => (
-                <div key={index} className="flex flex-col items-center gap-2">
-                  <div className="flex items-end gap-1 h-32">
-                    <div
-                      className="w-6 bg-[#DBF059] rounded-t"
-                      style={{ height: `${dia.valor1}%` }}
-                    ></div>
-                    <div
-                      className={`w-6 rounded-t ${dia.rojo ? "bg-red-500" : "bg-[#4361EE]"}`}
-                      style={{ height: `${dia.valor2 || 10}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-white font-bold">{dia.dia}</span>
-                </div>
-              ))}
+            <div className="flex-1 w-full h-64 md:h-80">
+              <ColumnChart
+                data={diasSemana}
+                xAxisKey="dia"
+                bars={[
+                  { key: "valor1", color: "var(--color-brand-primary)", name: "Valor 1" },
+                ]}
+                height="100%"
+              />
             </div>
           </div>
         </Card>

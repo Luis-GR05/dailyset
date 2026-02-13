@@ -51,17 +51,17 @@ export default function EntrenamientoPage() {
         <>
             <AppLayout>
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Card className="px-6 py-3" hoverable={false}>
-                                <span className="text-white font-mono font-bold">00:15:21</span>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                            <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
+                                <span className="text-white font-mono font-bold text-sm md:text-base">00:15:21</span>
                             </Card>
-                            <Card className="px-6 py-3" hoverable={false}>
-                                <span className="text-white font-bold">Día de Empuje A</span>
+                            <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
+                                <span className="text-white font-bold text-sm md:text-base">Día de Empuje A</span>
                             </Card>
                         </div>
-                        <Link to="/mis-rutinas">
-                            <button className="bg-red-600 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-red-700 transition-all">
+                        <Link to="/mis-rutinas" className="w-full md:w-auto">
+                            <button className="w-full md:w-auto bg-red-600 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-red-700 transition-all">
                                 FINALIZAR
                             </button>
                         </Link>
@@ -69,16 +69,16 @@ export default function EntrenamientoPage() {
 
                     <div className="space-y-6">
                         {ejercicios.map((ejercicio) => (
-                            <Card key={ejercicio.id} className="p-6" hoverable={false}>
-                                <div className="flex items-center justify-between mb-6">
+                            <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
+                                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
                                     <div className="flex items-center gap-4">
                                         <ImagenPlaceholder size="sm" />
                                         <div>
-                                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
+                                            <h3 className="font-bold text-white text-base md:text-lg">{ejercicio.nombre}</h3>
                                             <p className="text-[#4361EE] text-sm cursor-pointer hover:underline">Ver historial</p>
                                         </div>
                                     </div>
-                                    <button className="text-red-500 hover:text-red-400 transition-all">
+                                    <button className="self-end md:self-auto text-red-500 hover:text-red-400 transition-all">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -86,9 +86,9 @@ export default function EntrenamientoPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="grid grid-cols-5 gap-4 px-4 py-2 text-neutral-400 text-sm">
+                                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-4 px-2 md:px-4 py-2 text-neutral-400 text-xs md:text-sm">
                                         <span></span>
-                                        <span>Anterior Serie</span>
+                                        <span className="hidden md:block">Anterior Serie</span>
                                         <span className="text-center">KG</span>
                                         <span className="text-center">Reps</span>
                                         <span></span>
@@ -97,19 +97,19 @@ export default function EntrenamientoPage() {
                                     {ejercicio.series.map((serie) => (
                                         <div
                                             key={serie.numero}
-                                            className="grid grid-cols-5 gap-4 items-center bg-neutral-800 rounded-xl px-4 py-3"
+                                            className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-4 items-center bg-neutral-800 rounded-xl px-2 md:px-4 py-3"
                                         >
-                                            <span className="text-[#DBF059] font-bold">{serie.numero}</span>
-                                            <span className="text-neutral-400">{serie.anterior}</span>
+                                            <span className="text-[#DBF059] font-bold text-sm">{serie.numero}</span>
+                                            <span className="hidden md:block text-neutral-400 text-sm">{serie.anterior}</span>
                                             <input
                                                 type="number"
                                                 defaultValue={serie.kg}
-                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none"
+                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-2 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none text-sm"
                                             />
                                             <input
                                                 type="number"
                                                 defaultValue={serie.reps}
-                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none"
+                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-2 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none text-sm"
                                             />
                                             <div className="flex justify-center">
                                                 <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
