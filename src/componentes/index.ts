@@ -16,3 +16,4 @@ export { default as ImagenPlaceholder } from './ui/ImagenPlaceholder';
 export { default as FiltroBoton } from './ui/FiltroBoton';
 export { default as Footer } from './Footer';
 export { default as LandingHeader } from './Header';
+export { default as MesCalendario } from './ui/MesCalendario';
