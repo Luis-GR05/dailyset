@@ -28,7 +28,7 @@ export default function DashboardPage() {
           {rutinas.map((rutina) => (
             <Link key={rutina.id} to="/mis-rutinas/entrenamiento" className="block">
               <Card
-                className={`p-6 h-full ${rutina.seleccionada ? "!border-[#DBF059]" : ""}`}
+                className={`p-6 h-full ${rutina.seleccionada ? "border-[#DBF059]" : ""}`}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-[#4361EE] rounded-full flex items-center justify-center">
