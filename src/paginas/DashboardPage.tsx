@@ -1,21 +1,22 @@
 import { AppLayout, TituloPagina, Card } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
+import { Link } from 'react-router-dom';
 
 export default function DashboardPage() {
   const rutinas = [
     { id: 1, nombre: "Rutina A", descripcion: "Pecho y tríceps", seleccionada: false },
-    { id: 2, nombre: "Rutina B", descripcion: "Espalda y bíceps", seleccionada: true },
+    { id: 2, nombre: "Rutina B", descripcion: "Espalda y bíceps", seleccionada: false },
     { id: 3, nombre: "Rutina C", descripcion: "Pierna", seleccionada: false },
   ];
 
   const diasSemana = [
-    { dia: "L", valor1: 1860},
-    { dia: "M", valor1: 2380},
-    { dia: "X", valor1: 2220},
-    { dia: "J", valor1: 4590},
-    { dia: "V", valor1: 1250},
-    { dia: "S", valor1: 0},
-    { dia: "D", valor1: 6220},
+    { dia: "L", valor1: 1860 },
+    { dia: "M", valor1: 2380 },
+    { dia: "X", valor1: 2220 },
+    { dia: "J", valor1: 4590 },
+    { dia: "V", valor1: 1250 },
+    { dia: "S", valor1: 0 },
+    { dia: "D", valor1: 6220 },
   ];
 
   return (
@@ -25,18 +26,20 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {rutinas.map((rutina) => (
-            <Card
-              key={rutina.id}
-              className={`p-6 ${rutina.seleccionada ? "!border-[#DBF059]" : ""}`}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[#4361EE] rounded-full"></div>
-                <div>
-                  <h3 className="font-bold text-white">{rutina.nombre}</h3>
-                  <p className="text-neutral-400 text-sm">{rutina.descripcion}</p>
+            <Link key={rutina.id} to="/mis-rutinas/entrenamiento" className="block">
+              <Card
+                className={`p-6 h-full ${rutina.seleccionada ? "!border-[#DBF059]" : ""}`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-[#4361EE] rounded-full flex items-center justify-center">
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">{rutina.nombre}</h3>
+                    <p className="text-neutral-400 text-sm">{rutina.descripcion}</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
 
