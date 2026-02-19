@@ -1,107 +1,111 @@
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
-import Logo from '../componentes/shared/Logo';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useRef } from "react";
+import { Link } from "react-router-dom";
+import Logo from "../componentes/shared/Logo";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import fondoLanding from "../assets/imagenes/fondoLanding.jpg";
+import mancuerna from "../assets/imagenes/mancuerna.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    const tl = gsap.timeline();
-    tl.from('.hero-content > *', {
-      y: 30,
-      opacity: 0,
-      duration: 1.2,
-      stagger: 0.15,
-      ease: 'power4.out'
-    });
-
-    gsap.to('.hero-icon', {
-      y: -15,
-      rotation: 5,
-      duration: 3,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    });
-
-    gsap.to('.btn-cta', {
-      scale: 1.05,
-      duration: 1.5,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    });
-
-    gsap.to('.bg-blob', {
-      x: "random(-50, 50)",
-      y: "random(-50, 50)",
-      scale: "random(0.8, 1.2)",
-      duration: "random(4, 8)",
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-      stagger: {
-        amount: 2,
-        from: "random"
-      }
-    });
-
-    const features = gsap.utils.toArray('.feature-card');
-    features.forEach((card: any, index) => {
-      gsap.from(card, {
-        scrollTrigger: {
-          trigger: card,
-          start: 'top 85%',
-          toggleActions: 'play none none reverse'
-        },
-        y: 50,
+  useGSAP(
+    () => {
+      const tl = gsap.timeline();
+      tl.from(".hero-animate", {
+        y: 30,
         opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        delay: index * 0.1
+        duration: 1.2,
+        stagger: 0.15,
+        ease: "power4.out",
       });
 
-      gsap.to(card, {
-        y: -5,
-        duration: 2,
+      gsap.to(".hero-icon", {
+        y: -15,
+        rotation: 5,
+        duration: 3,
         repeat: -1,
         yoyo: true,
-        ease: 'sine.inOut',
-        delay: index * 0.5
+        ease: "sine.inOut",
       });
-    });
 
-    gsap.from('.step-item', {
-      scrollTrigger: {
-        trigger: '.steps-section',
-        start: 'top 80%',
-        toggleActions: 'play none none reverse'
-      },
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2,
-      ease: 'back.out(1.7)'
-    });
+      gsap.to(".btn-cta", {
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
 
-    gsap.from('.cta-container', {
-      scrollTrigger: {
-        trigger: '.cta-section',
-        start: 'top 85%',
-        toggleActions: 'play none none reverse'
-      },
-      scale: 0.8,
-      opacity: 0,
-      duration: 1,
-      ease: 'elastic.out(1, 0.5)'
-    });
+      gsap.to(".bg-blob", {
+        x: "random(-50, 50)",
+        y: "random(-50, 50)",
+        scale: "random(0.8, 1.2)",
+        duration: "random(4, 8)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: {
+          amount: 2,
+          from: "random",
+        },
+      });
 
-  }, { scope: container });
+      const features = gsap.utils.toArray(".feature-card");
+      features.forEach((card: any, index) => {
+        gsap.from(card, {
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: index * 0.1,
+        });
+
+        gsap.to(card, {
+          y: -5,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: index * 0.5,
+        });
+      });
+
+      gsap.from(".step-item", {
+        scrollTrigger: {
+          trigger: ".steps-section",
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: "back.out(1.7)",
+      });
+
+      gsap.from(".cta-container", {
+        scrollTrigger: {
+          trigger: ".cta-section",
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+        scale: 0.8,
+        opacity: 0,
+        duration: 1,
+        ease: "elastic.out(1, 0.5)",
+      });
+    },
+    { scope: container },
+  );
 
   return (
     <div ref={container} className="min-h-screen bg-black text-white">
@@ -115,18 +119,29 @@ export default function LandingPage() {
       </header>
 
       <section className="hero-content relative flex flex-col items-center justify-center text-center py-20 md:py-32 lg:py-44 px-4 md:px-8 overflow-hidden">
-        <div className="hero-icon w-24 h-24 md:w-32 md:h-32 bg-neutral-800 rounded-2xl flex items-center justify-center mb-6 md:mb-8 mx-auto">
-          <svg className="w-12 h-12 md:w-16 md:h-16 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+        <div className="absolute inset-0 z-0">
+          <img
+            src={fondoLanding}
+            alt="Fondo Landing"
+            className="w-full h-full object-cover opacity-40"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black"></div>
         </div>
-        <h2 className="text-3xl md:text-5xl lg:text-7xl font-display font-black uppercase tracking-tight mb-4 md:mb-6">
+
+        <div className="hero-animate hero-icon w-48 h-48 md:w-64 md:h-64 flex items-center justify-center mb-6 md:mb-8 mx-auto relative z-10">
+          <img
+            src={mancuerna}
+            alt="Mancuerna"
+            className="w-full h-full object-contain drop-shadow-2xl"
+          ></img>
+        </div>
+        <h2 className="hero-animate text-3xl md:text-5xl lg:text-7xl font-display font-black uppercase tracking-tight mb-4 md:mb-6 relative z-10">
           DOMINA TU PROGRESO
         </h2>
-        <p className="text-neutral-400 text-base md:text-lg mb-8 md:mb-10 max-w-md px-4 mx-auto">
+        <p className="hero-animate text-neutral-400 text-base md:text-lg mb-8 md:mb-10 max-w-md px-4 mx-auto relative z-10">
           La app definitiva para tus entrenamientos de fuerza
         </p>
-        <Link to="/login">
+        <Link to="/login" className="hero-animate relative z-10">
           <button className="btn-cta bg-[#DBF059] text-black px-8 py-3 md:px-12 md:py-4 rounded-full font-display font-bold text-sm uppercase tracking-wide hover:bg-[#c8dc42] hover:scale-105 transition-all">
             Empezar
           </button>
@@ -135,40 +150,83 @@ export default function LandingPage() {
 
       <section className="features-section bg-[#121212] py-12 md:py-20 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
-          <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-3">Lo que nos hace diferente</h3>
+          <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-3">
+            Lo que nos hace diferente
+          </h3>
           <p className="text-center text-neutral-400 mb-10 md:mb-14 max-w-lg mx-auto text-sm md:text-base">
-            Diseña tus rutinas y deja que la app gestione el entrenamiento por ti
+            Diseña tus rutinas y deja que la app gestione el entrenamiento por
+            ti
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="feature-card bg-neutral-800 border border-neutral-700 rounded-2xl p-6 text-center hover:border-[#DBF059]/30 transition-all">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-neutral-700 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-neutral-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
-              <h4 className="font-bold text-white mb-2">Sin Plantillas Rígidas</h4>
-              <p className="text-neutral-400 text-sm">Crea rutinas 100% personalizadas</p>
+              <h4 className="font-bold text-white mb-2">
+                Sin Plantillas Rígidas
+              </h4>
+              <p className="text-neutral-400 text-sm">
+                Crea rutinas 100% personalizadas
+              </p>
             </div>
 
             <div className="feature-card bg-neutral-800 border-2 border-[#DBF059] rounded-2xl p-6 text-center">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-neutral-700 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-neutral-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
-              <h4 className="font-bold text-white mb-2">Sobrecarga Progresiva</h4>
-              <p className="text-neutral-400 text-sm">Seguimiento automático de tu progreso</p>
+              <h4 className="font-bold text-white mb-2">
+                Sobrecarga Progresiva
+              </h4>
+              <p className="text-neutral-400 text-sm">
+                Seguimiento automático de tu progreso
+              </p>
             </div>
 
             <div className="feature-card bg-neutral-800 border border-neutral-700 rounded-2xl p-6 text-center hover:border-[#DBF059]/30 transition-all">
               <div className="w-20 h-20 md:w-24 md:h-24 bg-neutral-700 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-neutral-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
               <h4 className="font-bold text-white mb-2">Rápido y Offline</h4>
-              <p className="text-neutral-400 text-sm">Funciona sin conexión a internet</p>
+              <p className="text-neutral-400 text-sm">
+                Funciona sin conexión a internet
+              </p>
             </div>
           </div>
         </div>
@@ -176,7 +234,9 @@ export default function LandingPage() {
 
       <section className="steps-section py-12 md:py-20 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
-          <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-10 md:mb-14">Cómo funciona DailySet</h3>
+          <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-10 md:mb-14">
+            Cómo funciona DailySet
+          </h3>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
             <div className="step-item flex flex-col items-center">
