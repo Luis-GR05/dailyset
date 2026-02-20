@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HistorialProvider } from './context/HistorialContext';
 import LandingPage from './paginas/LandingPage';
 import LoginPage from './paginas/LoginPage';
 import DashboardPage from './paginas/DashboardPage';
@@ -14,22 +15,24 @@ import PerfilConfigPage from './paginas/PerfilConfig';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/mis-rutinas" element={<MisRutinasPage />} />
-        <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
-        <Route path="/historial" element={<HistorialPage />} />
-        <Route path="/historial/:fecha" element={<HistorialDiaPage />} />
-        <Route path="/ejercicios" element={<EjerciciosPage />} />
-        <Route path="/ejercicios/:id" element={<EjercicioDetallePage />} />
-        <Route path="/estadisticas" element={<EstadisticasPage />} />
-        <Route path="/perfil" element={<PerfilPage />} />
-        <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
-      </Routes>
-    </Router>
+    <HistorialProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/mis-rutinas" element={<MisRutinasPage />} />
+          <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
+          <Route path="/historial" element={<HistorialPage />} />
+          <Route path="/historial/:fecha" element={<HistorialDiaPage />} />
+          <Route path="/ejercicios" element={<EjerciciosPage />} />
+          <Route path="/ejercicios/:id" element={<EjercicioDetallePage />} />
+          <Route path="/estadisticas" element={<EstadisticasPage />} />
+          <Route path="/perfil" element={<PerfilPage />} />
+          <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
+        </Routes>
+      </Router>
+    </HistorialProvider>
   );
 }
 
