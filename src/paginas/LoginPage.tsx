@@ -74,10 +74,12 @@ export default function LoginPage() {
                 <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 focus:border-[#DBF059]/50 rounded-2xl py-5 transition-all" />
               </div>
 
-              <button className="group relative w-full overflow-hidden bg-[#DBF059] text-black font-black py-5 rounded-2xl transition-all hover:pr-8 active:scale-95 shadow-[0_15px_30px_rgba(219,240,89,0.15)]">
-                <span className="relative z-10">INICIAR SESIÓN</span>
-                <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
-              </button>
+           <Link to="/dashboard" className="block pt-2">
+  <button className="group relative w-full overflow-hidden bg-[#DBF059] text-black font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 shadow-[0_15px_30px_rgba(219,240,89,0.3)] uppercase text-sm tracking-widest italic">
+    <span className="relative z-10">INICIAR SESIÓN</span>
+    <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+  </button>
+</Link>
             </form>
 
             <div className="text-center mt-10">
