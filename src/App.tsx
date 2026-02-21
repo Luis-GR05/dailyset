@@ -11,6 +11,7 @@ import EjercicioDetallePage from './paginas/EjercicioDetallePage';
 import EstadisticasPage from './paginas/EstadisticasPage';
 import PerfilPage from './paginas/PerfilPage';
 import PerfilConfigPage from './paginas/PerfilConfig';
+import RegistroPage from './paginas/RegistroPage';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+                <Route path="/registro" element={<RegistroPage />} />
+
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/mis-rutinas" element={<MisRutinasPage />} />
         <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
