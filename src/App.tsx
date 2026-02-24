@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HistorialProvider } from './context/HistorialContext';
 import LandingPage from './paginas/LandingPage';
 import LoginPage from './paginas/LoginPage';
 import DashboardPage from './paginas/DashboardPage';
@@ -19,8 +20,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-                <Route path="/registro" element={<RegistroPage />} />
-
+        <Route path="/registro" element={<RegistroPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/mis-rutinas" element={<MisRutinasPage />} />
         <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
