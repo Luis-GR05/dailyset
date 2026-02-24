@@ -25,12 +25,10 @@ export default function PerfilPage() {
     <AppLayout>
       <div className="space-y-4 pb-10">
         
-        {/* CONTENEDOR PRINCIPAL: Ahora con rounded-2xl (Mucho menos redondo) */}
         <div className="relative overflow-hidden bg-neutral-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-xl">
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#DBF059]/5 blur-[80px] rounded-full"></div>
           
           <div className="relative z-10 flex flex-col items-center md:flex-row md:items-end gap-6">
-            {/* Foto de perfil: Mantenemos el círculo solo aquí por estética de usuario */}
             <div className="w-24 h-24 rounded-full border-2 border-white/5 p-1">
               <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center border border-[#DBF059]">
                  <span className="text-3xl font-black text-white italic tracking-tighter uppercase">JP</span>
@@ -45,7 +43,6 @@ export default function PerfilPage() {
                 {usuario.nombre}
               </h1>
               
-              {/* Barra de progreso técnica y recta */}
               <div className="w-full max-w-xs h-1 bg-white/5 overflow-hidden">
                 <div 
                   className="h-full bg-[#DBF059]"
@@ -55,7 +52,6 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* Stats con divisores rectos */}
           <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-white/5">
              {usuario.stats.map((stat, i) => (
                <div key={i} className="text-center border-r border-white/5 last:border-r-0">
@@ -66,7 +62,6 @@ export default function PerfilPage() {
           </div>
         </div>
 
-        {/* CONTENEDOR DE OPCIONES: También rounded-2xl para total uniformidad */}
         <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl space-y-1">
           {opciones.map((opcion, index) => (
             <Link key={index} to={opcion.ruta || "#"} className="group block">
