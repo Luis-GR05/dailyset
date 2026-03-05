@@ -5,7 +5,7 @@ import DotGrid from '../componentes/FondoAnimado';
 export default function LoginPage() {
   return (
     <div className="relative min-h-screen w-full flex overflow-hidden bg-[#0a0a0a]">
-      
+
       <div className="fixed inset-0 z-0 pointer-events-none">
         <DotGrid
           dotSize={4} gap={20} baseColor="#271E37" activeColor="#5227FF"
@@ -14,17 +14,17 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="fixed inset-0 z-0 opacity-30 pointer-events-none" 
-           style={{ background: 'radial-gradient(circle at 20% 50%, #5227FF 0%, transparent 50%)' }}>
+      <div className="fixed inset-0 z-0 opacity-30 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at 20% 50%, #5227FF 0%, transparent 50%)' }}>
       </div>
 
       <div className="relative z-10 flex w-full min-h-screen">
-        
+
         <div className="hidden md:flex flex-1 flex-col items-center justify-center p-12 relative">
-          
+
           <div className="absolute top-1/4 translate-y-[-100px] flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md animate-bounce-slow">
             <div className="flex -space-x-2">
-              {[1,2,3].map(i => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0a0a0a] bg-neutral-800" />
               ))}
             </div>
@@ -33,13 +33,15 @@ export default function LoginPage() {
 
           <div className="text-center group">
             <Logo size="xl" className="transition-transform duration-500 group-hover:scale-105" />
-            
+
             <div className="mt-6 flex items-center justify-center gap-4">
-              <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-[#DBF059]"></div>
-              <p className="text-[#DBF059] font-black tracking-[0.4em] text-xs uppercase italic">
+              <div className="h-[1px] w-8 bg-gradient-to-r from-transparent"
+                style={{ borderImage: 'linear-gradient(to right, transparent, var(--color-primary)) 1' }}></div>
+              <p className="font-black tracking-[0.4em] text-xs uppercase italic"
+                style={{ color: 'var(--color-primary)' }}>
                 Domina tu progreso
               </p>
-              <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-[#DBF059]"></div>
+              <div className="h-[1px] w-8"></div>
             </div>
           </div>
 
@@ -49,7 +51,7 @@ export default function LoginPage() {
               <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Enfoque</p>
             </div>
             <div>
-              <p className="text-[#DBF059] font-black text-xl italic">∞</p>
+              <p className="font-black text-xl italic" style={{ color: 'var(--color-primary)' }}>∞</p>
               <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Consistencia</p>
             </div>
           </div>
@@ -59,42 +61,74 @@ export default function LoginPage() {
           <div className="w-full max-w-md bg-neutral-900/60 backdrop-blur-2xl rounded-[40px] p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-black text-white mb-2 italic">BIENVENIDO</h2>
-              <div className="h-1 w-12 bg-[#DBF059] mx-auto rounded-full mb-4"></div>
+              <div className="h-1 w-12 mx-auto rounded-full mb-4"
+                style={{ backgroundColor: 'var(--color-primary)' }}></div>
               <p className="text-neutral-400 text-sm">Tu próximo set empieza aquí</p>
             </div>
 
             <form className="space-y-5">
               <div className="space-y-2">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Email</span>
-                <Input type="email" placeholder="atleta@dailyset.com" className="bg-white/5 border-white/5 focus:border-[#DBF059]/50 rounded-2xl py-5 transition-all" />
+                <Input type="email" placeholder="atleta@dailyset.com" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
+                  style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties} />
               </div>
-              
+
               <div className="space-y-2 pb-2">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Contraseña</span>
-                <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 focus:border-[#DBF059]/50 rounded-2xl py-5 transition-all" />
+                <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all" />
               </div>
 
-           <Link to="/dashboard" className="block pt-2">
-  <button className="group relative w-full overflow-hidden bg-[#DBF059] text-black font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 shadow-[0_15px_30px_rgba(219,240,89,0.3)] uppercase text-sm tracking-widest italic">
-    <span className="relative z-10">INICIAR SESIÓN</span>
-    <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
-  </button>
-</Link>
+              <Link to="/dashboard" className="block pt-2">
+                <button
+                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    boxShadow: '0 15px 30px var(--color-primary-glow)',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
+                  }}
+                >
+                  <span className="relative z-10">INICIAR SESIÓN</span>
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+                </button>
+              </Link>
             </form>
 
-            <div className="text-center mt-10">
+            <div className="text-center mt-8">
               <p className="text-neutral-500 text-sm">
                 ¿Nuevo en DailySet?{' '}
-                <Link to="/registro" className="text-white font-black hover:text-[#DBF059] transition-colors ml-1 uppercase text-xs tracking-wider">
+                <Link to="/registro" className="font-black hover:text-white transition-colors ml-1 uppercase text-xs tracking-wider"
+                  style={{ color: 'var(--color-accent)' }}>
                   Únete a la élite
                 </Link>
               </p>
+            </div>
+
+            {/* Botón volver a la landing */}
+            <div className="text-center mt-6">
+              <Link
+                to="/"
+                className="text-neutral-600 text-[10px] uppercase font-bold tracking-[0.2em] transition-colors"
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = '';
+                }}
+              >
+                ← Volver al inicio
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes bounce-slow {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }

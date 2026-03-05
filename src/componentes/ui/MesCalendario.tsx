@@ -30,10 +30,10 @@ export default function MesCalendario({ mes, anio, entrenamientos, onDiaClick }:
                             onClick={entrenado && onDiaClick ? (e) => { e.stopPropagation(); onDiaClick(dia); } : undefined}
                             className={`flex flex-col items-center ${entrenado && onDiaClick ? 'cursor-pointer' : ''}`}
                         >
-                            <span className={`text-sm ${entrenado
-                                ? 'text-white font-bold border-b-2 border-[#DBF059] pb-0.5'
-                                : 'text-neutral-500'
-                                }`}>
+                            <span
+                                className={`text-sm ${entrenado ? 'text-white font-bold pb-0.5' : 'text-neutral-500'}`}
+                                style={entrenado ? { borderBottom: '2px solid var(--color-primary)' } : {}}
+                            >
                                 {dia}
                             </span>
                         </div>

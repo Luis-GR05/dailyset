@@ -31,12 +31,12 @@ export default function EjercicioDetallePage() {
 
           <div className="space-y-6">
             <Card className="p-6" hoverable={false}>
-              <h3 className="text-[#DBF059] font-bold mb-2">Descripción</h3>
+              <h3 className="font-bold mb-2" style={{ color: 'var(--color-primary)' }}>Descripción</h3>
               <p className="text-neutral-300 text-sm">{ejercicio.descripcion}</p>
             </Card>
 
             <Card className="p-6" hoverable={false}>
-              <h3 className="text-[#DBF059] font-bold mb-4">Progreso</h3>
+              <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>Progreso</h3>
               <div className="relative h-32">
                 <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-neutral-400 text-xs">
                   <span>kg</span>
@@ -49,7 +49,7 @@ export default function EjercicioDetallePage() {
                   <svg className="w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
                     <polyline
                       fill="none"
-                      stroke="#4361EE"
+                      stroke="var(--color-accent)"
                       strokeWidth="2"
                       points="0,80 50,70 100,60 150,40 200,45"
                     />
@@ -67,7 +67,7 @@ export default function EjercicioDetallePage() {
         </div>
 
         <Card className="p-6" hoverable={false}>
-          <h3 className="text-[#DBF059] font-bold mb-4">Historial</h3>
+          <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>Historial</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <span className="text-neutral-400 font-bold">Fecha</span>
             <span className="text-neutral-400 font-bold">Peso</span>

@@ -9,7 +9,8 @@ export default function Loading() {
         </div>
         <p className="text-neutral-300">Cargando...</p>
         <div className="mt-8">
-          <div className="w-8 h-8 border-2 border-[#DBF059] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto"
+            style={{ borderColor: 'var(--color-primary) transparent transparent transparent' }}></div>
         </div>
       </div>
     </div>

@@ -62,9 +62,10 @@ export function CardMes({ nombre, seleccionado }: CardMesProps) {
   return (
     <div
       className={`bg-neutral-900 rounded-2xl p-6 border transition-all cursor-pointer text-center ${seleccionado
-          ? "border-[#DBF059]"
-          : "border-neutral-800 hover:border-neutral-600"
+        ? ""
+        : "border-neutral-800 hover:border-neutral-600"
         }`}
+      style={seleccionado ? { borderColor: 'var(--color-primary)' } : {}}
     >
       <h3 className="font-bold text-white mb-4">{nombre}</h3>
       <div className="w-16 h-16 mx-auto border-2 border-neutral-600 rounded-xl flex items-center justify-center">
@@ -82,11 +83,11 @@ interface CardEstadisticaProps {
   color?: string;
 }
 
-export function CardEstadistica({ titulo, valor, color = "text-[#4361EE]" }: CardEstadisticaProps) {
+export function CardEstadistica({ titulo, valor, color }: CardEstadisticaProps) {
   return (
     <Card className="p-6 text-center" hoverable={false}>
       <p className="text-neutral-400 text-sm mb-2">{titulo}</p>
-      <p className={`text-3xl font-bold ${color}`}>{valor}</p>
+      <p className={`text-3xl font-bold ${color || ''}`} style={!color ? { color: 'var(--color-primary)' } : {}}>{valor}</p>
     </Card>
   );
 }

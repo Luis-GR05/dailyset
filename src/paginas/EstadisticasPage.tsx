@@ -9,9 +9,9 @@ export default function EstadisticasPage() {
     ];
 
     const dataGrafico = [
-        { name: "Ene", value: 1 }, { name: "Feb", value: 13 }, { name: "Mar", value: 20 }, 
-        { name: "Abr", value: 23 }, { name: "May", value: 19 }, { name: "Jun", value: 11 }, 
-        { name: "Jul", value: 2 }, { name: "Ago", value: 1 }, { name: "Sep", value: 4 }, 
+        { name: "Ene", value: 1 }, { name: "Feb", value: 13 }, { name: "Mar", value: 20 },
+        { name: "Abr", value: 23 }, { name: "May", value: 19 }, { name: "Jun", value: 11 },
+        { name: "Jul", value: 2 }, { name: "Ago", value: 1 }, { name: "Sep", value: 4 },
         { name: "Oct", value: 18 }, { name: "Nov", value: 16 }, { name: "Dic", value: 6 }
     ];
 
@@ -41,7 +41,7 @@ export default function EstadisticasPage() {
                 </div>
 
                 <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-xl">
-                    <h3 className="text-white font-black italic text-sm uppercase mb-6 tracking-widest border-l-2 border-[#DBF059] pl-4">
+                    <h3 className="text-white font-black italic text-sm uppercase mb-6 tracking-widest pl-4" style={{ borderLeft: '2px solid var(--color-primary)' }}>
                         Análisis de Rendimiento
                     </h3>
                     <div className="space-y-4">
@@ -54,7 +54,7 @@ export default function EstadisticasPage() {
                                 <span className="text-neutral-500 text-[10px] font-black uppercase tracking-widest italic">
                                     {item.label}
                                 </span>
-                                <span className="text-[#DBF059] font-black italic text-lg tracking-tighter">
+                                <span className="font-black italic text-lg tracking-tighter" style={{ color: 'var(--color-primary)' }}>
                                     {item.value}
                                 </span>
                             </div>
