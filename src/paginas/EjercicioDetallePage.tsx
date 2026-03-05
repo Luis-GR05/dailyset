@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
+import LineChartElement from '../componentes/charts/LineChartElement';
 
 export default function EjercicioDetallePage() {
   const ejercicio = {
@@ -8,8 +9,17 @@ export default function EjercicioDetallePage() {
   };
 
   const historial = [
-    { fecha: "28 Enero", peso: "80 kg", reps: 8 },
+    { fecha: "29 Enero", peso: 80, reps: 5 },
+    { fecha: "18 Marzo", peso: 95, reps: 6 },
+    { fecha: "7 Junio", peso: 110, reps: 8 },
+    { fecha: "14 Septiembre", peso: 135, reps: 6 },
+    { fecha: "23 Diciembre", peso: 145, reps: 8 },
   ];
+
+  const datosResumen = historial.map((item) => ({
+    name: item.fecha,
+    value: item.peso,
+  }));
 
   return (
     <AppLayout>
@@ -36,32 +46,13 @@ export default function EjercicioDetallePage() {
             </Card>
 
             <Card className="p-6" hoverable={false}>
-              <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>Progreso</h3>
-              <div className="relative h-32">
-                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-neutral-400 text-xs">
-                  <span>kg</span>
-                  <span>160</span>
-                  <span>120</span>
-                  <span>80</span>
-                  <span>40</span>
-                </div>
-                <div className="ml-8 h-full">
-                  <svg className="w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
-                    <polyline
-                      fill="none"
-                      stroke="var(--color-accent)"
-                      strokeWidth="2"
-                      points="0,80 50,70 100,60 150,40 200,45"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-8 flex justify-between text-neutral-400 text-xs mt-2">
-                  <span>1 Ene</span>
-                  <span>21 Ene</span>
-                  <span>21 Feb</span>
-                  <span>21 Mar</span>
-                </div>
-              </div>
+              <LineChartElement
+                items={datosResumen}
+                title="Progreso de peso (kg)"
+                height={120}
+                showGrid={false}
+                lineColor="#ff9900"
+              />
             </Card>
           </div>
         </div>
@@ -75,7 +66,7 @@ export default function EjercicioDetallePage() {
             {historial.map((item, index) => (
               <React.Fragment key={index}>
                 <span className="text-white">{item.fecha}</span>
-                <span className="text-white">{item.peso}</span>
+                <span className="text-white">{item.peso} kg</span>
                 <span className="text-white">{item.reps}</span>
               </React.Fragment>
             ))}
