@@ -1,69 +1,110 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from "../componentes";
 
 export default function PerfilPage() {
+  const navigate = useNavigate();
+
   const usuario = {
-    nombre: "Juan Pérez",
-    nivel: "Nivel 15 - Atleta",
+    nombre: "JUAN PÉREZ",
+    nivel: "NIVEL 15",
+    rango: "ATLETA DE ÉLITE",
     progreso: 70,
+    stats: [
+      { etiqueta: "SETS TOTALES", valor: "1,240" },
+      { etiqueta: "RACHA", valor: "12 DÍAS" },
+      { etiqueta: "PESO TOTAL", valor: "45T" },
+    ]
   };
 
   const opciones = [
-    { nombre: "Configuración de Cuenta", ruta: "/perfil/configuracion", flecha: true },
-    { nombre: "Mis Logros / Trofeos", ruta: null, flecha: false },
-    { nombre: "Cerrar Sesión", ruta: "/login", esRojo: true },
+    { nombre: "CONFIGURACIÓN DE CUENTA", ruta: "/perfil/configuracion", flecha: true },
+    { nombre: "LOGROS Y TROFEOS", ruta: "/perfil/logros", flecha: true },
+    { nombre: "HISTORIAL DE SESIONES", ruta: "/perfil/historial", flecha: true },
+    { nombre: "CERRAR SESIÓN", ruta: null, esRojo: true },
   ];
+
+  const handleAction = (opcion: typeof opciones[0]) => {
+    if (opcion.esRojo) {
+      if (confirm("¿Cerrar sesión en DailySet Elite?")) {
+        navigate("/login");
+      }
+      return;
+    }
+    if (opcion.ruta) {
+      navigate(opcion.ruta);
+    }
+  };
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col items-center py-8">
-          <div className="relative mb-4">
-            <div className="w-28 h-28 bg-neutral-200 rounded-full flex items-center justify-center">
-              <svg className="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+      <div className="space-y-4 pb-10 max-w-4xl mx-auto">
+        
+        <div className="relative overflow-hidden bg-neutral-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-xl">
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#DBF059]/5 blur-[100px] rounded-full"></div>
+          
+          <div className="relative z-10 flex flex-col items-center md:flex-row md:items-end gap-8">
+            <div className="w-28 h-28 rounded-full border-2 border-white/5 p-1">
+              <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center border border-[#DBF059]">
+                 <span className="text-3xl font-black text-white italic tracking-tighter uppercase">JP</span>
+              </div>
             </div>
-            <div className="absolute bottom-2 right-2 w-4 h-4 bg-[#DBF059] rounded-full border-2 border-black"></div>
+
+            <div className="text-center md:text-left flex-1">
+              <p className="text-[#DBF059] font-black text-[10px] tracking-[0.4em] uppercase mb-1 italic">
+                {usuario.rango}
+              </p>
+              <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-4 leading-none">
+                {usuario.nombre}
+              </h1>
+              
+              <div className="w-full max-w-sm h-1 bg-white/5 overflow-hidden">
+                <div 
+                  className="h-full bg-[#DBF059] shadow-[0_0_15px_rgba(219,240,89,0.3)]"
+                  style={{ width: `${usuario.progreso}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-white">{usuario.nombre}</h2>
-          <p className="text-neutral-400 text-sm">{usuario.nivel}</p>
-
-          <div className="w-64 mt-4">
-            <div className="h-2 bg-neutral-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#DBF059] to-[#4361EE] rounded-full"
-                style={{ width: `${usuario.progreso}%` }}
-              ></div>
-            </div>
+          <div className="grid grid-cols-3 gap-2 mt-10 pt-8 border-t border-white/10">
+             {usuario.stats.map((stat, i) => (
+               <div key={i} className="text-center border-r border-white/5 last:border-r-0">
+                 <p className="text-white font-black text-xl italic leading-none">{stat.valor}</p>
+                 <p className="text-neutral-500 text-[8px] font-bold uppercase tracking-[0.2em] mt-2 italic">{stat.etiqueta}</p>
+               </div>
+             ))}
           </div>
         </div>
 
-        <div className="space-y-2">
-          {opciones.map((opcion, index) => (
-            opcion.ruta ? (
-              <Link key={index} to={opcion.ruta}>
-                <div className={`bg-neutral-900 rounded-2xl px-6 py-4 border border-neutral-800 flex items-center justify-between hover:border-neutral-600 transition-all cursor-pointer ${
-                  opcion.esRojo ? 'mt-4' : ''
-                }`}>
-                  <span className={opcion.esRojo ? 'text-red-500' : 'text-white'}>
+        <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl">
+          <div className="space-y-1">
+            {opciones.map((opcion, index) => (
+              <button 
+                key={index} 
+                onClick={() => handleAction(opcion)}
+                className="w-full group block"
+              >
+                <div className={`
+                  flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-200
+                  ${opcion.esRojo 
+                    ? 'bg-red-500/5 hover:bg-red-500/10' 
+                    : 'hover:bg-white/5'
+                  }
+                `}>
+                  <span className={`font-black text-[11px] italic tracking-[0.15em] uppercase ${opcion.esRojo ? 'text-red-500' : 'text-zinc-300'}`}>
                     {opcion.nombre}
                   </span>
                   {opcion.flecha && (
-                    <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <span className="text-[#DBF059] text-sm font-black opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                      →
+                    </span>
                   )}
                 </div>
-              </Link>
-            ) : (
-              <div key={index} className="bg-neutral-900 rounded-2xl px-6 py-4 border border-neutral-800 flex items-center justify-between hover:border-neutral-600 transition-all cursor-pointer">
-                <span className="text-white">{opcion.nombre}</span>
-              </div>
-            )
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
+
       </div>
     </AppLayout>
   );

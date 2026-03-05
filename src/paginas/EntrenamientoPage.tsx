@@ -1,131 +1,143 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
+import { RUTINAS_DATA } from '../data/rutinas';
+
+interface Serie {
+  numero: number;
+  anterior: string;
+  kg: number;
+  reps: number;
+  completada: boolean;
+}
+
+interface Ejercicio {
+  id: number;
+  nombre: string;
+  series: Serie[];
+}
 
 export default function EntrenamientoPage() {
-    const ejercicios = [
-        {
-            id: 1,
-            nombre: "Press de Banca",
-            series: [
-                { numero: 1, anterior: "50KG x 12", kg: 45, reps: 15, completada: true },
-                { numero: 2, anterior: "50KG x 12", kg: 45, reps: 20, completada: true },
-                { numero: 3, anterior: "50KG x 10", kg: 50, reps: 10, completada: true },
-            ],
-        },
-        {
-            id: 2,
-            nombre: "Press Inclinado",
-            series: [
-                { numero: 1, anterior: "40KG x 10", kg: 40, reps: 12, completada: true },
-                { numero: 2, anterior: "40KG x 10", kg: 42, reps: 10, completada: true },
-            ],
-        },
-        {
-            id: 3,
-            nombre: "Aperturas con Mancuernas",
-            series: [
-                { numero: 1, anterior: "14KG x 12", kg: 14, reps: 15, completada: true },
-                { numero: 2, anterior: "14KG x 12", kg: 16, reps: 12, completada: false },
-            ],
-        },
-        {
-            id: 4,
-            nombre: "Extensión de Tríceps",
-            series: [
-                { numero: 1, anterior: "20KG x 12", kg: 20, reps: 15, completada: true },
-                { numero: 2, anterior: "20KG x 12", kg: 22, reps: 12, completada: false },
-                { numero: 3, anterior: "20KG x 10", kg: 22, reps: 10, completada: false },
-            ],
-        },
-        {
-            id: 5,
-            nombre: "Press Francés",
-            series: [
-                { numero: 1, anterior: "25KG x 10", kg: 25, reps: 10, completada: false },
-                { numero: 2, anterior: "25KG x 10", kg: 25, reps: 8, completada: false },
-            ],
-        },
-    ];
+    const location = useLocation();
+    
+    const nombreRutina = location.state?.nombre || "Día de Empuje A";
+
+    const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
+
+    useEffect(() => {
+        const datos = RUTINAS_DATA[nombreRutina];
+        if (datos) {
+            setEjercicios(datos);
+        } else {
+            setEjercicios([]); 
+        }
+    }, [nombreRutina]);
+
+    const toggleSerie = (ejercicioId: number, serieNumero: number) => {
+        setEjercicios(prev => prev.map(ej => {
+            if (ej.id === ejercicioId) {
+                return {
+                    ...ej,
+                    series: ej.series.map(s => 
+                        s.numero === serieNumero ? { ...s, completada: !s.completada } : s
+                    )
+                };
+            }
+            return ej;
+        }));
+    };
+
+    const eliminarEjercicio = (id: number) => {
+        setEjercicios(prev => prev.filter(ej => ej.id !== id));
+    };
 
     return (
-        <>
-            <AppLayout>
-                <div className="space-y-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                            <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                                <span className="text-white font-mono font-bold text-sm md:text-base">00:15:21</span>
-                            </Card>
-                            <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                                <span className="text-white font-bold text-sm md:text-base">Día de Empuje A</span>
-                            </Card>
-                        </div>
-                        <Link to="/mis-rutinas" className="w-full md:w-auto">
-                            <button className="w-full md:w-auto bg-red-600 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-red-700 transition-all">
-                                FINALIZAR
-                            </button>
-                        </Link>
+        <AppLayout>
+            <div className="space-y-6">
+                {/* Cabecera Superior */}
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
+                            <span className="text-white font-mono font-bold text-sm md:text-base">00:15:21</span>
+                        </Card>
+                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
+                            <span className="text-white font-bold text-sm md:text-base">{nombreRutina}</span>
+                        </Card>
                     </div>
+                    <Link to="/mis-rutinas">
+                        <button className="w-full md:w-auto bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-all">
+                            FINALIZAR
+                        </button>
+                    </Link>
+                </div>
 
-                    <div className="space-y-6">
-                        {ejercicios.map((ejercicio) => (
+                {/* Listado de Ejercicios */}
+                <div className="space-y-6">
+                    {ejercicios.length > 0 ? (
+                        ejercicios.map((ejercicio) => (
                             <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
-                                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
+                                <div className="flex justify-between items-start mb-6">
                                     <div className="flex items-center gap-4">
                                         <ImagenPlaceholder size="sm" />
                                         <div>
-                                            <h3 className="font-bold text-white text-base md:text-lg">{ejercicio.nombre}</h3>
+                                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
                                             <p className="text-[#4361EE] text-sm cursor-pointer hover:underline">Ver historial</p>
                                         </div>
                                     </div>
-                                    <button className="self-end md:self-auto text-red-500 hover:text-red-400 transition-all">
+                                    {/* Botón Eliminar */}
+                                    <button 
+                                        onClick={() => eliminarEjercicio(ejercicio.id)}
+                                        className="text-red-500 hover:text-red-400 transition-all active:scale-90"
+                                    >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-4 px-2 md:px-4 py-2 text-neutral-400 text-xs md:text-sm">
-                                        <span></span>
-                                        <span className="hidden md:block">Anterior Serie</span>
+                                <div className="space-y-3">
+                                    {/* Cabecera de Columnas */}
+                                    <div className="grid grid-cols-4 md:grid-cols-5 gap-4 px-4 py-1 text-neutral-500 text-xs font-bold uppercase tracking-wider">
+                                        <span>Serie</span>
+                                        <span className="hidden md:block">Anterior</span>
                                         <span className="text-center">KG</span>
                                         <span className="text-center">Reps</span>
-                                        <span></span>
+                                        <span className="text-center">Estado</span>
                                     </div>
 
+                                    {/* Filas de Series */}
                                     {ejercicio.series.map((serie) => (
-                                        <div
-                                            key={serie.numero}
-                                            className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-4 items-center bg-neutral-800 rounded-xl px-2 md:px-4 py-3"
-                                        >
-                                            <span className="text-[#DBF059] font-bold text-sm">{serie.numero}</span>
+                                        <div key={serie.numero} className="grid grid-cols-4 md:grid-cols-5 gap-4 items-center bg-neutral-800/50 p-3 rounded-xl border border-neutral-800">
+                                            <span className="text-[#DBF059] font-bold ml-2">{serie.numero}</span>
                                             <span className="hidden md:block text-neutral-400 text-sm">{serie.anterior}</span>
-                                            <input
-                                                type="number"
-                                                defaultValue={serie.kg}
-                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-2 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none text-sm"
-                                            />
-                                            <input
-                                                type="number"
-                                                defaultValue={serie.reps}
-                                                className="bg-neutral-700 border border-neutral-600 rounded-lg px-2 py-2 text-white text-center w-full focus:border-[#4361EE] focus:outline-none text-sm"
-                                            />
+                                            <input type="number" defaultValue={serie.kg} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full focus:ring-1 focus:ring-[#4361EE] outline-none" />
+                                            <input type="number" defaultValue={serie.reps} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full focus:ring-1 focus:ring-[#4361EE] outline-none" />
+                                            
+                                            {/* Botón Check Verde */}
                                             <div className="flex justify-center">
-                                                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                                                <button 
+                                                    onClick={() => toggleSerie(ejercicio.id, serie.numero)}
+                                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                                                        serie.completada ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-neutral-700'
+                                                    }`}
+                                                >
                                                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                     </svg>
-                                                </div>
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </Card>
-                        ))}
-                    </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-20 bg-neutral-900/50 rounded-3xl border border-dashed border-neutral-800">
+                            <p className="text-neutral-500 italic">Esta rutina aún no tiene ejercicios asignados.</p>
+                        </div>
+                    )}
                 </div>
-            </AppLayout>
-        </>
+            </div>
+        </AppLayout>
     );
 }
