@@ -26,7 +26,7 @@ export default function ResumenEstadisticas({ volumenTotalKg, intensidad, discip
             </Card>
             <Card className="p-4 text-center" hoverable={false}>
                 <h3 className="text-neutral-400 text-xs uppercase font-bold mb-2">Disciplina</h3>
-                <p className="text-xl font-bold text-[#DBF059] leading-tight">{disciplinaPct}% 🎯</p>
+                <p className="text-xl font-bold leading-tight" style={{ color: 'var(--color-primary)' }}>{disciplinaPct}% 🎯</p>
             </Card>
         </div>
     );

@@ -33,9 +33,10 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
         ${sinSesiones
                     ? 'bg-neutral-900/20 border-neutral-800/50 opacity-50 cursor-default'
                     : isOpen
-                        ? 'bg-neutral-900 border-[#DBF059] shadow-[0_0_30px_rgba(219,240,89,0.15)] cursor-pointer'
+                        ? 'bg-neutral-900 cursor-pointer'
                         : 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-600 hover:bg-neutral-800 cursor-pointer'}
       `}
+            style={isOpen && !sinSesiones ? { borderColor: 'var(--color-primary)', boxShadow: '0 0 30px var(--color-primary-glow)' } : {}}
         >
             <div className="p-6 flex items-center justify-between">
                 <div>
@@ -48,7 +49,8 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
                         <span className="text-xs font-bold uppercase">Sin datos</span>
                     </div>
                 ) : (
-                    <div className={`px-4 py-2 rounded-full flex items-center gap-2 transition-colors ${isOpen ? 'bg-[#DBF059] text-black' : 'bg-neutral-800 text-neutral-300'}`}>
+                    <div className={`px-4 py-2 rounded-full flex items-center gap-2 transition-colors ${isOpen ? 'text-black' : 'bg-neutral-800 text-neutral-300'}`}
+                        style={isOpen ? { backgroundColor: 'var(--color-primary)' } : {}}>
                         <span className="font-bold">{entrenamientos.length}</span>
                         <span className="text-xs font-bold uppercase">Sesiones</span>
                     </div>
@@ -63,7 +65,7 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
                             <div className="mt-4 flex gap-4">
                                 <div className="flex-1 bg-neutral-800/50 rounded-xl p-3 text-center">
                                     <p className="text-neutral-400 text-xs uppercase mb-1">Volumen</p>
-                                    <p className="text-white font-bold text-sm">{volumenDisplay} <span className="text-[#DBF059]">kg</span></p>
+                                    <p className="text-white font-bold text-sm">{volumenDisplay} <span style={{ color: 'var(--color-primary)' }}>kg</span></p>
                                 </div>
                                 <div className="flex-1 bg-neutral-800/50 rounded-xl p-3 text-center">
                                     <p className="text-neutral-400 text-xs uppercase mb-1">Intensidad</p>

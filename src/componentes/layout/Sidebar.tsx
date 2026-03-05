@@ -55,11 +55,15 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
               key={item.ruta}
               to={item.ruta}
               onClick={onCerrar}
-              className={`block py-2 px-3 rounded-lg text-lg font-medium transition-all ${
-                location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/")
-                  ? "bg-[#DBF059] text-black"
+              className={`block py-2 px-3 rounded-lg text-lg font-medium transition-all ${location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/")
+                  ? "text-black"
                   : "text-neutral-400 hover:text-white hover:bg-white/5"
-              }`}
+                }`}
+              style={
+                location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/")
+                  ? { backgroundColor: 'var(--color-primary)' }
+                  : {}
+              }
             >
               {item.nombre}
             </Link>

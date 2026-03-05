@@ -41,7 +41,7 @@ export default function EjercicioDetallePage() {
 
           <div className="space-y-6">
             <Card className="p-6" hoverable={false}>
-              <h3 className="text-[#DBF059] font-bold mb-2">Descripción</h3>
+              <h3 className="font-bold mb-2" style={{ color: 'var(--color-primary)' }}>Descripción</h3>
               <p className="text-neutral-300 text-sm">{ejercicio.descripcion}</p>
             </Card>
 
@@ -58,7 +58,7 @@ export default function EjercicioDetallePage() {
         </div>
 
         <Card className="p-6" hoverable={false}>
-          <h3 className="text-[#DBF059] font-bold mb-4">Historial</h3>
+          <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>Historial</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <span className="text-neutral-400 font-bold">Fecha</span>
             <span className="text-neutral-400 font-bold">Peso</span>
