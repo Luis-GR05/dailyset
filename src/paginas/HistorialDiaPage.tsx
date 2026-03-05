@@ -14,7 +14,7 @@ export default function HistorialDiaPage() {
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <p className="text-neutral-400 text-lg">No se encontró sesión para esta fecha.</p>
-          <button onClick={() => navigate('/historial')} className="text-[#4361EE] hover:underline">
+          <button onClick={() => navigate('/historial')} className="hover:underline" style={{ color: 'var(--color-accent)' }}>
             ← Volver al historial
           </button>
         </div>
@@ -51,13 +51,13 @@ export default function HistorialDiaPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4" hoverable={false}>
             <p className="text-neutral-400 text-xs mb-1">Rutina realizada:</p>
-            <p className="text-[#DBF059] font-bold text-sm">{sesion.rutina}</p>
+            <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{sesion.rutina}</p>
           </Card>
           <Card className="p-4" hoverable={false}>
             <p className="text-neutral-400 text-xs mb-1">Puntuación:</p>
             <div className="flex gap-1 mt-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <svg key={star} className={`w-4 h-4 ${star <= sesion.puntuacion ? 'text-[#DBF059]' : 'text-neutral-600'}`} fill="currentColor" viewBox="0 0 24 24">
+                <svg key={star} className={`w-4 h-4 ${star <= sesion.puntuacion ? '' : 'text-neutral-600'}`} fill="currentColor" viewBox="0 0 24 24" style={star <= sesion.puntuacion ? { color: 'var(--color-primary)' } : {}}>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               ))}
@@ -90,7 +90,7 @@ export default function HistorialDiaPage() {
                 <div className="flex flex-wrap gap-2">
                   {ejercicio.series.map((serie, j) => (
                     <div key={j} className="bg-neutral-800 rounded-lg px-3 py-2 text-center">
-                      <p className="text-[#DBF059] text-xs font-bold">S{j + 1}:</p>
+                      <p className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>S{j + 1}:</p>
                       <p className="text-white text-xs">{serie.kg > 0 ? `${serie.kg}kg` : 'BW'} × {serie.reps}</p>
                     </div>
                   ))}

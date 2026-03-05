@@ -27,10 +27,20 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {rutinas.map((rutina) => (
             <Link key={rutina.id} to="/mis-rutinas/entrenamiento" className="block group">
-              <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-xl group-hover:border-[#DBF059]/30 transition-all duration-300">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#DBF059]/10 border border-[#DBF059]/20 rounded-xl flex items-center justify-center">
-                    <span className="text-[#DBF059] font-black italic text-xs">GO</span>
+              <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-xl transition-all duration-300 group-hover:border-[--color-accent]/30"
+                style={{ '--color-primary': 'var(--color-primary)' } as React.CSSProperties}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)';
+                }}
+              >
+
+                <div className="flex items-center gap-4 group">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:bg-[--color-primary] group-hover:border-[--color-primary]"
+                    style={{ backgroundColor: 'var(--color-primary-muted)', border: '1px solid var(--color-primary-muted)' }}>
+                    <span className="font-black italic text-xs transition-colors duration-300 group-hover:text-black" style={{ color: 'var(--color-primary)' }}>GO</span>
                   </div>
                   <div>
                     <h3 className="font-black text-white italic uppercase text-sm tracking-tighter">{rutina.nombre}</h3>
@@ -44,28 +54,32 @@ export default function DashboardPage() {
 
         <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-xl">
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-32 h-32 rounded-full border-2 border-white/5 p-1 flex-shrink-0">
-              <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center border border-[#DBF059] shadow-[0_0_20px_rgba(219,240,89,0.1)]">
+            <div className="w-32 h-32 rounded-full border-2 border-white/5 p-1 shrink-0">
+              <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center"
+                style={{ border: '1px solid var(--color-primary)', boxShadow: '0 0 20px var(--color-primary-glow)' }}>
                 <div className="text-center">
-                  <p className="text-[#DBF059] font-black italic text-xs leading-tight">STATS</p>
+                  <p className="font-black italic text-xs leading-tight" style={{ color: 'var(--color-primary)' }}>STATS</p>
                   <p className="text-white font-black italic text-[10px] uppercase opacity-50">Semanal</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 w-full h-72">
-              <div className="mb-4">
+            <div className="flex-1 w-full min-w-0">
+              <div className="mb-4 text-center md:text-left">
                 <span className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] italic">
                   Volumen por Sesión
                 </span>
               </div>
-              <ColumnChart
-                data={diasSemana}
-                xAxisKey="dia"
-                bars={[
-                  { key: "valor1", color: "#DBF059", name: "Kcal" },
-                ]}
-              />
+              <div className="h-[220px] w-full">
+                <ColumnChart
+                  data={diasSemana}
+                  xAxisKey="dia"
+                  bars={[
+                    { key: "valor1", color: "var(--color-primary)", name: "Kcal" },
+                  ]}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
         </div>

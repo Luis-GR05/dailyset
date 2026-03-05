@@ -4,22 +4,22 @@ import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
 import { RUTINAS_DATA } from '../data/rutinas';
 
 interface Serie {
-  numero: number;
-  anterior: string;
-  kg: number;
-  reps: number;
-  completada: boolean;
+    numero: number;
+    anterior: string;
+    kg: number;
+    reps: number;
+    completada: boolean;
 }
 
 interface Ejercicio {
-  id: number;
-  nombre: string;
-  series: Serie[];
+    id: number;
+    nombre: string;
+    series: Serie[];
 }
 
 export default function EntrenamientoPage() {
     const location = useLocation();
-    
+
     const nombreRutina = location.state?.nombre || "Día de Empuje A";
 
     const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
@@ -29,7 +29,7 @@ export default function EntrenamientoPage() {
         if (datos) {
             setEjercicios(datos);
         } else {
-            setEjercicios([]); 
+            setEjercicios([]);
         }
     }, [nombreRutina]);
 
@@ -38,7 +38,7 @@ export default function EntrenamientoPage() {
             if (ej.id === ejercicioId) {
                 return {
                     ...ej,
-                    series: ej.series.map(s => 
+                    series: ej.series.map(s =>
                         s.numero === serieNumero ? { ...s, completada: !s.completada } : s
                     )
                 };
@@ -81,11 +81,11 @@ export default function EntrenamientoPage() {
                                         <ImagenPlaceholder size="sm" />
                                         <div>
                                             <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                                            <p className="text-[#4361EE] text-sm cursor-pointer hover:underline">Ver historial</p>
+                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>Ver historial</p>
                                         </div>
                                     </div>
                                     {/* Botón Eliminar */}
-                                    <button 
+                                    <button
                                         onClick={() => eliminarEjercicio(ejercicio.id)}
                                         className="text-red-500 hover:text-red-400 transition-all active:scale-90"
                                     >
@@ -108,18 +108,17 @@ export default function EntrenamientoPage() {
                                     {/* Filas de Series */}
                                     {ejercicio.series.map((serie) => (
                                         <div key={serie.numero} className="grid grid-cols-4 md:grid-cols-5 gap-4 items-center bg-neutral-800/50 p-3 rounded-xl border border-neutral-800">
-                                            <span className="text-[#DBF059] font-bold ml-2">{serie.numero}</span>
+                                            <span className="font-bold ml-2" style={{ color: 'var(--color-primary)' }}>{serie.numero}</span>
                                             <span className="hidden md:block text-neutral-400 text-sm">{serie.anterior}</span>
-                                            <input type="number" defaultValue={serie.kg} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full focus:ring-1 focus:ring-[#4361EE] outline-none" />
-                                            <input type="number" defaultValue={serie.reps} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full focus:ring-1 focus:ring-[#4361EE] outline-none" />
-                                            
+                                            <input type="number" defaultValue={serie.kg} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full outline-none" onFocus={e => (e.currentTarget.style.outline = '1px solid var(--color-accent)')} onBlur={e => (e.currentTarget.style.outline = 'none')} />
+                                            <input type="number" defaultValue={serie.reps} className="bg-neutral-700 text-white text-center rounded-lg py-2 w-full outline-none" onFocus={e => (e.currentTarget.style.outline = '1px solid var(--color-accent)')} onBlur={e => (e.currentTarget.style.outline = 'none')} />
+
                                             {/* Botón Check Verde */}
                                             <div className="flex justify-center">
-                                                <button 
+                                                <button
                                                     onClick={() => toggleSerie(ejercicio.id, serie.numero)}
-                                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-                                                        serie.completada ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-neutral-700'
-                                                    }`}
+                                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${serie.completada ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-neutral-700'
+                                                        }`}
                                                 >
                                                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
