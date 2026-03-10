@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HistorialProvider } from './context/HistorialContext';
+import { EjerciciosProvider } from './context/EjerciciosContext';
+import { RutinasProvider } from './context/RutinasContext';
 import LandingPage from './paginas/LandingPage';
 import LoginPage from './paginas/LoginPage';
 import DashboardPage from './paginas/DashboardPage';
@@ -17,23 +19,27 @@ import RegistroPage from './paginas/RegistroPage';
 function App() {
   return (
     <HistorialProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegistroPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/mis-rutinas" element={<MisRutinasPage />} />
-          <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
-          <Route path="/historial" element={<HistorialPage />} />
-          <Route path="/historial/:fecha" element={<HistorialDiaPage />} />
-          <Route path="/ejercicios" element={<EjerciciosPage />} />
-          <Route path="/ejercicios/:id" element={<EjercicioDetallePage />} />
-          <Route path="/estadisticas" element={<EstadisticasPage />} />
-          <Route path="/perfil" element={<PerfilPage />} />
-          <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
-        </Routes>
-      </Router>
+      <EjerciciosProvider>
+        <RutinasProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/registro" element={<RegistroPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/mis-rutinas" element={<MisRutinasPage />} />
+              <Route path="/mis-rutinas/entrenamiento" element={<EntrenamientoPage />} />
+              <Route path="/historial" element={<HistorialPage />} />
+              <Route path="/historial/:fecha" element={<HistorialDiaPage />} />
+              <Route path="/ejercicios" element={<EjerciciosPage />} />
+              <Route path="/ejercicios/:id" element={<EjercicioDetallePage />} />
+              <Route path="/estadisticas" element={<EstadisticasPage />} />
+              <Route path="/perfil" element={<PerfilPage />} />
+              <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
+            </Routes>
+          </Router>
+        </RutinasProvider>
+      </EjerciciosProvider>
     </HistorialProvider>
   );
 }
