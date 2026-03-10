@@ -1,5 +1,8 @@
 export { default as LoginForm } from './forms/LoginForm';
 export { default as RegisterForm } from './forms/FormularioRegistro';
+export { default as FormularioEjercicio } from './forms/FormularioEjercicio';
+export { default as FormularioRutina } from './forms/FormularioRutina';
+export { default as EditarEjerciciosRutina } from './forms/EditarEjerciciosRutina';
 
 export { default as AppLayout } from './layout/AppLayout';
 export { default as Header } from './layout/Header';
