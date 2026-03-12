@@ -1,21 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout, TituloPagina } from "../componentes";
 import { useI18n } from "../context/I18nContext";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabaseClient";
 
 export default function PerfilConfigPage() {
   const { t, locale } = useI18n();
-  const [nombre, setNombre] = useState("JUAN PÉREZ");
+  const navigate = useNavigate();
+  const { user, perfil, signOut, recargarPerfil } = useAuth();
+
+  // El estado se inicializa vacío y se rellena con useEffect cuando perfil carga
+  const [nombre, setNombre] = useState('');
   const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState('');
   const [unidadesKg, setUnidadesKg] = useState(true);
   const [notificaciones, setNotificaciones] = useState(false);
 
-  const handleGuardarNombre = () => {
+  // Actualizar nombre cuando perfil carga (fix del bug: useState no re-ejecuta con datos asíncronos)
+  useEffect(() => {
+    if (perfil) {
+      setNombre(perfil.nombre_completo || perfil.nombre_usuario || '');
+    }
+  }, [perfil]);
+
+  const handleGuardarNombre = async () => {
+    if (!user) return;
+    setGuardando(true);
+    setErrorGuardado('');
+    const { error } = await supabase
+      .from('perfiles')
+      .update({ nombre_completo: nombre.trim() || null, actualizado_en: new Date().toISOString() })
+      .eq('id', user.id);
+
+    if (error) {
+      setErrorGuardado('Error al guardar. Inténtalo de nuevo.');
+    } else {
+      await recargarPerfil(); // Refresca el perfil en el contexto global
+    }
+    setGuardando(false);
     setEditando(false);
   };
 
-  const handleCerrarSesion = () => {
+  const handleCerrarSesion = async () => {
     if (confirm(t.profile.logoutConfirm)) {
-      window.location.href = "/login";
+      await signOut();
+      navigate("/login");
     }
   };
 
@@ -25,7 +56,9 @@ export default function PerfilConfigPage() {
         <TituloPagina titulo={t.profile.accountSettings} />
 
         <div className="space-y-3">
-          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">{locale === 'es' ? 'Datos de Usuario' : 'User Data'}</h3>
+          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
+            {locale === 'es' ? 'Datos de Usuario' : 'User Data'}
+          </h3>
 
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl space-y-1">
             <div className="flex items-center justify-between px-6 py-5 rounded-xl hover:bg-white/5 transition-all group">
@@ -35,34 +68,38 @@ export default function PerfilConfigPage() {
                   <input
                     type="text"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value.toUpperCase())}
-                    className="bg-white/10 text-white font-black italic uppercase outline-none w-full py-1"
+                    onChange={(e) => setNombre(e.target.value)}
+                    className="bg-white/10 text-white font-black italic outline-none w-full py-1"
                     style={{ borderBottom: '1px solid var(--color-accent)' }}
                     autoFocus
                   />
                 ) : (
-                  <p className="text-white font-black italic uppercase">{nombre}</p>
+                  <p className="text-white font-black italic">{nombre || '—'}</p>
                 )}
+                {errorGuardado && <p className="text-red-400 text-xs mt-1">{errorGuardado}</p>}
               </div>
 
               <button
                 onClick={() => editando ? handleGuardarNombre() : setEditando(true)}
-                className="text-[10px] font-black uppercase tracking-widest hover:scale-110 transition-all"
+                disabled={guardando}
+                className="text-[10px] font-black uppercase tracking-widest hover:scale-110 transition-all disabled:opacity-50"
                 style={{ color: 'var(--color-primary)' }}
               >
-                {editando ? t.profile.save.toUpperCase() : t.profile.edit.toUpperCase()}
+                {guardando ? 'Guardando...' : editando ? t.profile.save.toUpperCase() : t.profile.edit.toUpperCase()}
               </button>
             </div>
 
             <div className="px-6 py-5 rounded-xl bg-white/[0.02] cursor-not-allowed opacity-70">
               <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-widest mb-1">{t.auth.email}</p>
-              <p className="text-white font-black italic lowercase">juan.perez@email.com</p>
+              <p className="text-white font-black italic lowercase">{user?.email ?? '—'}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">{locale === 'es' ? 'Preferencias Técnicas' : 'Technical Preferences'}</h3>
+          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
+            {locale === 'es' ? 'Preferencias Técnicas' : 'Technical Preferences'}
+          </h3>
 
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl space-y-1">
             <div className="flex items-center justify-between px-6 py-5 rounded-xl hover:bg-white/5 transition-all cursor-pointer" onClick={() => setUnidadesKg(!unidadesKg)}>
@@ -86,7 +123,9 @@ export default function PerfilConfigPage() {
         </div>
 
         <div className="space-y-3 pt-4">
-          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">{locale === 'es' ? 'Seguridad y Cuenta' : 'Security & Account'}</h3>
+          <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
+            {locale === 'es' ? 'Seguridad y Cuenta' : 'Security & Account'}
+          </h3>
 
           <div className="flex flex-col md:flex-row gap-3">
             <button
