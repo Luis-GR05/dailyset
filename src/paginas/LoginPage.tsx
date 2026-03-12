@@ -1,10 +1,39 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input, Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
-import { useI18n } from '../context/I18nContext';
+import { supabase } from '../lib/supabaseClient';
 
 export default function LoginPage() {
-  const { t, locale } = useI18n();
+  const navigate = useNavigate();
+  
+  // Lógica de estados para Supabase
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      if (data.user) navigate('/dashboard');
+      
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full flex overflow-hidden bg-[#0a0a0a]">
 
@@ -62,42 +91,59 @@ export default function LoginPage() {
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md bg-neutral-900/60 backdrop-blur-2xl rounded-[40px] p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-black text-white mb-2 italic">{t.auth.login.toUpperCase()}</h2>
+              <h2 className="text-3xl font-black text-white mb-2 italic uppercase tracking-tighter">BIENVENIDO</h2>
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
               <p className="text-neutral-400 text-sm">{locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}</p>
             </div>
 
-            <form className="space-y-5">
+            {/* Mensaje de error dinámico */}
+            {errorMsg && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[10px] font-bold uppercase text-center italic">
+                {errorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.email}</span>
-                <Input type="email" placeholder="atleta@dailyset.com" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
-                  style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties} />
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Email</span>
+                <Input 
+                  type="email" 
+                  placeholder="atleta@dailyset.com" 
+                  value={email}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
+                  style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties} 
+                  required
+                />
               </div>
 
               <div className="space-y-2 pb-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.password}</span>
-                <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all" />
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Contraseña</span>
+                <Input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e: any) => setPassword(e.target.value)}
+                  className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all" 
+                  required
+                />
               </div>
 
-              <Link to="/dashboard" className="block pt-2">
-                <button
-                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black"
-                  style={{
-                    backgroundColor: 'var(--color-primary)',
-                    boxShadow: '0 15px 30px var(--color-primary-glow)',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
-                  }}
-                >
-                  <span className="relative z-10">{t.auth.loginBtn}</span>
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
-                </button>
-              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  boxShadow: '0 15px 30px var(--color-primary-glow)',
+                }}
+              >
+                <span className="relative z-10">
+                  {loading ? 'CONECTANDO...' : 'INICIAR SESIÓN'}
+                </span>
+                <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+              </button>
             </form>
 
             <div className="text-center mt-8">
@@ -110,19 +156,9 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Botón volver a la landing */}
             <div className="text-center mt-6">
-              <Link
-                to="/"
-                className="text-neutral-600 text-[10px] uppercase font-bold tracking-[0.2em] transition-colors"
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = '';
-                }}
-              >
-                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
+              <Link to="/" className="text-neutral-600 text-[10px] uppercase font-bold tracking-[0.2em] transition-colors hover:text-white">
+                ← Volver al inicio
               </Link>
             </div>
           </div>
