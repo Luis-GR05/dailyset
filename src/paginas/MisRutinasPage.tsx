@@ -78,11 +78,15 @@ export default function MisRutinasPage() {
                     {rutinasFiltradas.map((rutina) => (
                         <div key={rutina.id} className="card card-hover px-6 py-5 flex items-center gap-6">
                             {/* Icono placeholder */}
-                            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0 flex items-center justify-center">
-                                <svg className="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                                </svg>
+                            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                {rutina.imageUrl ? (
+                                    <img src={rutina.imageUrl} alt={rutina.nombre} className="w-full h-full object-cover" />
+                                ) : (
+                                    <svg className="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                            d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                    </svg>
+                                )}
                             </div>
                             {/* Info */}
                             <Link

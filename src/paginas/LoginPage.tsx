@@ -1,10 +1,38 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input, Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { t, locale } = useI18n();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(
+        locale === 'es'
+          ? 'Email o contraseña incorrectos'
+          : 'Invalid email or password'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full flex overflow-hidden bg-[#0a0a0a]">
 
@@ -22,6 +50,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 flex w-full min-h-screen">
 
+        {/* Panel izquierdo decorativo */}
         <div className="hidden md:flex flex-1 flex-col items-center justify-center p-12 relative">
 
           <div className="absolute top-1/4 translate-y-[-100px] flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md animate-bounce-slow">
@@ -35,7 +64,6 @@ export default function LoginPage() {
 
           <div className="text-center group">
             <Logo size="xl" className="transition-transform duration-500 group-hover:scale-105" />
-
             <div className="mt-6 flex items-center justify-center gap-4">
               <div className="h-[1px] w-8 bg-gradient-to-r from-transparent"
                 style={{ borderImage: 'linear-gradient(to right, transparent, var(--color-primary)) 1' }}></div>
@@ -59,58 +87,105 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Panel derecho — formulario */}
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md bg-neutral-900/60 backdrop-blur-2xl rounded-[40px] p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+
             <div className="text-center mb-10">
               <h2 className="text-3xl font-black text-white mb-2 italic">{t.auth.login.toUpperCase()}</h2>
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
-              <p className="text-neutral-400 text-sm">{locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}</p>
+              <p className="text-neutral-400 text-sm">
+                {locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}
+              </p>
             </div>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.email}</span>
-                <Input type="email" placeholder="atleta@dailyset.com" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
-                  style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties} />
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">
+                  {t.auth.email}
+                </span>
+                <Input
+                  type="email"
+                  placeholder="atleta@dailyset.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
+                  style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties}
+                />
               </div>
 
               <div className="space-y-2 pb-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.password}</span>
-                <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all" />
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">
+                  {t.auth.password}
+                </span>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
+                />
               </div>
 
-              <Link to="/dashboard" className="block pt-2">
+              {/* Mensaje de error */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-center">
+                  <p className="text-red-400 text-xs font-bold uppercase tracking-wider">{error}</p>
+                </div>
+              )}
+
+              <div className="pt-2">
                 <button
-                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black"
+                  type="submit"
+                  disabled={loading}
+                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                   style={{
                     backgroundColor: 'var(--color-primary)',
                     boxShadow: '0 15px 30px var(--color-primary-glow)',
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
+                    if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
                   }}
                 >
-                  <span className="relative z-10">{t.auth.loginBtn}</span>
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+                  {loading ? (
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      {locale === 'es' ? 'Entrando...' : 'Signing in...'}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="relative z-10">{t.auth.loginBtn}</span>
+                      <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+                    </>
+                  )}
                 </button>
-              </Link>
+              </div>
             </form>
 
             <div className="text-center mt-8">
               <p className="text-neutral-500 text-sm">
                 {t.auth.noAccount}{' '}
-                <Link to="/registro" className="font-black hover:text-white transition-colors ml-1 uppercase text-xs tracking-wider"
-                  style={{ color: 'var(--color-accent)' }}>
+                <Link
+                  to="/registro"
+                  className="font-black hover:text-white transition-colors ml-1 uppercase text-xs tracking-wider"
+                  style={{ color: 'var(--color-accent)' }}
+                >
                   {t.auth.signUp}
                 </Link>
               </p>
             </div>
 
-            {/* Botón volver a la landing */}
             <div className="text-center mt-6">
               <Link
                 to="/"
