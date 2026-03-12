@@ -1,14 +1,29 @@
 import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
 import { useI18n } from '../context/I18nContext';
+import { useEjercicios } from '../context/EjerciciosContext';
 
 export default function EjercicioDetallePage() {
   const { t } = useI18n();
-  const ejercicio = {
-    nombre: "Press de Banca",
-    descripcion: "Baja la barra lentamente hacia el pecho, manteniendo los codos a 45 grados.",
-  };
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { ejercicios } = useEjercicios();
+
+  const ejercicioId = parseInt(id || '0', 10);
+  const ejercicio = ejercicios.find(e => e.id === ejercicioId);
+
+  if (!ejercicio) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center p-10">
+          <h2 className="text-xl text-white mb-4">Ejercicio no encontrado</h2>
+          <BotonPrimario onClick={() => navigate('/ejercicios')}>Volver a Ejercicios</BotonPrimario>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const historial = [
     { fecha: "29 Enero", peso: 80, reps: 5 },
