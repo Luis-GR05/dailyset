@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Input, Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
+import { useI18n } from '../context/I18nContext';
 
 export default function LoginPage() {
+  const { t, locale } = useI18n();
   return (
     <div className="relative min-h-screen w-full flex overflow-hidden bg-[#0a0a0a]">
 
@@ -60,21 +62,21 @@ export default function LoginPage() {
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md bg-neutral-900/60 backdrop-blur-2xl rounded-[40px] p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-black text-white mb-2 italic">BIENVENIDO</h2>
+              <h2 className="text-3xl font-black text-white mb-2 italic">{t.auth.login.toUpperCase()}</h2>
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
-              <p className="text-neutral-400 text-sm">Tu próximo set empieza aquí</p>
+              <p className="text-neutral-400 text-sm">{locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}</p>
             </div>
 
             <form className="space-y-5">
               <div className="space-y-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Email</span>
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.email}</span>
                 <Input type="email" placeholder="atleta@dailyset.com" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all"
                   style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties} />
               </div>
 
               <div className="space-y-2 pb-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">Contraseña</span>
+                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">{t.auth.password}</span>
                 <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/5 rounded-2xl py-5 transition-all" />
               </div>
 
@@ -92,7 +94,7 @@ export default function LoginPage() {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
                   }}
                 >
-                  <span className="relative z-10">INICIAR SESIÓN</span>
+                  <span className="relative z-10">{t.auth.loginBtn}</span>
                   <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
                 </button>
               </Link>
@@ -100,10 +102,10 @@ export default function LoginPage() {
 
             <div className="text-center mt-8">
               <p className="text-neutral-500 text-sm">
-                ¿Nuevo en DailySet?{' '}
+                {t.auth.noAccount}{' '}
                 <Link to="/registro" className="font-black hover:text-white transition-colors ml-1 uppercase text-xs tracking-wider"
                   style={{ color: 'var(--color-accent)' }}>
-                  Únete a la élite
+                  {t.auth.signUp}
                 </Link>
               </p>
             </div>
@@ -120,7 +122,7 @@ export default function LoginPage() {
                   (e.currentTarget as HTMLAnchorElement).style.color = '';
                 }}
               >
-                ← Volver al inicio
+                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
               </Link>
             </div>
           </div>

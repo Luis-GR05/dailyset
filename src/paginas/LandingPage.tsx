@@ -6,11 +6,13 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import fondoLanding from "../assets/imagenes/fondoLanding.jpg";
 import mancuerna from "../assets/imagenes/mancuerna.png";
+import { useI18n } from "../context/I18nContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
 
   useGSAP(
     () => {
@@ -54,11 +56,11 @@ export default function LandingPage() {
         },
       });
 
-      const features = gsap.utils.toArray(".feature-card");
-      features.forEach((card: any, index) => {
-        gsap.from(card, {
+      const features = gsap.utils.toArray<Element>(".feature-card");
+      features.forEach((elemento, index) => {
+        gsap.from(elemento, {
           scrollTrigger: {
-            trigger: card,
+            trigger: elemento,
             start: "top 85%",
             toggleActions: "play none none reverse",
           },
@@ -69,7 +71,7 @@ export default function LandingPage() {
           delay: index * 0.1,
         });
 
-        gsap.to(card, {
+        gsap.to(elemento, {
           y: -5,
           duration: 2,
           repeat: -1,
@@ -127,7 +129,7 @@ export default function LandingPage() {
                 "var(--color-primary)";
             }}
           >
-            Empezar
+            {t.landing.ctaStartAlt}
           </button>
         </Link>
       </header>
@@ -154,17 +156,17 @@ export default function LandingPage() {
           ></img>
         </div>
         <h2 className="hero-animate text-3xl md:text-5xl lg:text-6xl font-display font-black uppercase tracking-tight mb-4 md:mb-6 relative z-10">
-          DOMINA TU PROGRESO
+          {t.landing.heroTitleAlt}
         </h2>
         <p className="hero-animate text-neutral-400 text-base md:text-lg mb-8 md:mb-10 max-w-md px-4 mx-auto relative z-10">
-          La app definitiva para tus entrenamientos de fuerza
+          {t.landing.heroSubtitleAlt}
         </p>
         <Link to="/login" className="hero-animate relative z-10">
           <button
             className="btn-cta text-black px-8 py-3 md:px-12 md:py-4 rounded-full font-display font-bold text-sm uppercase tracking-wide transition-all"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
-            Empezar
+            {t.landing.ctaStartAlt}
           </button>
         </Link>
       </section>
@@ -175,8 +177,7 @@ export default function LandingPage() {
             Lo que nos hace diferente
           </h3>
           <p className="text-center text-neutral-400 mb-10 md:mb-14 max-w-lg mx-auto text-sm md:text-base">
-            Diseña tus rutinas y deja que la app gestione el entrenamiento por
-            ti
+            {t.landing.featuresSubtitle}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -214,10 +215,10 @@ export default function LandingPage() {
                 </svg>
               </div>
               <h4 className="font-bold text-white mb-2">
-                Sin Plantillas Rígidas
+                {t.landing.feature1CardTitle}
               </h4>
               <p className="text-neutral-400 text-sm">
-                Crea rutinas 100% personalizadas
+                {t.landing.feature1CardDesc}
               </p>
             </div>
 
@@ -254,10 +255,10 @@ export default function LandingPage() {
                 </svg>
               </div>
               <h4 className="font-bold text-white mb-2">
-                Sobrecarga Progresiva
+                {t.landing.feature2CardTitle}
               </h4>
               <p className="text-neutral-400 text-sm">
-                Seguimiento automático de tu progreso
+                {t.landing.feature2CardDesc}
               </p>
             </div>
 
@@ -294,9 +295,9 @@ export default function LandingPage() {
                   />
                 </svg>
               </div>
-              <h4 className="font-bold text-white mb-2">Rápido y Offline</h4>
+              <h4 className="font-bold text-white mb-2">{t.landing.feature3CardTitle}</h4>
               <p className="text-neutral-400 text-sm">
-                Funciona sin conexión a internet
+                {t.landing.feature3CardDesc}
               </p>
             </div>
           </div>
@@ -306,7 +307,7 @@ export default function LandingPage() {
       <section className="steps-section py-12 md:py-20 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
           <h3 className="text-center text-xl md:text-2xl font-display font-bold mb-10 md:mb-14">
-            Cómo funciona DailySet
+            {t.landing.howItWorks}
           </h3>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
@@ -317,7 +318,7 @@ export default function LandingPage() {
               >
                 1
               </div>
-              <p className="font-bold">Diseña</p>
+              <p className="font-bold">{t.landing.step1}</p>
             </div>
 
             <div className="step-item hidden md:block w-28 h-0.5 bg-neutral-700"></div>
@@ -329,7 +330,7 @@ export default function LandingPage() {
               >
                 2
               </div>
-              <p className="font-bold">Registra</p>
+              <p className="font-bold">{t.landing.step2}</p>
             </div>
 
             <div className="step-item hidden md:block w-28 h-0.5 bg-neutral-700"></div>
@@ -341,7 +342,7 @@ export default function LandingPage() {
               >
                 3
               </div>
-              <p className="font-bold">Analiza</p>
+              <p className="font-bold">{t.landing.step3}</p>
             </div>
           </div>
         </div>
@@ -366,17 +367,17 @@ export default function LandingPage() {
           style={{ backgroundColor: "var(--color-accent)" }}
         >
           <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-black mb-4">
-            Deja el papel en el pasado.
+            {t.landing.ctaFinalTitleAlt}
           </h3>
           <p className="text-white/80 mb-6 md:mb-8 text-sm md:text-base">
-            Empieza a controlar tu mejor versión hoy mismo.
+            {t.landing.ctaFinalSubAlt}
           </p>
           <Link to="/login">
             <button
               className="btn-cta text-black px-8 py-3 md:px-10 md:py-4 rounded-full font-display font-bold text-sm uppercase tracking-wide transition-all"
               style={{ backgroundColor: "var(--color-primary)" }}
             >
-              Comenzar
+              {t.landing.ctaFinalBtnAlt}
             </button>
           </Link>
         </div>
@@ -384,7 +385,7 @@ export default function LandingPage() {
 
       <footer className="bg-[#121212] py-6 md:py-8 px-4 md:px-8 text-center">
         <p className="text-neutral-500 text-sm">
-          &copy; 2026 DailySet - Tu compañero de entrenamiento
+          &copy; {t.landing.footerText}
         </p>
       </footer>
     </div>
