@@ -94,7 +94,7 @@ export default function LoginPage() {
               <h2 className="text-3xl font-black text-white mb-2 italic uppercase tracking-tighter">BIENVENIDO</h2>
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
-              <p className="text-neutral-400 text-sm">Tu próximo set empieza aquí</p>
+              <p className="text-neutral-400 text-sm">{locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}</p>
             </div>
 
             {/* Mensaje de error dinámico */}
@@ -148,10 +148,10 @@ export default function LoginPage() {
 
             <div className="text-center mt-8">
               <p className="text-neutral-500 text-sm">
-                ¿Nuevo en DailySet?{' '}
+                {t.auth.noAccount}{' '}
                 <Link to="/registro" className="font-black hover:text-white transition-colors ml-1 uppercase text-xs tracking-wider"
                   style={{ color: 'var(--color-accent)' }}>
-                  Únete a la élite
+                  {t.auth.signUp}
                 </Link>
               </p>
             </div>

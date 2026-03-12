@@ -39,15 +39,29 @@
         --radius-pill: 9999px;
     }
 
-    @media (prefers-color-scheme: light) {
-        :root {
-            --color-black: #FFFFFF; 
-            --color-white: #050505; 
+    /* Light mode por clase manual */
+    html.light {
+        --color-black: #FFFFFF;
+        --color-white: #050505;
+        --color-neutral-700: #F5F5F5;
+        --color-neutral-800: #E5E5E5;
+        --color-neutral-900: #D4D4D4;
+        --color-neutral-1000: #A3A3A3;
+        --color-neutral-2000: #737373;
+        --color-neutral-3000: #404040;
+    }
 
-            --color-neutral-700: #F5F5F5; 
-            --color-neutral-800: #E5E5E5; 
+    /* Light mode por preferencia del sistema (si no hay clase dark forzada) */
+    @media (prefers-color-scheme: light) {
+        html:not(.dark) {
+            --color-black: #FFFFFF;
+            --color-white: #050505;
+            --color-neutral-700: #F5F5F5;
+            --color-neutral-800: #E5E5E5;
             --color-neutral-900: #D4D4D4;
-            
+            --color-neutral-1000: #A3A3A3;
+            --color-neutral-2000: #737373;
+            --color-neutral-3000: #404040;
         }
     }
 
@@ -135,8 +149,8 @@
 
     .btn-secondary {
         background-color: transparent;
-        color: var(--color-white);
-        border: 2px solid var(--color-white);
+        color: var(--color-white) !important;
+        border: 2px solid var(--color-neutral-3000);
     }
 
     .btn-secondary:hover {
@@ -164,19 +178,16 @@
     .input {
         width: 100%;
         padding: 16px 20px;
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: var(--color-neutral-800);
+        border: 1px solid var(--color-neutral-2000);
         border-radius: var(--radius-md);
-        color: white;
+        color: var(--color-white);
         transition: all 0.2s;
-
-        color: var(--color-white); 
-    background-color: var(--color-neutral-700);
     }
 
     .input:focus {
-        border-color: var(--color-primary-700);
-        background-color: rgba(255, 255, 255, 0.08);
+        border-color: var(--color-primary);
+        background-color: var(--color-neutral-700);
     }
 
     .badge {
@@ -192,6 +203,236 @@
         background-color: rgba(212, 248, 70, 0.15);
         color: var(--color-accent-500);
         border: 1px solid rgba(212, 248, 70, 0.2);
+    }
+
+    /* ===================== MODALS ===================== */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+        animation: fadeIn 0.15s ease;
+    }
+
+    .modal-box {
+        background-color: #181818;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+        animation: slideUp 0.2s ease;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-box-lg {
+        max-width: 580px;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px 0;
+    }
+
+    .modal-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        border: none;
+        color: #737373;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+    }
+
+    .modal-form {
+        padding: 20px 24px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #A3A3A3;
+        letter-spacing: 0.01em;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding-top: 4px;
+    }
+
+    .modal-actions .btn {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+
+    /* ===================== EXERCISE LISTS IN MODAL ===================== */
+    .ejercicios-en-rutina {
+        background-color: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    .ejercicios-disponibles {
+        background-color: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .ejercicio-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.15s;
+    }
+
+    .ejercicio-item:last-child { border-bottom: none; }
+
+    .ejercicio-item-en-rutina:hover { background: rgba(255,255,255,0.03); }
+    .ejercicio-item-disponible:hover { background: rgba(67, 97, 238, 0.06); }
+
+    .ejercicio-quitar-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    .ejercicio-quitar-btn:hover {
+        background: rgba(239, 68, 68, 0.25);
+    }
+
+    .ejercicio-agregar-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(67, 97, 238, 0.15);
+        border: 1px solid rgba(67, 97, 238, 0.3);
+        color: #4361EE;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    .ejercicio-agregar-btn:hover {
+        background: rgba(67, 97, 238, 0.3);
+        color: white;
+    }
+
+    .ejercicio-categoria-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        background: rgba(67, 97, 238, 0.12);
+        color: #7B9EF9;
+        margin-left: 6px;
+        letter-spacing: 0.02em;
+    }
+
+    /* ===================== CARD ACTION MENU ===================== */
+    .card-actions {
+        display: flex;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .card:hover .card-actions,
+    .card-hover:hover .card-actions {
+        opacity: 1;
+    }
+
+    .card-action-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #A3A3A3;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .card-action-btn:hover {
+        background: rgba(255,255,255,0.12);
+        color: white;
+    }
+
+    .card-action-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #f87171;
+    }
+
+    .card-action-btn.info:hover {
+        background: rgba(67, 97, 238, 0.2);
+        border-color: rgba(67, 97, 238, 0.35);
+        color: #7B9EF9;
+    }
+
+    /* ===================== ANIMATIONS ===================== */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(16px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
 }
 

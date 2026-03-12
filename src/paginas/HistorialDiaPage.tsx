@@ -1,11 +1,13 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
+import { useI18n } from "../context/I18nContext";
 
 export default function HistorialDiaPage() {
   const { fecha } = useParams<{ fecha: string }>();
   const navigate = useNavigate();
   const { getSesionPorFecha } = useHistorial();
+  const { t, locale } = useI18n();
 
   const sesion = getSesionPorFecha(fecha ?? '');
 
@@ -13,9 +15,9 @@ export default function HistorialDiaPage() {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
-          <p className="text-neutral-400 text-lg">No se encontró sesión para esta fecha.</p>
+          <p className="text-neutral-400 text-lg">{t.history.noSessionFound}</p>
           <button onClick={() => navigate('/historial')} className="hover:underline" style={{ color: 'var(--color-accent)' }}>
-            ← Volver al historial
+            {t.history.back}
           </button>
         </div>
       </AppLayout>
@@ -26,7 +28,7 @@ export default function HistorialDiaPage() {
     total + ej.series.reduce((t, s) => t + s.kg * s.reps, 0), 0);
 
   const fecha_ = new Date(sesion.fecha + 'T12:00:00');
-  const fechaLegible = fecha_.toLocaleDateString('es-ES', {
+  const fechaLegible = fecha_.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
 
@@ -50,11 +52,11 @@ export default function HistorialDiaPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">Rutina realizada:</p>
+            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Rutina realizada:' : 'Workout done:'}</p>
             <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{sesion.rutina}</p>
           </Card>
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">Puntuación:</p>
+            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Puntuación:' : 'Score:'}</p>
             <div className="flex gap-1 mt-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg key={star} className={`w-4 h-4 ${star <= sesion.puntuacion ? '' : 'text-neutral-600'}`} fill="currentColor" viewBox="0 0 24 24" style={star <= sesion.puntuacion ? { color: 'var(--color-primary)' } : {}}>
@@ -64,11 +66,11 @@ export default function HistorialDiaPage() {
             </div>
           </Card>
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">Volumen Total:</p>
+            <p className="text-neutral-400 text-xs mb-1">{t.history.totalVolume}:</p>
             <p className="text-white font-bold text-sm">{volumenTotal.toLocaleString('es-ES')} kg</p>
           </Card>
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">Duración:</p>
+            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Duración:' : 'Duration:'}</p>
             <p className="text-white font-bold text-sm">{sesion.duracionMin} min</p>
           </Card>
         </div>
@@ -83,7 +85,7 @@ export default function HistorialDiaPage() {
                     <ImagenPlaceholder size="sm" />
                     <div>
                       <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                      <p className="text-neutral-400 text-sm">{ejercicio.series.length} series · {volEj} kg</p>
+                      <p className="text-neutral-400 text-sm">{ejercicio.series.length} {t.history.sessions} · {volEj} {t.history.kg}</p>
                     </div>
                   </div>
                 </div>

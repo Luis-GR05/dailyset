@@ -15,21 +15,6 @@ export default function EstadisticasPage() {
         { name: "Oct", value: 18 }, { name: "Nov", value: 16 }, { name: "Dic", value: 6 }
     ];
 
-    const datosEstadisticas = [
-        { name: "Ene", value: 1 },
-        { name: "Feb", value: 13 },
-        { name: "Mar", value: 20 },
-        { name: "Abr", value: 23 },
-        { name: "May", value: 19 },
-        { name: "Jun", value: 11 },
-        { name: "Jul", value: 2 },
-        { name: "Ago", value: 1 },
-        { name: "Sep", value: 4 },
-        { name: "Oct", value: 18 },
-        { name: "Nov", value: 16 },
-        { name: "Dic", value: 6 },
-    ]
-
     return (
         <AppLayout>
             <div className="space-y-4 pb-10 max-w-5xl mx-auto">

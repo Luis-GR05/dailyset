@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { Logo } from '../componentes';
 import FormularioRegistro from '../componentes/forms/FormularioRegistro';
 import DotGrid from '../componentes/FondoAnimado';
+import { useI18n } from '../context/I18nContext';
 
 export default function RegistroPage() {
+    const { t, locale } = useI18n();
     return (
         <div className="relative min-h-screen w-full flex overflow-hidden bg-[#0a0a0a]">
 
@@ -61,17 +63,17 @@ export default function RegistroPage() {
                     <div className="w-full max-w-md bg-neutral-900/60 backdrop-blur-2xl rounded-[40px] p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
 
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl font-black text-white mb-2 italic uppercase">CREA TU CUENTA</h2>
+                            <h2 className="text-3xl font-black text-white mb-2 italic uppercase">{t.auth.register.toUpperCase()}</h2>
                             <div className="h-1 w-12 mx-auto rounded-full mb-4"
                                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
-                            <p className="text-neutral-400 text-sm italic">Empieza a trackear tus sets hoy mismo</p>
+                            <p className="text-neutral-400 text-sm italic">{locale === 'es' ? 'Empieza a trackear tus sets hoy mismo' : 'Start tracking your sets today'}</p>
                         </div>
 
                         <FormularioRegistro />
 
                         <div className="text-center mt-8 pt-4 border-t border-white/5">
                             <p className="text-neutral-500 text-sm">
-                                ¿Ya eres parte de la élite?{' '}
+                                {t.auth.hasAccount}{' '}
                                 <Link
                                     to="/login"
                                     className="font-black transition-colors ml-1 uppercase text-xs tracking-wider"
@@ -83,7 +85,7 @@ export default function RegistroPage() {
                                         (e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-accent)';
                                     }}
                                 >
-                                    Inicia sesión
+                                    {t.auth.signIn}
                                 </Link>
                             </p>
                         </div>
@@ -100,7 +102,7 @@ export default function RegistroPage() {
                                     (e.currentTarget as HTMLAnchorElement).style.color = '';
                                 }}
                             >
-                                ← Volver al inicio
+                                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
                             </Link>
                         </div>
                     </div>
