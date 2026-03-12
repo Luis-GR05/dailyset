@@ -83,10 +83,14 @@ export default function EjerciciosPage() {
                 <Link to={`/ejercicios/${ejercicio.id}`} className="block">
                   <div className="card card-hover overflow-hidden">
                     <div className="w-full aspect-square bg-neutral-800 flex items-center justify-center">
-                      <svg className="w-12 h-12 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
+                      {ejercicio.imageUrl ? (
+                        <img src={ejercicio.imageUrl} alt={ejercicio.nombre} className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-12 h-12 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      )}
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-white text-sm">{ejercicio.nombre}</h3>

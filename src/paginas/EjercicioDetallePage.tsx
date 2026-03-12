@@ -47,13 +47,26 @@ export default function EjercicioDetallePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="aspect-video flex items-center justify-center" hoverable={false}>
-            <div className="text-center">
-              <svg className="w-16 h-16 text-neutral-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+          <Card className="aspect-video flex items-center justify-center overflow-hidden" hoverable={false}>
+            {ejercicio.videoUrl ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={ejercicio.videoUrl}
+                title={`Video de ${ejercicio.nombre}`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full object-cover"
+              ></iframe>
+            ) : (
+              <div className="text-center">
+                <svg className="w-16 h-16 text-neutral-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            )}
           </Card>
 
           <div className="space-y-6">
