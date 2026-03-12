@@ -18,8 +18,6 @@ export default function PerfilPage() {
 
   const opciones = [
     { nombre: "CONFIGURACIÓN DE CUENTA", ruta: "/perfil/configuracion", flecha: true },
-    { nombre: "LOGROS Y TROFEOS", ruta: "/perfil/logros", flecha: true },
-    { nombre: "HISTORIAL DE SESIONES", ruta: "/perfil/historial", flecha: true },
     { nombre: "CERRAR SESIÓN", ruta: null, esRojo: true },
   ];
 

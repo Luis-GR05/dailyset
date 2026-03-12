@@ -2,6 +2,7 @@ import { useHistorial } from "../../context/HistorialContext";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MesCalendario from './MesCalendario';
+import { useI18n } from '../../context/I18nContext';
 
 interface MonthCardProps {
     mes: number;
@@ -12,12 +13,20 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { getSesionesPorMes, getMetricasPorMes } = useHistorial();
     const navigate = useNavigate();
+    const { t, locale } = useI18n();
 
     const entrenamientos = getSesionesPorMes(mes, anio);
     const { volumenKg, intensidad } = getMetricasPorMes(mes, anio);
-    const nombreMes = new Date(anio, mes).toLocaleString('es-ES', { month: 'long' });
+
+    const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
+    const nombreMes = new Date(anio, mes).toLocaleString(localeStr, { month: 'long' });
+
     const sinSesiones = entrenamientos.length === 0;
     const volumenDisplay = volumenKg >= 1000 ? `${(volumenKg / 1000).toFixed(1)}k` : `${volumenKg}`;
+
+    const intensidadMap: Record<string, string> = locale === 'es'
+        ? { Alta: 'Alta', Media: 'Media', Baja: 'Baja' }
+        : { Alta: 'High', Media: 'Medium', Baja: 'Low' };
 
     const handleDiaClick = (dia: number) => {
         const mm = String(mes + 1).padStart(2, '0');
@@ -40,19 +49,19 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
         >
             <div className="p-6 flex items-center justify-between">
                 <div>
-                    <h3 className="text-xl font-bold text-white capitalize">{nombreMes}</h3>
+                    <h3 className="text-xl font-bold capitalize" style={{ color: 'var(--color-white)' }}>{nombreMes}</h3>
                     <p className="text-sm text-neutral-400">{anio}</p>
                 </div>
 
                 {sinSesiones ? (
                     <div className="px-4 py-2 rounded-full bg-neutral-800/50 text-neutral-600">
-                        <span className="text-xs font-bold uppercase">Sin datos</span>
+                        <span className="text-xs font-bold uppercase">{t.history.noSession}</span>
                     </div>
                 ) : (
                     <div className={`px-4 py-2 rounded-full flex items-center gap-2 transition-colors ${isOpen ? 'text-black' : 'bg-neutral-800 text-neutral-300'}`}
                         style={isOpen ? { backgroundColor: 'var(--color-primary)' } : {}}>
                         <span className="font-bold">{entrenamientos.length}</span>
-                        <span className="text-xs font-bold uppercase">Sesiones</span>
+                        <span className="text-xs font-bold uppercase">{t.history.sessions}</span>
                     </div>
                 )}
             </div>
@@ -64,12 +73,16 @@ export default function MonthCard({ mes, anio }: MonthCardProps) {
                             <MesCalendario mes={mes} anio={anio} entrenamientos={entrenamientos} onDiaClick={handleDiaClick} />
                             <div className="mt-4 flex gap-4">
                                 <div className="flex-1 bg-neutral-800/50 rounded-xl p-3 text-center">
-                                    <p className="text-neutral-400 text-xs uppercase mb-1">Volumen</p>
-                                    <p className="text-white font-bold text-sm">{volumenDisplay} <span style={{ color: 'var(--color-primary)' }}>kg</span></p>
+                                    <p className="text-neutral-400 text-xs uppercase mb-1">{t.history.totalVolume}</p>
+                                    <p className="font-bold text-sm" style={{ color: 'var(--color-white)' }}>
+                                        {volumenDisplay} <span style={{ color: 'var(--color-primary)' }}>kg</span>
+                                    </p>
                                 </div>
                                 <div className="flex-1 bg-neutral-800/50 rounded-xl p-3 text-center">
-                                    <p className="text-neutral-400 text-xs uppercase mb-1">Intensidad</p>
-                                    <p className="text-white font-bold text-sm">{intensidad}</p>
+                                    <p className="text-neutral-400 text-xs uppercase mb-1">{t.history.intensity}</p>
+                                    <p className="font-bold text-sm" style={{ color: 'var(--color-white)' }}>
+                                        {intensidadMap[intensidad] ?? intensidad}
+                                    </p>
                                 </div>
                             </div>
                         </div>

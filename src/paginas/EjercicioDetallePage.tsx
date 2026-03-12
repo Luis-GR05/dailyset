@@ -1,8 +1,10 @@
 import React from 'react';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
+import { useI18n } from '../context/I18nContext';
 
 export default function EjercicioDetallePage() {
+  const { t } = useI18n();
   const ejercicio = {
     nombre: "Press de Banca",
     descripcion: "Baja la barra lentamente hacia el pecho, manteniendo los codos a 45 grados.",
@@ -26,7 +28,7 @@ export default function EjercicioDetallePage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <TituloPagina titulo={ejercicio.nombre} />
-          <BotonPrimario>+ Añadir a Rutina</BotonPrimario>
+          <BotonPrimario>+ {t.exercises.viewDetail}</BotonPrimario>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -41,7 +43,7 @@ export default function EjercicioDetallePage() {
 
           <div className="space-y-6">
             <Card className="p-6" hoverable={false}>
-              <h3 className="font-bold mb-2" style={{ color: 'var(--color-primary)' }}>Descripción</h3>
+              <h3 className="font-bold mb-2" style={{ color: 'var(--color-primary)' }}>{t.exercises.description}</h3>
               <p className="text-neutral-300 text-sm">{ejercicio.descripcion}</p>
             </Card>
 
@@ -58,11 +60,11 @@ export default function EjercicioDetallePage() {
         </div>
 
         <Card className="p-6" hoverable={false}>
-          <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>Historial</h3>
+          <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>{t.exerciseDetail.progressHistory}</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
-            <span className="text-neutral-400 font-bold">Fecha</span>
-            <span className="text-neutral-400 font-bold">Peso</span>
-            <span className="text-neutral-400 font-bold">Reps</span>
+            <span className="text-neutral-400 font-bold">{t.exerciseDetail.dateCol}</span>
+            <span className="text-neutral-400 font-bold">{t.exerciseDetail.maxWeight}</span>
+            <span className="text-neutral-400 font-bold">{t.training.reps}</span>
             {historial.map((item, index) => (
               <React.Fragment key={index}>
                 <span className="text-white">{item.fecha}</span>
