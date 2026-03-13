@@ -35,7 +35,7 @@ export default function PerfilPage() {
     },
   ];
 
-  const handleAction = (opcion: typeof opciones[0]) => {
+  const handleAction = async (opcion: typeof opciones[0]) => {
     if (opcion.esRojo) {
       if (confirm(locale === 'es' ? '¿Cerrar sesión en DailySet Elite?' : 'Sign out of DailySet Elite?')) {
         logout();

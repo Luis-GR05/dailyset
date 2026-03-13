@@ -72,7 +72,7 @@ export default function PerfilConfigPage() {
     }
   };
 
-  const handleCerrarSesion = () => {
+  const handleCerrarSesion = async () => {
     if (confirm(t.profile.logoutConfirm)) {
       logout();
       navigate('/login');
@@ -106,8 +106,8 @@ export default function PerfilConfigPage() {
                   <input
                     type="text"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value.toUpperCase())}
-                    className="bg-white/10 text-white font-black italic uppercase outline-none w-full py-1"
+                    onChange={(e) => setNombre(e.target.value)}
+                    className="bg-white/10 text-white font-black italic outline-none w-full py-1"
                     style={{ borderBottom: '1px solid var(--color-accent)' }}
                     autoFocus
                     disabled={savingNombre}
@@ -125,6 +125,7 @@ export default function PerfilConfigPage() {
                 {errorNombre && (
                   <p className="text-red-400 text-[9px] mt-1 font-bold">{errorNombre}</p>
                 )}
+                {errorGuardado && <p className="text-red-400 text-xs mt-1">{errorGuardado}</p>}
               </div>
 
               <button
