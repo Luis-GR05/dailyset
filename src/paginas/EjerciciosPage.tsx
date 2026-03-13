@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AppLayout, TituloPagina, FiltroBoton, Input, BotonPrimario } from "../componentes";
+import { AppLayout, TituloPagina, FiltroBoton, Input, BotonPrimario, Loading } from "../componentes";
 import { useEjercicios } from '../context/EjerciciosContext';
 import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
@@ -13,7 +13,7 @@ type Modal =
   | null;
 
 export default function EjerciciosPage() {
-  const { ejercicios, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
+  const { ejercicios, cargando, error, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
 
   const [filtroActivo, setFiltroActivo] = useState("Fuerza");
   const [busqueda, setBusqueda] = useState("");
@@ -74,6 +74,16 @@ export default function EjerciciosPage() {
             </div>
           ))}
         </div>
+
+        {/* Estado de carga / error */}
+        {cargando && (
+          <div className="py-10">
+            <Loading />
+          </div>
+        )}
+        {error && (
+          <p className="text-red-400 text-sm">{error}</p>
+        )}
 
         {/* Grid de resultados */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

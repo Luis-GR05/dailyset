@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../shared/Logo';
 import { useTheme } from '../../context/ThemeContext';
 import { useI18n } from '../../context/I18nContext';
 import type { Locale } from '../../context/I18nContext';
 import { Sun, Moon, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface HeaderProps {
   onAbrirMenu: () => void;
@@ -12,6 +14,9 @@ interface HeaderProps {
 export default function Header({ onAbrirMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { locale, setLocale, t } = useI18n();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const otherLocale: Locale = locale === 'es' ? 'en' : 'es';
   const localeLabel = locale === 'es' ? 'EN' : 'ES';
@@ -71,19 +76,30 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
           </button>
 
           {/* Logout */}
-          <Link to="/login">
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all"
-              style={{
-                backgroundColor: 'var(--color-neutral-800)',
-                border: '1px solid var(--color-neutral-900)',
-                color: 'var(--color-neutral-3000)',
-              }}
-            >
-              <span className="hidden sm:inline">{t.nav.logout}</span>
-              <LogOut className="w-4 h-4" />
-            </button>
-          </Link>
+          <button
+            onClick={async () => {
+              if (loggingOut) return;
+              setLoggingOut(true);
+              try {
+                await logout();
+                navigate('/login');
+              } finally {
+                setLoggingOut(false);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: 'var(--color-neutral-800)',
+              border: '1px solid var(--color-neutral-900)',
+              color: 'var(--color-neutral-3000)',
+            }}
+            disabled={loggingOut}
+          >
+            <span className="hidden sm:inline">
+              {loggingOut ? t.nav.loggingOut ?? t.nav.logout : t.nav.logout}
+            </span>
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
