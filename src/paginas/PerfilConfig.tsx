@@ -125,7 +125,6 @@ export default function PerfilConfigPage() {
                 {errorNombre && (
                   <p className="text-red-400 text-[9px] mt-1 font-bold">{errorNombre}</p>
                 )}
-                {errorGuardado && <p className="text-red-400 text-xs mt-1">{errorGuardado}</p>}
               </div>
 
               <button
