@@ -29,18 +29,18 @@ export default function EjerciciosPage() {
     return coincideFiltro && coincideBusqueda;
   });
 
-  const handleGuardar = (data: Omit<Ejercicio, 'id'>) => {
+  const handleGuardar = async (data: Omit<Ejercicio, 'id'>) => {
     if (modal?.tipo === 'crear') {
-      agregarEjercicio(data);
+      await agregarEjercicio(data);
     } else if (modal?.tipo === 'editar') {
-      editarEjercicio({ ...data, id: modal.ejercicio.id });
+      await editarEjercicio({ ...data, id: modal.ejercicio.id });
     }
     setModal(null);
   };
 
-  const handleEliminar = () => {
+  const handleEliminar = async () => {
     if (modal?.tipo === 'confirmarEliminar') {
-      eliminarEjercicio(modal.ejercicio.id);
+      await eliminarEjercicio(modal.ejercicio.id);
     }
     setModal(null);
   };
