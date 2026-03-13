@@ -204,6 +204,12 @@ export default function LandingPage() {
 
   return (
     <div ref={container} className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)" }}>
+      {/* Optimizaciones de Rendimiento Web (Core Web Vitals) */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preload" as="image" href={fondoLanding} fetchPriority="high" />
+      <link rel="preload" as="image" href={mancuerna} fetchPriority="high" />
+
 
       {/* ─── HEADER ─── */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-4 md:px-10"
@@ -237,7 +243,8 @@ export default function LandingPage() {
 
         {/* Background image */}
         <div className="absolute inset-0 z-0">
-          <img src={fondoLanding} alt="" className="w-full h-full object-cover opacity-25" />
+          {/* LCP Optimization: fetchPriority="high" para priorizar su descarga */}
+          <img src={fondoLanding} alt="Fondo hero" className="w-full h-full object-cover opacity-25" fetchPriority="high" />
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.5) 0%, rgba(5,5,5,0.2) 40%, rgba(5,5,5,0.95) 100%)" }} />
         </div>
 
