@@ -21,7 +21,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, nombre: string) => Promise<void>;
+  register: (email: string, password: string, nombre: string) => Promise<{ requiresEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
 }
@@ -124,13 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Si hay confirmación de email, session es null — el trigger ya crea el perfil
     // No intentamos fetchProfile aquí porque puede no haber sesión todavía
+    const requiresEmailConfirmation = !!data.user && !data.session;
+
     if (data.user && data.session) {
-      // Sin confirmación de email: sesión inmediata
       const profile = await fetchProfile(data.user.id);
       setUser(profile);
     }
-    // Si data.session es null → email de confirmación enviado, dejar que
-    // onAuthStateChange maneje el login cuando el usuario confirme
+
+    return { requiresEmailConfirmation };
   };
 
   const logout = async () => {

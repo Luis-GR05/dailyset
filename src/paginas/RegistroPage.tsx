@@ -32,8 +32,13 @@ export default function RegistroPage() {
 
     setLoading(true);
     try {
-      await register(email, password, nombre);
-      navigate('/dashboard');
+      const { requiresEmailConfirmation } = await register(email, password, nombre);
+
+      if (requiresEmailConfirmation) {
+        navigate('/registro-confirmacion');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(
         locale === 'es'
