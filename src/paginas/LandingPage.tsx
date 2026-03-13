@@ -258,13 +258,6 @@ export default function LandingPage() {
 
         <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
 
-          {/* Badge */}
-          <div className="hero-badge inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border text-xs font-bold tracking-widest uppercase"
-            style={{ borderColor: "rgba(219,240,89,0.3)", backgroundColor: "rgba(219,240,89,0.08)", color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--color-primary)" }} />
-            Tu entrenamiento. Tu evolución.
-          </div>
-
           {/* Icon */}
           <div className="hero-icon w-24 h-24 md:w-32 md:h-32 flex items-center justify-center mb-6 mx-auto">
             <img src={mancuerna} alt="Mancuerna" className="w-full h-full object-contain"
@@ -330,14 +323,6 @@ export default function LandingPage() {
                 <span className="text-xs mt-1 tracking-wide uppercase" style={{ color: "var(--color-neutral-3000)" }}>{s.label}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-40">
-          <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Montserrat', sans-serif" }}>Scroll</span>
-          <div className="w-px h-10 relative overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-            <div className="w-full h-4 absolute top-0 animate-bounce" style={{ backgroundColor: "var(--color-primary)" }} />
           </div>
         </div>
       </section>
