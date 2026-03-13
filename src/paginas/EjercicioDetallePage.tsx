@@ -18,8 +18,8 @@ export default function EjercicioDetallePage() {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center p-10">
-          <h2 className="text-xl text-white mb-4">Ejercicio no encontrado</h2>
-          <BotonPrimario onClick={() => navigate('/ejercicios')}>Volver a Ejercicios</BotonPrimario>
+          <h2 className="text-xl text-white mb-4">{t.exerciseDetail.exerciseNotFound}</h2>
+          <BotonPrimario onClick={() => navigate('/ejercicios')}>{t.exerciseDetail.back}</BotonPrimario>
         </div>
       </AppLayout>
     );
@@ -78,7 +78,7 @@ export default function EjercicioDetallePage() {
             <Card className="p-6" hoverable={false}>
               <LineChartElement
                 items={datosResumen}
-                title="Progreso de peso (kg)"
+                title={t.exerciseDetail.weightProgress}
                 height={120}
                 showGrid={false}
                 lineColor="#ff9900"

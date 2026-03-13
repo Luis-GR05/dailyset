@@ -6,7 +6,7 @@ import { useI18n } from '../context/I18nContext';
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -23,11 +23,7 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(
-        locale === 'es'
-          ? 'Email o contraseña incorrectos'
-          : 'Invalid email or password'
-      );
+      setError(t.auth.loginError);
     } finally {
       setLoading(false);
     }
@@ -59,7 +55,7 @@ export default function LoginPage() {
                 <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0a0a0a] bg-neutral-800" />
               ))}
             </div>
-            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">+10K Atletas</span>
+            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">{t.auth.athletesCount}</span>
           </div>
 
           <div className="text-center group">
@@ -69,7 +65,7 @@ export default function LoginPage() {
                 style={{ borderImage: 'linear-gradient(to right, transparent, var(--color-primary)) 1' }}></div>
               <p className="font-black tracking-[0.4em] text-xs uppercase italic"
                 style={{ color: 'var(--color-primary)' }}>
-                Domina tu progreso
+                {t.auth.masterProgress}
               </p>
               <div className="h-[1px] w-8"></div>
             </div>
@@ -78,11 +74,11 @@ export default function LoginPage() {
           <div className="absolute bottom-1/4 translate-y-[100px] grid grid-cols-2 gap-8 text-center border-t border-white/5 pt-8 w-64">
             <div>
               <p className="text-white font-black text-xl italic">100%</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Enfoque</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">{t.auth.focus}</p>
             </div>
             <div>
               <p className="font-black text-xl italic" style={{ color: 'var(--color-primary)' }}>∞</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Consistencia</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">{t.auth.consistency}</p>
             </div>
           </div>
         </div>
@@ -96,7 +92,7 @@ export default function LoginPage() {
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
               <p className="text-neutral-400 text-sm">
-                {locale === 'es' ? 'Tu próximo set empieza aquí' : 'Your next set starts here'}
+                {t.auth.nextSet}
               </p>
             </div>
 
@@ -161,7 +157,7 @@ export default function LoginPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
-                      {locale === 'es' ? 'Entrando...' : 'Signing in...'}
+                      {t.auth.signingIn}
                     </span>
                   ) : (
                     <>
@@ -197,7 +193,7 @@ export default function LoginPage() {
                   (e.currentTarget as HTMLAnchorElement).style.color = '';
                 }}
               >
-                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
+                ← {t.auth.backHome}
               </Link>
             </div>
           </div>

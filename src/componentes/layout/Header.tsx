@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Logo from '../shared/Logo';
 import { useTheme } from '../../context/ThemeContext';
 import { useI18n } from '../../context/I18nContext';
@@ -44,7 +44,7 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
           {/* Language toggle */}
           <button
             onClick={() => setLocale(otherLocale)}
-            title={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+            title={locale === 'es' ? t.nav.switchToEnglish : t.nav.switchToSpanish}
             className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold transition-all"
             style={{
               backgroundColor: 'var(--color-neutral-800)',
@@ -60,8 +60,8 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
           <button
             onClick={toggleTheme}
             title={theme === 'dark'
-              ? (locale === 'es' ? 'Activar modo claro' : 'Enable light mode')
-              : (locale === 'es' ? 'Activar modo oscuro' : 'Enable dark mode')}
+              ? t.nav.enableLightMode
+              : t.nav.enableDarkMode}
             className="flex items-center justify-center w-9 h-9 rounded-full transition-all"
             style={{
               backgroundColor: 'var(--color-neutral-800)',

@@ -6,7 +6,7 @@ import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegistroPage() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -22,11 +22,11 @@ export default function RegistroPage() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError(locale === 'es' ? 'Las contraseñas no coinciden' : 'Passwords do not match');
+      setError(t.auth.passwordsNotMatch);
       return;
     }
     if (password.length < 6) {
-      setError(locale === 'es' ? 'La contraseña debe tener al menos 6 caracteres' : 'Password must be at least 6 characters');
+      setError(t.auth.passwordLength);
       return;
     }
 
@@ -40,11 +40,7 @@ export default function RegistroPage() {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(
-        locale === 'es'
-          ? 'Error al crear la cuenta. Puede que el email ya esté en uso.'
-          : 'Error creating account. Email may already be in use.'
-      );
+      setError(t.auth.registerError);
     } finally {
       setLoading(false);
     }
@@ -76,7 +72,7 @@ export default function RegistroPage() {
                 <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0a0a0a] bg-neutral-800" />
               ))}
             </div>
-            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">+10K Atletas</span>
+            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">{t.auth.athletesCount}</span>
           </div>
 
           <div className="text-center group">
@@ -85,7 +81,7 @@ export default function RegistroPage() {
               <div className="h-[1px] w-8 bg-gradient-to-r from-transparent"></div>
               <p className="font-black tracking-[0.4em] text-xs uppercase italic"
                 style={{ color: 'var(--color-primary)' }}>
-                Domina tu progreso
+                {t.auth.masterProgress}
               </p>
               <div className="h-[1px] w-8"></div>
             </div>
@@ -94,11 +90,11 @@ export default function RegistroPage() {
           <div className="absolute bottom-1/4 translate-y-[100px] grid grid-cols-2 gap-8 text-center border-t border-white/5 pt-8 w-64">
             <div>
               <p className="text-white font-black text-xl italic">100%</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Enfoque</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">{t.auth.focus}</p>
             </div>
             <div>
               <p className="font-black text-xl italic" style={{ color: 'var(--color-primary)' }}>∞</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Consistencia</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">{t.auth.consistency}</p>
             </div>
           </div>
         </div>
@@ -112,7 +108,7 @@ export default function RegistroPage() {
               <div className="h-1 w-12 mx-auto rounded-full mb-4"
                 style={{ backgroundColor: 'var(--color-primary)' }}></div>
               <p className="text-neutral-400 text-sm italic">
-                {locale === 'es' ? 'Empieza a trackear tus sets hoy mismo' : 'Start tracking your sets today'}
+                {t.auth.registerSubtitle}
               </p>
             </div>
 
@@ -121,11 +117,11 @@ export default function RegistroPage() {
               {/* Nombre */}
               <div className="space-y-2">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">
-                  {locale === 'es' ? 'Nombre' : 'Name'}
+                  {t.auth.name}
                 </span>
                 <input
                   type="text"
-                  placeholder={locale === 'es' ? 'Tu nombre' : 'Your name'}
+                  placeholder={t.auth.namePlaceholder}
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   required
@@ -169,7 +165,7 @@ export default function RegistroPage() {
               {/* Confirmar contraseña */}
               <div className="space-y-2 pb-2">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">
-                  {locale === 'es' ? 'Confirmar contraseña' : 'Confirm password'}
+                  {t.auth.confirmPassword}
                 </span>
                 <input
                   type="password"
@@ -211,7 +207,7 @@ export default function RegistroPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      {locale === 'es' ? 'Creando cuenta...' : 'Creating account...'}
+                      {t.auth.creatingAccount}
                     </span>
                   ) : (
                     <>
@@ -253,7 +249,7 @@ export default function RegistroPage() {
                   (e.currentTarget as HTMLAnchorElement).style.color = '';
                 }}
               >
-                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
+                ← {t.auth.backHome}
               </Link>
             </div>
           </div>

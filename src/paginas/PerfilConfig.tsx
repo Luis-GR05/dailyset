@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function PerfilConfigPage() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -40,7 +40,7 @@ export default function PerfilConfigPage() {
       setSuccessNombre(true);
       setTimeout(() => setSuccessNombre(false), 2000);
     } catch {
-      setErrorNombre(locale === 'es' ? 'Error al guardar el nombre' : 'Error saving name');
+      setErrorNombre(t.profile.errorSavingName);
     } finally {
       setSavingNombre(false);
     }
@@ -80,7 +80,7 @@ export default function PerfilConfigPage() {
   };
 
   const handleCambiarPassword = async () => {
-    alert(locale === 'es' ? 'Se enviará un email para cambiar tu contraseña.' : 'A password reset email will be sent.');
+    alert(t.profile.passwordResetEmailSent);
   };
 
   return (
@@ -91,7 +91,7 @@ export default function PerfilConfigPage() {
         {/* Datos de usuario */}
         <div className="space-y-3">
           <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
-            {locale === 'es' ? 'Datos de Usuario' : 'User Data'}
+            {t.profile.userData}
           </h3>
 
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl space-y-1">
@@ -114,10 +114,10 @@ export default function PerfilConfigPage() {
                   />
                 ) : (
                   <p className="text-white font-black italic uppercase flex items-center gap-2">
-                    {nombre || (locale === 'es' ? 'Sin nombre' : 'No name')}
+                    {nombre || t.profile.noName}
                     {successNombre && (
                       <span className="text-green-400 text-[10px] font-bold normal-case tracking-normal">
-                        ✓ {locale === 'es' ? 'guardado' : 'saved'}
+                        ✓ {t.profile.saved}
                       </span>
                     )}
                   </p>
@@ -157,7 +157,7 @@ export default function PerfilConfigPage() {
         {/* Preferencias técnicas */}
         <div className="space-y-3">
           <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
-            {locale === 'es' ? 'Preferencias Técnicas' : 'Technical Preferences'}
+            {t.profile.technicalPreferences}
           </h3>
 
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-2 backdrop-blur-xl space-y-1">
@@ -172,7 +172,7 @@ export default function PerfilConfigPage() {
                   {t.profile.units} ({unidadesKg ? t.profile.kg : t.profile.lbs})
                 </span>
                 {savingUnidades && (
-                  <p className="text-neutral-500 text-[9px] mt-0.5">{locale === 'es' ? 'Guardando...' : 'Saving...'}</p>
+                  <p className="text-neutral-500 text-[9px] mt-0.5">{t.profile.saving}</p>
                 )}
               </div>
               <button
@@ -194,7 +194,7 @@ export default function PerfilConfigPage() {
                   {t.profile.notifications}
                 </span>
                 {savingNotif && (
-                  <p className="text-neutral-500 text-[9px] mt-0.5">{locale === 'es' ? 'Guardando...' : 'Saving...'}</p>
+                  <p className="text-neutral-500 text-[9px] mt-0.5">{t.profile.saving}</p>
                 )}
               </div>
               <button
@@ -211,7 +211,7 @@ export default function PerfilConfigPage() {
         {/* Seguridad y cuenta */}
         <div className="space-y-3 pt-4">
           <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic">
-            {locale === 'es' ? 'Seguridad y Cuenta' : 'Security & Account'}
+            {t.profile.securityAccount}
           </h3>
 
           <div className="flex flex-col md:flex-row gap-3">
@@ -219,7 +219,7 @@ export default function PerfilConfigPage() {
               onClick={handleCambiarPassword}
               className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95"
             >
-              {locale === 'es' ? 'Cambiar contraseña' : 'Change password'}
+              {t.profile.changePassword}
             </button>
             <button
               onClick={handleCerrarSesion}

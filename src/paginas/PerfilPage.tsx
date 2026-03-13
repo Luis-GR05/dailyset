@@ -6,7 +6,7 @@ import { useI18n } from '../context/I18nContext';
 export default function PerfilPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   const iniciales = (user?.nombre ?? 'U')
     .split(' ')
@@ -15,20 +15,20 @@ export default function PerfilPage() {
     .join('');
 
   const stats = [
-    { etiqueta: "SETS TOTALES", valor: user?.totalSets ?? '—' },
-    { etiqueta: "RACHA", valor: user?.racha ? `${user.racha} DÍAS` : '—' },
-    { etiqueta: "PESO TOTAL", valor: user?.pesoTotal ?? '—' },
+    { etiqueta: t.profile.totalSets.toUpperCase(), valor: user?.totalSets ?? '—' },
+    { etiqueta: t.profile.streak.toUpperCase(), valor: user?.racha ? `${user.racha} ${t.profile.days.toUpperCase()}` : '—' },
+    { etiqueta: t.profile.totalWeight.toUpperCase(), valor: user?.pesoTotal ?? '—' },
   ];
 
   const opciones = [
     {
-      nombre: locale === 'es' ? 'CONFIGURACIÓN DE CUENTA' : 'ACCOUNT SETTINGS',
+      nombre: t.profile.accountSettings.toUpperCase(),
       ruta: '/perfil/configuracion',
       flecha: true,
       esRojo: false,
     },
     {
-      nombre: locale === 'es' ? 'CERRAR SESIÓN' : 'SIGN OUT',
+      nombre: t.profile.logout.toUpperCase(),
       ruta: null,
       flecha: false,
       esRojo: true,
@@ -37,7 +37,7 @@ export default function PerfilPage() {
 
   const handleAction = async (opcion: typeof opciones[0]) => {
     if (opcion.esRojo) {
-      if (confirm(locale === 'es' ? '¿Cerrar sesión en DailySet Elite?' : 'Sign out of DailySet Elite?')) {
+      if (confirm(t.profile.logoutConfirmElite)) {
         await logout();
         navigate('/login');
       }
@@ -79,11 +79,11 @@ export default function PerfilPage() {
                 className="font-black text-[10px] tracking-[0.4em] uppercase mb-1 italic"
                 style={{ color: 'var(--color-primary)' }}
               >
-                {user?.rango ?? 'ATLETA'}
+                {user?.rango ?? t.profile.athlete.toUpperCase()}
               </p>
 
               <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-4 leading-none">
-                {user?.nombre ?? (locale === 'es' ? 'Usuario' : 'User')}
+                {user?.nombre ?? t.profile.user}
               </h1>
 
               {/* Barra de progreso hacia siguiente nivel */}
@@ -97,10 +97,7 @@ export default function PerfilPage() {
                 ></div>
               </div>
               <p className="text-neutral-600 text-[9px] uppercase tracking-widest mt-1">
-                {locale === 'es'
-                  ? `${user?.progreso ?? 0}% al siguiente nivel`
-                  : `${user?.progreso ?? 0}% to next level`
-                }
+                {user?.progreso ?? 0}% {t.profile.toNextLevel}
               </p>
             </div>
           </div>

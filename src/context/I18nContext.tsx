@@ -13,6 +13,11 @@ const translations = {
       statistics: 'Estadísticas',
       profile: 'Perfil',
       logout: 'Cerrar sesión',
+      switchToEnglish: 'Cambiar a Inglés',
+      switchToSpanish: 'Cambiar a Español',
+      enableLightMode: 'Activar modo claro',
+      enableDarkMode: 'Activar modo oscuro',
+      loggingOut: 'Cerrando sesión...',
     },
 
     // Landing
@@ -66,6 +71,20 @@ const translations = {
       signIn: 'Inicia sesión',
       loginBtn: 'ENTRAR',
       registerBtn: 'CREAR CUENTA',
+      athletesCount: '+10K Atletas',
+      masterProgress: 'Domina tu progreso',
+      focus: 'Enfoque',
+      consistency: 'Consistencia',
+      nextSet: 'Tu próximo set empieza aquí',
+      signingIn: 'Entrando...',
+      backHome: 'Volver al inicio',
+      loginError: 'Email o contraseña incorrectos',
+      registerSubtitle: 'Empieza a trackear tus sets hoy mismo',
+      namePlaceholder: 'Tu nombre',
+      passwordsNotMatch: 'Las contraseñas no coinciden',
+      passwordLength: 'La contraseña debe tener al menos 6 caracteres',
+      registerError: 'Error al crear la cuenta. Puede que el email ya esté en uso.',
+      creatingAccount: 'Creando cuenta...',
     },
 
     // Dashboard
@@ -76,8 +95,19 @@ const translations = {
       recentActivity: 'Actividad reciente',
       startTraining: 'Iniciar entrenamiento',
       noActivity: 'Sin actividad reciente',
-      kg: 'kg',
+      noRoutines: 'Sin rutinas',
       series: 'series',
+      controlPanel: 'Panel de Control',
+      noRoutinesDesc: 'Aún no has creado ninguna rutina.',
+      createFirstRoutine: 'Crear mi primera rutina',
+      stats: 'STATS',
+      weekly: 'Semanal',
+      volumePerSession: 'Volumen por Sesión',
+      noWorkoutsThisWeek: 'Sin entrenamientos esta semana',
+      weeksActive: 'Semanas Activo',
+      deadliftPR: 'PR Peso Muerto',
+      currentStreak: 'Racha Actual',
+      level: 'Nivel',
     },
 
     // Routines
@@ -103,6 +133,9 @@ const translations = {
       exercisesInRoutine: 'Ejercicios en la rutina',
       availableExercises: 'Ejercicios disponibles',
       noExercisesInRoutine: 'Sin ejercicios asignados.',
+      filters: 'Filtros:',
+      noRoutinesInCategory: 'No hay rutinas de esta categoría. ¡Crea una!',
+      exercisesCount: 'ejercicios',
     },
 
     // Training
@@ -117,6 +150,9 @@ const translations = {
       addSeries: '+ Serie',
       set: 'Serie',
       back: 'Volver',
+      volume: 'Volumen',
+      rest: 'Descanso',
+      viewHistory: 'Ver historial',
     },
 
     // Exercises
@@ -133,6 +169,7 @@ const translations = {
       confirmDelete: '¿Eliminar este ejercicio?',
       confirmDeleteDesc: 'Esta acción no se puede deshacer.',
       noResults: 'No se encontraron ejercicios.',
+      noResultsInCategory: 'No se encontraron ejercicios de esta categoría.',
       all: 'Todos',
       viewDetail: 'Ver detalle',
       save: 'Guardar',
@@ -147,11 +184,14 @@ const translations = {
       maxWeight: 'Peso máximo',
       dateCol: 'Fecha',
       back: '← Volver',
+      exerciseNotFound: 'Ejercicio no encontrado',
+      weightProgress: 'Progreso de peso (kg)',
     },
 
     // History
     history: {
       title: 'Historial',
+      workoutHistory: 'Historial de entrenamientos',
       noSession: 'Sin sesión registrada',
       totalVolume: 'Volumen total',
       intensity: 'Intensidad',
@@ -162,6 +202,9 @@ const translations = {
       kg: 'kg',
       reps: 'reps',
       set: 'Serie',
+      workoutDone: 'Rutina realizada:',
+      score: 'Puntuación:',
+      duration: 'Duración:',
     },
 
     // Statistics
@@ -172,6 +215,14 @@ const translations = {
       caloriesBurned: 'Kcal quemadas',
       monthlyEvolution: 'Evolución mensual',
       workoutsPerMonth: 'Entrenos por mes',
+      annualProgress: 'Progreso General Anual',
+      trainingVolume: 'Volumen de Entrenamiento',
+      noDataYet: 'Sin datos aún',
+      noDataDesc: 'Completa tu primer entrenamiento para empezar a ver tu progreso',
+      performanceAnalysis: 'Análisis de Rendimiento',
+      avgIntensity: 'Intensidad Media',
+      weeklyFrequency: 'Frecuencia Semanal',
+      bestStreak: 'Mejor Racha',
     },
 
     // Profile
@@ -194,6 +245,19 @@ const translations = {
       streak: 'Racha',
       totalWeight: 'Peso total',
       days: 'días',
+      athlete: 'Atleta',
+      toNextLevel: 'al siguiente nivel',
+      user: 'Usuario',
+      logoutConfirmElite: '¿Cerrar sesión en DailySet Elite?',
+      userData: 'Datos de Usuario',
+      technicalPreferences: 'Preferencias Técnicas',
+      securityAccount: 'Seguridad y Cuenta',
+      changePassword: 'Cambiar contraseña',
+      noName: 'Sin nombre',
+      saved: 'guardado',
+      saving: 'Guardando...',
+      errorSavingName: 'Error al guardar el nombre',
+      passwordResetEmailSent: 'Se enviará un email para cambiar tu contraseña.',
     },
 
     // Progress
@@ -204,6 +268,9 @@ const translations = {
       sessions: 'Sesiones',
       records: 'Récords (PR)',
       totalTime: 'Tiempo total',
+      progressionIn: 'Progresión en',
+      last30Days: 'Últimos 30 días',
+      historical: 'Histórico',
     },
 
     // Common
@@ -225,6 +292,11 @@ const translations = {
       statistics: 'Statistics',
       profile: 'Profile',
       logout: 'Logout',
+      switchToEnglish: 'Switch to English',
+      switchToSpanish: 'Switch to Spanish',
+      enableLightMode: 'Enable light mode',
+      enableDarkMode: 'Enable dark mode',
+      loggingOut: 'Logging out...',
     },
 
     landing: {
@@ -276,6 +348,20 @@ const translations = {
       signIn: 'Sign in',
       loginBtn: 'SIGN IN',
       registerBtn: 'CREATE ACCOUNT',
+      athletesCount: '+10K Athletes',
+      masterProgress: 'Master your progress',
+      focus: 'Focus',
+      consistency: 'Consistency',
+      nextSet: 'Your next set starts here',
+      signingIn: 'Signing in...',
+      backHome: 'Back to home',
+      loginError: 'Invalid email or password',
+      registerSubtitle: 'Start tracking your sets today',
+      namePlaceholder: 'Your name',
+      passwordsNotMatch: 'Passwords do not match',
+      passwordLength: 'Password must be at least 6 characters',
+      registerError: 'Error creating account. Email may already be in use.',
+      creatingAccount: 'Creating account...',
     },
 
     dashboard: {
@@ -285,8 +371,19 @@ const translations = {
       recentActivity: 'Recent activity',
       startTraining: 'Start training',
       noActivity: 'No recent activity',
-      kg: 'kg',
+      noRoutines: 'No routines',
       series: 'sets',
+      controlPanel: 'Dashboard',
+      noRoutinesDesc: "You haven't created any routines yet.",
+      createFirstRoutine: 'Create my first routine',
+      stats: 'STATS',
+      weekly: 'Weekly',
+      volumePerSession: 'Volume per Session',
+      noWorkoutsThisWeek: 'No workouts this week',
+      weeksActive: 'Weeks Active',
+      deadliftPR: 'Deadlift PR',
+      currentStreak: 'Current Streak',
+      level: 'Level',
     },
 
     routines: {
@@ -311,6 +408,9 @@ const translations = {
       exercisesInRoutine: 'Exercises in routine',
       availableExercises: 'Available exercises',
       noExercisesInRoutine: 'No exercises assigned.',
+      filters: 'Filters:',
+      noRoutinesInCategory: 'No routines in this category. Create one!',
+      exercisesCount: 'exercises',
     },
 
     training: {
@@ -324,6 +424,9 @@ const translations = {
       addSeries: '+ Set',
       set: 'Set',
       back: 'Back',
+      volume: 'Volume',
+      rest: 'Rest',
+      viewHistory: 'View history',
     },
 
     exercises: {
@@ -339,6 +442,7 @@ const translations = {
       confirmDelete: 'Delete this exercise?',
       confirmDeleteDesc: 'This action cannot be undone.',
       noResults: 'No exercises found.',
+      noResultsInCategory: 'No exercises found in this category.',
       all: 'All',
       viewDetail: 'View detail',
       save: 'Save',
@@ -352,10 +456,13 @@ const translations = {
       maxWeight: 'Max weight',
       dateCol: 'Date',
       back: '← Back',
+      exerciseNotFound: 'Exercise not found',
+      weightProgress: 'Weight progress (kg)',
     },
 
     history: {
       title: 'History',
+      workoutHistory: 'Workout history',
       noSession: 'No session recorded',
       totalVolume: 'Total volume',
       intensity: 'Intensity',
@@ -366,6 +473,9 @@ const translations = {
       kg: 'kg',
       reps: 'reps',
       set: 'Set',
+      workoutDone: 'Workout done:',
+      score: 'Score:',
+      duration: 'Duration:',
     },
 
     statistics: {
@@ -375,6 +485,14 @@ const translations = {
       caloriesBurned: 'Calories burned',
       monthlyEvolution: 'Monthly evolution',
       workoutsPerMonth: 'Workouts per month',
+      annualProgress: 'General Annual Progress',
+      trainingVolume: 'Training Volume',
+      noDataYet: 'No data yet',
+      noDataDesc: 'Complete your first workout to start seeing your progress',
+      performanceAnalysis: 'Performance Analysis',
+      avgIntensity: 'Average Intensity',
+      weeklyFrequency: 'Weekly Frequency',
+      bestStreak: 'Best Streak',
     },
 
     profile: {
@@ -396,6 +514,19 @@ const translations = {
       streak: 'Streak',
       totalWeight: 'Total weight',
       days: 'days',
+      athlete: 'Athlete',
+      toNextLevel: 'to next level',
+      user: 'User',
+      logoutConfirmElite: 'Sign out of DailySet Elite?',
+      userData: 'User Data',
+      technicalPreferences: 'Technical Preferences',
+      securityAccount: 'Security & Account',
+      changePassword: 'Change password',
+      noName: 'No name',
+      saved: 'saved',
+      saving: 'Saving...',
+      errorSavingName: 'Error saving name',
+      passwordResetEmailSent: 'A password reset email will be sent.',
     },
 
     progress: {
@@ -405,6 +536,9 @@ const translations = {
       sessions: 'Sessions',
       records: 'Records (PR)',
       totalTime: 'Total time',
+      progressionIn: 'Progression in',
+      last30Days: 'Last 30 days',
+      historical: 'Historical',
     },
 
     common: {
@@ -415,7 +549,7 @@ const translations = {
       disabled: 'Disabled',
     },
   },
-} as const;
+};
 
 export type Translations = typeof translations.es;
 

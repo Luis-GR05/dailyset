@@ -1,6 +1,7 @@
 import { AppLayout, TituloPagina } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import { Link } from 'react-router-dom';
+import { useI18n } from "../context/I18nContext";
 
 const diasSemanaVacios = [
   { dia: "L", valor1: 0 },
@@ -13,6 +14,8 @@ const diasSemanaVacios = [
 ];
 
 export default function DashboardPage() {
+  const { t } = useI18n();
+
   // TODO: Cargar rutinas reales desde Supabase cuando se implemente la funcionalidad
   const rutinas: { id: number; nombre: string; descripcion: string }[] = [];
 
@@ -21,28 +24,28 @@ export default function DashboardPage() {
 
   // TODO: Cargar estadísticas reales desde Supabase
   const statsVacias = [
-    { label: "Semanas Activo", val: "—" },
-    { label: "PR Peso Muerto", val: "—" },
-    { label: "Racha Actual", val: "—" },
-    { label: "Nivel", val: "—" },
+    { label: t.dashboard.weeksActive, val: "—" },
+    { label: t.dashboard.deadliftPR, val: "—" },
+    { label: t.dashboard.currentStreak, val: "—" },
+    { label: t.dashboard.level, val: "—" },
   ];
 
   return (
     <AppLayout>
       <div className="space-y-6 pb-10">
-        <TituloPagina titulo="Panel de Control" />
+        <TituloPagina titulo={t.dashboard.controlPanel} />
 
         {/* Rutinas */}
         {rutinas.length === 0 ? (
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-10 backdrop-blur-xl text-center">
-            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] italic mb-3">Sin rutinas</p>
-            <p className="text-neutral-600 text-sm mb-6">Aún no has creado ninguna rutina.</p>
+            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] italic mb-3">{t.dashboard.noRoutines}</p>
+            <p className="text-neutral-600 text-sm mb-6">{t.dashboard.noRoutinesDesc}</p>
             <Link
               to="/mis-rutinas"
               className="inline-block text-black font-black text-xs uppercase tracking-widest italic py-3 px-8 rounded-full transition-all active:scale-95"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              Crear mi primera rutina
+              {t.dashboard.createFirstRoutine}
             </Link>
           </div>
         ) : (
@@ -81,8 +84,8 @@ export default function DashboardPage() {
               <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center"
                 style={{ border: '1px solid var(--color-primary)', boxShadow: '0 0 20px var(--color-primary-glow)' }}>
                 <div className="text-center">
-                  <p className="font-black italic text-xs leading-tight" style={{ color: 'var(--color-primary)' }}>STATS</p>
-                  <p className="text-white font-black italic text-[10px] uppercase opacity-50">Semanal</p>
+                  <p className="font-black italic text-xs leading-tight" style={{ color: 'var(--color-primary)' }}>{t.dashboard.stats}</p>
+                  <p className="text-white font-black italic text-[10px] uppercase opacity-50">{t.dashboard.weekly}</p>
                 </div>
               </div>
             </div>
@@ -90,7 +93,7 @@ export default function DashboardPage() {
             <div className="flex-1 w-full min-w-0">
               <div className="mb-4 text-center md:text-left">
                 <span className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] italic">
-                  Volumen por Sesión
+                  {t.dashboard.volumePerSession}
                 </span>
               </div>
               <div className="h-[220px] w-full">
@@ -102,7 +105,7 @@ export default function DashboardPage() {
                 />
               </div>
               <p className="text-center text-neutral-600 text-[10px] uppercase tracking-widest italic mt-2">
-                Sin entrenamientos esta semana
+                {t.dashboard.noWorkoutsThisWeek}
               </p>
             </div>
           </div>

@@ -60,8 +60,8 @@ export default function EntrenamientoPage() {
                         </Card>
                     </div>
                     <Link to="/mis-rutinas">
-                        <button className="w-full md:w-auto bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-all">
-                            {t.training.finishTraining.toUpperCase()}
+                        <button className="w-full md:w-auto bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-all text-xs uppercase tracking-widest italic">
+                            {t.training.finishTraining}
                         </button>
                     </Link>
                 </div>
@@ -76,7 +76,9 @@ export default function EntrenamientoPage() {
                                         <ImagenPlaceholder size="sm" />
                                         <div>
                                             <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>Ver historial</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest italic cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>
+                                                {t.training.viewHistory}
+                                            </p>
                                         </div>
                                     </div>
                                     {/* Botón Eliminar */}

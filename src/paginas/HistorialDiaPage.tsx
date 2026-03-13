@@ -52,11 +52,11 @@ export default function HistorialDiaPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Rutina realizada:' : 'Workout done:'}</p>
+            <p className="text-neutral-400 text-xs mb-1">{t.history.workoutDone}</p>
             <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{sesion.rutina}</p>
           </Card>
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Puntuación:' : 'Score:'}</p>
+            <p className="text-neutral-400 text-xs mb-1">{t.history.score}</p>
             <div className="flex gap-1 mt-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg key={star} className={`w-4 h-4 ${star <= sesion.puntuacion ? '' : 'text-neutral-600'}`} fill="currentColor" viewBox="0 0 24 24" style={star <= sesion.puntuacion ? { color: 'var(--color-primary)' } : {}}>
@@ -70,7 +70,7 @@ export default function HistorialDiaPage() {
             <p className="text-white font-bold text-sm">{volumenTotal.toLocaleString('es-ES')} kg</p>
           </Card>
           <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Duración:' : 'Duration:'}</p>
+            <p className="text-neutral-400 text-xs mb-1">{t.history.duration}</p>
             <p className="text-white font-bold text-sm">{sesion.duracionMin} min</p>
           </Card>
         </div>

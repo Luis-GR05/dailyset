@@ -1,21 +1,22 @@
-import { AppLayout } from '../componentes';
-import { Card } from '../componentes';
+import { AppLayout, Card } from '../componentes';
+import { useI18n } from '../context/I18nContext';
 
 export default function ProgresoPage() {
+    const { t } = useI18n();
     return (
         <AppLayout>
             <div className="space-y-8">
                 <header>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter italic">Tu Evolución</h1>
-                    <p className="text-neutral-400">Análisis detallado de tu rendimiento físico.</p>
+                    <h1 className="text-3xl font-black uppercase tracking-tighter italic">{t.progress.title}</h1>
+                    <p className="text-neutral-400">{t.progress.subtitle}</p>
                 </header>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { label: 'Volumen Total', value: '42.5k kg', color: 'text-accent' },
-                        { label: 'Sesiones', value: '18', color: 'text-white' },
-                        { label: 'Récords (PR)', value: '5', color: 'text-primary-700' },
-                        { label: 'Tiempo total', value: '24h', color: 'text-white' },
+                        { label: t.progress.totalVolume, value: '42.5k kg', color: 'text-accent' },
+                        { label: t.progress.sessions, value: '18', color: 'text-white' },
+                        { label: t.progress.records, value: '5', color: 'text-primary-700' },
+                        { label: t.progress.totalTime, value: '24h', color: 'text-white' },
                     ].map((metric, i) => (
                         <Card key={i} className="p-5 bg-neutral-900/50 border-white/5">
                             <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest">{metric.label}</p>
@@ -26,10 +27,10 @@ export default function ProgresoPage() {
 
                 <Card className="p-6 h-80 bg-neutral-900/40 border-white/5 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
-                        <h3 className="font-bold">Progresión en Press de Banca</h3>
+                        <h3 className="font-bold">{t.progress.progressionIn} Press de Banca</h3>
                         <select className="bg-black border border-white/10 rounded-lg text-xs p-1">
-                            <option>Últimos 30 días</option>
-                            <option>Histórico</option>
+                            <option>{t.progress.last30Days}</option>
+                            <option>{t.progress.historical}</option>
                         </select>
                     </div>
                     <div className="flex-1 flex items-end gap-2 px-2 pb-2">
