@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface DataItem {
   name: string;
-  value: string | number;
+  value: number;
 }
 
 interface LineChartElementProps {
