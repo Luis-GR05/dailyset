@@ -1,12 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseClient';
 
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 export interface User {
@@ -86,8 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: { session }, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
+
+    if (session?.user) {
+      const profile = await fetchProfile(session.user.id);
+      setUser(profile);
+    }
   };
 
   const register = async (email: string, password: string, nombre: string) => {
@@ -119,8 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) throw new Error('No hay sesión activa');
 
     const dbData: Record<string, unknown> = {};
-    if (data.nombre !== undefined)         dbData.nombre = data.nombre;
-    if (data.unidadesKg !== undefined)     dbData.unidades_kg = data.unidadesKg;
+    if (data.nombre !== undefined) dbData.nombre = data.nombre;
+    if (data.unidadesKg !== undefined) dbData.unidades_kg = data.unidadesKg;
     if (data.notificaciones !== undefined) dbData.notificaciones = data.notificaciones;
 
     const { error } = await supabase
