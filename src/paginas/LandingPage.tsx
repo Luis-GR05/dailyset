@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import fondoLanding from "../assets/imagenes/fondoLanding.jpg";
-import mancuerna from "../assets/imagenes/mancuerna.png";
+import mancuerna from "../assets/imagenes/mancuerna.webp";
 import { useI18n } from "../context/I18nContext";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -17,17 +17,11 @@ export default function LandingPage() {
   useGSAP(
     () => {
       const tl = gsap.timeline();
-      tl.from(".hero-badge", {
-        y: 20,
-        opacity: 0,
-        duration: 0.8,
-        ease: "power3.out",
-      })
-        .from(
-          ".hero-title",
-          { y: 40, opacity: 0, duration: 1.0, ease: "power4.out" },
-          "-=0.4"
-        )
+      tl.from(
+        ".hero-title",
+        { y: 40, opacity: 0, duration: 1.0, ease: "power4.out" },
+        "-=0.4"
+      )
         .from(
           ".hero-subtitle",
           { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" },
@@ -260,7 +254,7 @@ export default function LandingPage() {
 
           {/* Icon */}
           <div className="hero-icon w-24 h-24 md:w-32 md:h-32 flex items-center justify-center mb-6 mx-auto">
-            <img src={mancuerna} alt="Mancuerna" className="w-full h-full object-contain"
+            <img src={mancuerna} alt="Mancuerna" className="w-full h-full object-contain" fetchPriority="high"
               style={{ filter: "brightness(0) invert(1) drop-shadow(0 0 24px rgba(255,255,255,0.5))" }} />
           </div>
 

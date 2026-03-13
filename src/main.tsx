@@ -16,6 +16,7 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
       <I18nProvider>
+        {/* AuthProvider se queda aquí, una sola vez */}
         <AuthProvider>
           <App />
         </AuthProvider>
