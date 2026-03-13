@@ -6,6 +6,8 @@ export interface Ejercicio {
     grupo: string;
     categoria: string;
     descripcion: string;
+    videoUrl?: string;
+    imageUrl?: string;
 }
 
 interface EjerciciosContextType {

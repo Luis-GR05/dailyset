@@ -1,14 +1,29 @@
 import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
 import { useI18n } from '../context/I18nContext';
+import { useEjercicios } from '../context/EjerciciosContext';
 
 export default function EjercicioDetallePage() {
   const { t } = useI18n();
-  const ejercicio = {
-    nombre: "Press de Banca",
-    descripcion: "Baja la barra lentamente hacia el pecho, manteniendo los codos a 45 grados.",
-  };
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { ejercicios } = useEjercicios();
+
+  const ejercicioId = parseInt(id || '0', 10);
+  const ejercicio = ejercicios.find(e => e.id === ejercicioId);
+
+  if (!ejercicio) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center p-10">
+          <h2 className="text-xl text-white mb-4">Ejercicio no encontrado</h2>
+          <BotonPrimario onClick={() => navigate('/ejercicios')}>Volver a Ejercicios</BotonPrimario>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const historial = [
     { fecha: "29 Enero", peso: 80, reps: 5 },
@@ -32,13 +47,26 @@ export default function EjercicioDetallePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="aspect-video flex items-center justify-center" hoverable={false}>
-            <div className="text-center">
-              <svg className="w-16 h-16 text-neutral-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+          <Card className="aspect-video flex items-center justify-center overflow-hidden" hoverable={false}>
+            {ejercicio.videoUrl ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={ejercicio.videoUrl}
+                title={`Video de ${ejercicio.nombre}`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full object-cover"
+              ></iframe>
+            ) : (
+              <div className="text-center">
+                <svg className="w-16 h-16 text-neutral-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            )}
           </Card>
 
           <div className="space-y-6">

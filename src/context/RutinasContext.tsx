@@ -6,6 +6,7 @@ export interface Rutina {
     categoria: string;
     duracion: number;
     ejerciciosIds: number[];
+    imageUrl?: string;
 }
 
 interface RutinasContextType {

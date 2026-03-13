@@ -4,6 +4,7 @@ import App from './App';
 import './styles/global.css';
 import { ThemeProvider } from './context/ThemeContext';
 import { I18nProvider } from './context/I18nContext';
+import { AuthProvider } from './context/AuthContext';
 
 const rootElement = document.getElementById('root');
 
@@ -15,7 +16,9 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
       <I18nProvider>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </I18nProvider>
     </ThemeProvider>
   </React.StrictMode>

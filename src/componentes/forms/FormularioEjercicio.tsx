@@ -15,6 +15,8 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
     const [grupo, setGrupo] = useState('');
     const [categoria, setCategoria] = useState(CATEGORIAS[0]);
     const [descripcion, setDescripcion] = useState('');
+    const [videoUrl, setVideoUrl] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
 
     useEffect(() => {
         if (ejercicio) {
@@ -22,13 +24,22 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
             setGrupo(ejercicio.grupo);
             setCategoria(ejercicio.categoria);
             setDescripcion(ejercicio.descripcion);
+            setVideoUrl(ejercicio.videoUrl || '');
+            setImageUrl(ejercicio.imageUrl || '');
         }
     }, [ejercicio]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!nombre.trim() || !grupo.trim()) return;
-        onGuardar({ nombre: nombre.trim(), grupo: grupo.trim(), categoria, descripcion: descripcion.trim() });
+        onGuardar({
+            nombre: nombre.trim(),
+            grupo: grupo.trim(),
+            categoria,
+            descripcion: descripcion.trim(),
+            videoUrl: videoUrl.trim(),
+            imageUrl: imageUrl.trim()
+        });
     };
 
     return (
@@ -89,6 +100,28 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
                             value={descripcion}
                             onChange={e => setDescripcion(e.target.value)}
                             style={{ resize: 'none' }}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">URL del Video (YouTube Embed)</label>
+                        <input
+                            className="input"
+                            type="url"
+                            placeholder="Ej. https://www.youtube.com/embed/..."
+                            value={videoUrl}
+                            onChange={e => setVideoUrl(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">URL de la Imagen (Portada)</label>
+                        <input
+                            className="input"
+                            type="url"
+                            placeholder="Ej. https://images.unsplash.com/..."
+                            value={imageUrl}
+                            onChange={e => setImageUrl(e.target.value)}
                         />
                     </div>
 
