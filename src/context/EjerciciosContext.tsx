@@ -1,47 +1,150 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import { useAuth } from './AuthContext';
 
 export interface Ejercicio {
-    id: number;
-    nombre: string;
-    grupo: string;
-    categoria: string;
-    descripcion: string;
-    videoUrl?: string;
-    imageUrl?: string;
+  id: number;
+  nombre: string;
+  grupo: string;
+  categoria: string;
+  descripcion: string;
+  videoUrl?: string;
+  imageUrl?: string;
 }
 
 interface EjerciciosContextType {
-    ejercicios: Ejercicio[];
-    agregarEjercicio: (e: Omit<Ejercicio, 'id'>) => void;
-    editarEjercicio: (e: Ejercicio) => void;
-    eliminarEjercicio: (id: number) => void;
+  ejercicios: Ejercicio[];
+  cargando: boolean;
+  error: string | null;
+  refrescar: () => Promise<void>;
+  agregarEjercicio: (e: Omit<Ejercicio, 'id'>) => Promise<void>;
+  editarEjercicio: (e: Ejercicio) => Promise<void>;
+  eliminarEjercicio: (id: number) => Promise<void>;
 }
 
 const EjerciciosContext = createContext<EjerciciosContextType | undefined>(undefined);
 
-// Lista vacía: los ejercicios se cargarán desde Supabase cuando se implemente
-const EJERCICIOS_INICIALES: Ejercicio[] = [];
-
 export function EjerciciosProvider({ children }: { children: ReactNode }) {
-    const [ejercicios, setEjercicios] = useState<Ejercicio[]>(EJERCICIOS_INICIALES);
+  const { user } = useAuth();
+  const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const agregarEjercicio = (e: Omit<Ejercicio, 'id'>) => {
-        setEjercicios(prev => [...prev, { ...e, id: Date.now() }]);
+  const cargarEjercicios = async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from('ejercicios')
+        .select('id, nombre, descripcion, dificultad, url_video, url_imagen')
+        .order('creado_en', { ascending: false });
+
+      if (error) throw error;
+
+      const normalizados: Ejercicio[] = (data ?? []).map((e: any) => ({
+        id: e.id as number,
+        nombre: e.nombre as string,
+        grupo: '', // el grupo muscular se puede mapear luego usando grupo_muscular_id si lo necesitas
+        categoria: e.dificultad ?? 'General',
+        descripcion: e.descripcion ?? '',
+        videoUrl: e.url_video ?? undefined,
+        imageUrl: e.url_imagen ?? undefined,
+      }));
+
+      setEjercicios(normalizados);
+    } catch (e: any) {
+      console.error('Error cargando ejercicios', e);
+      setError(e.message ?? 'Error cargando ejercicios');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarEjercicios();
+  }, [user?.id]);
+
+  const agregarEjercicio = async (e: Omit<Ejercicio, 'id'>) => {
+    if (!user) throw new Error('Debes iniciar sesión para crear ejercicios');
+
+    const { data, error } = await supabase
+      .from('ejercicios')
+      .insert({
+        nombre: e.nombre,
+        descripcion: e.descripcion,
+        instrucciones: e.descripcion,
+        dificultad: e.categoria,
+        url_video: e.videoUrl,
+        url_imagen: e.imageUrl,
+        es_publico: false,
+        creado_por: user.id,
+      })
+      .select('id, nombre, descripcion, dificultad, url_video, url_imagen')
+      .single();
+
+    if (error) throw error;
+
+    const nuevo: Ejercicio = {
+      id: data.id as number,
+      nombre: data.nombre as string,
+      grupo: e.grupo,
+      categoria: data.dificultad ?? e.categoria,
+      descripcion: data.descripcion ?? '',
+      videoUrl: data.url_video ?? undefined,
+      imageUrl: data.url_imagen ?? undefined,
     };
 
-    const editarEjercicio = (e: Ejercicio) => {
-        setEjercicios(prev => prev.map(ej => ej.id === e.id ? e : ej));
-    };
+    setEjercicios(prev => [nuevo, ...prev]);
+  };
 
-    const eliminarEjercicio = (id: number) => {
-        setEjercicios(prev => prev.filter(ej => ej.id !== id));
-    };
+  const editarEjercicio = async (e: Ejercicio) => {
+    if (!user) throw new Error('Debes iniciar sesión para editar ejercicios');
 
-    return (
-        <EjerciciosContext.Provider value={{ ejercicios, agregarEjercicio, editarEjercicio, eliminarEjercicio }}>
-            {children}
-        </EjerciciosContext.Provider>
-    );
+    const { error } = await supabase
+      .from('ejercicios')
+      .update({
+        nombre: e.nombre,
+        descripcion: e.descripcion,
+        instrucciones: e.descripcion,
+        dificultad: e.categoria,
+        url_video: e.videoUrl,
+        url_imagen: e.imageUrl,
+      })
+      .eq('id', e.id);
+
+    if (error) throw error;
+
+    setEjercicios(prev => prev.map(ej => (ej.id === e.id ? e : ej)));
+  };
+
+  const eliminarEjercicio = async (id: number) => {
+    if (!user) throw new Error('Debes iniciar sesión para eliminar ejercicios');
+
+    const { error } = await supabase
+      .from('ejercicios')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    setEjercicios(prev => prev.filter(ej => ej.id !== id));
+  };
+
+  return (
+    <EjerciciosContext.Provider
+      value={{
+        ejercicios,
+        cargando,
+        error,
+        refrescar: cargarEjercicios,
+        agregarEjercicio,
+        editarEjercicio,
+        eliminarEjercicio,
+      }}
+    >
+      {children}
+    </EjerciciosContext.Provider>
+  );
 }
 
 export function useEjercicios() {

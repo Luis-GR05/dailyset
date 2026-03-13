@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AppLayout, TituloPagina, FiltroBoton, BotonPrimario } from "../componentes";
+import { AppLayout, TituloPagina, FiltroBoton, BotonPrimario, Loading } from "../componentes";
 import { useRutinas } from '../context/RutinasContext';
 import type { Rutina } from '../context/RutinasContext';
 import FormularioRutina from '../componentes/forms/FormularioRutina';
@@ -15,7 +15,7 @@ type Modal =
     | null;
 
 export default function MisRutinasPage() {
-    const { rutinas, agregarRutina, editarRutina, eliminarRutina } = useRutinas();
+    const { rutinas, cargando, error, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
 
     const categorias = [...new Set(rutinas.map(r => r.categoria))];
     const [filtroActivo, setFiltroActivo] = useState(categorias[0] ?? 'Fuerza');
@@ -23,25 +23,25 @@ export default function MisRutinasPage() {
 
     const rutinasFiltradas = rutinas.filter(r => r.categoria === filtroActivo);
 
-    const handleGuardarRutina = (data: { nombre: string; categoria: string; duracion: number }) => {
+    const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number }) => {
         if (modal?.tipo === 'crear') {
-            agregarRutina({ ...data, ejerciciosIds: [] });
+            await agregarRutina({ ...data, ejerciciosIds: [] });
         } else if (modal?.tipo === 'editar') {
-            editarRutina({ ...modal.rutina, ...data });
+            await editarRutina({ ...modal.rutina, ...data });
         }
         setModal(null);
     };
 
-    const handleGuardarEjercicios = (ejerciciosIds: number[]) => {
+    const handleGuardarEjercicios = async (ejerciciosIds: number[]) => {
         if (modal?.tipo === 'ejercicios') {
-            editarRutina({ ...modal.rutina, ejerciciosIds });
+            await actualizarEjerciciosRutina(modal.rutina.id, ejerciciosIds);
         }
         setModal(null);
     };
 
-    const handleEliminar = () => {
+    const handleEliminar = async () => {
         if (modal?.tipo === 'confirmarEliminar') {
-            eliminarRutina(modal.rutina.id);
+            await eliminarRutina(modal.rutina.id);
         }
         setModal(null);
     };
@@ -70,6 +70,14 @@ export default function MisRutinasPage() {
 
                 {/* Lista rutinas */}
                 <div className="space-y-4">
+                    {cargando && (
+                        <div className="py-10">
+                            <Loading />
+                        </div>
+                    )}
+                    {error && (
+                        <p className="text-red-400 text-sm">{error}</p>
+                    )}
                     {rutinasFiltradas.length === 0 && (
                         <p className="text-neutral-500 text-center py-10">
                             No hay rutinas de {filtroActivo.toLowerCase()}. ¡Crea una!
