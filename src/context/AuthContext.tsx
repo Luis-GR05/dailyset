@@ -30,26 +30,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 async function fetchProfile(userId: string): Promise<User | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  try {
+    // ✅ SOLUCIÓN: Obtener el email del session del usuario autenticado
+    const { data: { session } } = await supabase.auth.getSession();
 
-  if (error || !data) return null;
+    const { data, error } = await supabase
+      .from('perfiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-  return {
-    id: data.id,
-    email: data.email ?? '',
-    nombre: data.nombre ?? '',
-    unidadesKg: data.unidades_kg ?? true,
-    notificaciones: data.notificaciones ?? false,
-    rango: data.rango ?? 'ATLETA',
-    progreso: data.progreso ?? 0,
-    totalSets: data.total_sets ?? '0',
-    racha: data.racha ?? 0,
-    pesoTotal: data.peso_total ?? '0',
-  };
+    if (error || !data) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+
+    const prefs = data.preferencias || {};
+
+    return {
+      id: data.id,
+      email: session?.user?.email || '',
+      nombre: data.nombre_completo || data.nombre_usuario || '',
+      unidadesKg: prefs.unidadesKg !== undefined ? prefs.unidadesKg : true,
+      notificaciones: prefs.notificaciones !== undefined ? prefs.notificaciones : false,
+      rango: data.nivel_entrenamiento ? data.nivel_entrenamiento.toUpperCase() : 'ATLETA',
+      progreso: 0,
+      totalSets: '0',
+      racha: 0,
+      pesoTotal: '0',
+    };
+  } catch (err) {
+    console.error('Error in fetchProfile:', err);
+    return null;
+  }
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -81,56 +94,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { data: { session }, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
+    try {
+      const { data: { session }, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
 
-    if (session?.user) {
-      const profile = await fetchProfile(session.user.id);
-      setUser(profile);
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      throw err;
     }
   };
 
   const register = async (email: string, password: string, nombre: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nombre_completo: nombre,
+          nombre_usuario: nombre.toLowerCase().replace(/\s+/g, '_') + Math.floor(Math.random() * 1000),
+        }
+      }
+    });
+
     if (error) throw new Error(error.message);
 
-    if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email,
-        nombre: nombre.toUpperCase(),
-        unidades_kg: true,
-        notificaciones: false,
-        rango: 'ATLETA',
-        progreso: 0,
-        total_sets: '0',
-        racha: 0,
-        peso_total: '0',
-      });
+    // Si hay confirmación de email, session es null — el trigger ya crea el perfil
+    // No intentamos fetchProfile aquí porque puede no haber sesión todavía
+    if (data.user && data.session) {
+      // Sin confirmación de email: sesión inmediata
+      const profile = await fetchProfile(data.user.id);
+      setUser(profile);
     }
+    // Si data.session es null → email de confirmación enviado, dejar que
+    // onAuthStateChange maneje el login cuando el usuario confirme
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      throw err;
+    }
   };
 
   const updateUser = async (data: Partial<User>) => {
     if (!user) throw new Error('No hay sesión activa');
 
-    const dbData: Record<string, unknown> = {};
-    if (data.nombre !== undefined) dbData.nombre = data.nombre;
-    if (data.unidadesKg !== undefined) dbData.unidades_kg = data.unidadesKg;
-    if (data.notificaciones !== undefined) dbData.notificaciones = data.notificaciones;
+    try {
+      const dbData: Record<string, unknown> = {};
+      if (data.nombre !== undefined) dbData.nombre_completo = data.nombre;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(dbData)
-      .eq('id', user.id);
+      // Las preferencias van en el JSON de preferencias
+      const prefsActuales = { unidadesKg: user.unidadesKg, notificaciones: user.notificaciones };
+      if (data.unidadesKg !== undefined) prefsActuales.unidadesKg = !!data.unidadesKg;
+      if (data.notificaciones !== undefined) prefsActuales.notificaciones = !!data.notificaciones;
+      dbData.preferencias = prefsActuales;
 
-    if (error) throw new Error(error.message);
+      const { error } = await supabase
+        .from('perfiles')
+        .update(dbData)
+        .eq('id', user.id);
 
-    setUser(prev => prev ? { ...prev, ...data } : prev);
+      if (error) throw new Error(error.message);
+
+      setUser(prev => prev ? { ...prev, ...data } : prev);
+    } catch (err) {
+      console.error('Update user error:', err);
+      throw err;
+    }
   };
 
   return (

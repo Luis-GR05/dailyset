@@ -82,34 +82,40 @@ export default function FormularioRegistro() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setServerError('');
-
         if (!validarTodo()) return;
 
         setLoading(true);
         try {
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email: form.email,
                 password: form.password,
                 options: {
                     data: {
-                        nombre_usuario: form.nombre_usuario,
+                        // El trigger leerá esto desde raw_user_meta_data
                         nombre_completo: form.nombre_completo.trim() || null,
-                    },
-                },
+                        nombre_usuario: form.nombre_usuario,
+                    }
+                }
             });
 
             if (error) {
                 if (error.message.includes('already registered')) {
                     setServerError('Este email ya está registrado. ¿Quieres iniciar sesión?');
-                } else if (error.message.includes('Password should be')) {
-                    setServerError('La contraseña es demasiado débil.');
                 } else {
                     setServerError(error.message);
                 }
                 return;
             }
 
-            navigate('/dashboard');
+            // Si hay confirmación de email activada, data.session será null
+            // El perfil ya lo crea el trigger automáticamente
+            if (data.user && !data.session) {
+                // Email de confirmación enviado
+                navigate('/registro-confirmacion'); // o muestra un mensaje
+            } else {
+                navigate('/dashboard');
+            }
+
         } catch {
             setServerError('Error inesperado. Inténtalo de nuevo.');
         } finally {
