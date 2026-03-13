@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 
 interface FormularioRutinaProps {
     rutina?: Rutina | null;
-    onGuardar: (data: { nombre: string; categoria: string; duracion: number }) => void;
+    onGuardar: (data: { nombre: string; categoria: string; duracion: number }) => Promise<void>;
     onCerrar: () => void;
 }
 
@@ -14,6 +14,8 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
     const [nombre, setNombre] = useState('');
     const [categoria, setCategoria] = useState(CATEGORIAS[0]);
     const [duracion, setDuracion] = useState(45);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (rutina) {
@@ -23,10 +25,18 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
         }
     }, [rutina]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nombre.trim()) return;
-        onGuardar({ nombre: nombre.trim(), categoria, duracion });
+        setLoading(true);
+        setError(null);
+        try {
+            await onGuardar({ nombre: nombre.trim(), categoria, duracion });
+        } catch (err: any) {
+            setError(err?.message ?? 'Error al guardar la rutina');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -78,12 +88,18 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
                         />
                     </div>
 
+                    {error && (
+                        <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                            {error}
+                        </p>
+                    )}
+
                     <div className="modal-actions">
-                        <button type="button" className="btn btn-secondary" onClick={onCerrar}>
+                        <button type="button" className="btn btn-secondary" onClick={onCerrar} disabled={loading}>
                             Cancelar
                         </button>
-                        <button type="submit" className="btn btn-primary">
-                            {rutina ? 'Guardar cambios' : 'Crear rutina'}
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? 'Guardando...' : rutina ? 'Guardar cambios' : 'Crear rutina'}
                         </button>
                     </div>
                 </form>
