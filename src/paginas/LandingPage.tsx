@@ -152,7 +152,6 @@ export default function LandingPage() {
 
       gsap.utils.toArray<Element>(".stat-num").forEach((el) => {
         const htmlEl = el as HTMLElement;
-        const target = parseFloat(htmlEl.dataset.target || "0");
         gsap.from(htmlEl, {
           scrollTrigger: { trigger: htmlEl, start: "top 85%" },
           textContent: 0,

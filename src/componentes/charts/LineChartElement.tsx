@@ -8,12 +8,11 @@ interface DataItem {
 interface LineChartElementProps {
   items: DataItem[];
   title: string;
-  // Props para personalizar el tamaño y apariencia
-  height?: number;          // Altura del contenedor (por defecto 150)
-  width?: string | number;  // Ancho (por defecto "100%")
-  showGrid?: boolean;       // Mostrar cuadrícula (por defecto true)
-  showAxis?: boolean;       // Mostrar ejes X e Y (por defecto true)
-  lineColor?: string;       // Color de la línea (por defecto tu variable de color)
+  height?: number;
+  width?: number | `${number}%`;
+  showGrid?: boolean;
+  showAxis?: boolean;
+  lineColor?: string;
 }
 
 export default function LineChartElement({

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Logo from '../shared/Logo';
 import { useTheme } from '../../context/ThemeContext';
 import { useI18n } from '../../context/I18nContext';
@@ -96,7 +96,7 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
             disabled={loggingOut}
           >
             <span className="hidden sm:inline">
-              {loggingOut ? t.nav.loggingOut ?? t.nav.logout : t.nav.logout}
+              {loggingOut ? (locale === 'es' ? 'Saliendo...' : 'Logging out...') : t.nav.logout}
             </span>
             <LogOut className="w-4 h-4" />
           </button>
