@@ -4,12 +4,20 @@ import { useAuth } from './AuthContext';
 
 export interface Ejercicio {
   id: number;
+  externalId?: string;
   nombre: string;
-  grupo: string;
-  categoria: string;
+  grupo: string;               // primaryMuscles[0] / grupo_muscular
+  musculosPrimarios: string[];
+  musculosSecundarios: string[];
+  categoriaEjercicio: string;  // strength | stretching | plyometrics | etc.
+  dificultad: string;          // principiante | intermedio | avanzado
+  equipamiento?: string;
   descripcion: string;
+  instruccionesPasos: string[];
+  imagenInicio?: string;       // /exercises/ID/0.jpg
+  imagenFinal?: string;        // /exercises/ID/1.jpg
   videoUrl?: string;
-  imageUrl?: string;
+  esPublico: boolean;
 }
 
 interface EjerciciosContextType {
@@ -31,29 +39,40 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const cargarEjercicios = async () => {
-    if (!user) {
-      setEjercicios([]);
-      return;
-    }
     setCargando(true);
     setError(null);
     try {
       const { data, error } = await supabase
         .from('ejercicios')
-        .select('id, nombre, descripcion, dificultad, url_video, url_imagen, grupo_muscular')
-        .eq('creado_por', user.id)
-        .order('creado_en', { ascending: false });
+        .select(`
+          id, nombre, descripcion, dificultad,
+          url_video, url_imagen,
+          external_id, grupo_muscular,
+          musculos_primarios, musculos_secundarios,
+          equipamiento, categoria_ejercicio,
+          instrucciones_pasos, imagen_inicio, imagen_final,
+          es_publico
+        `)
+        .order('nombre', { ascending: true });
 
       if (error) throw error;
 
       const normalizados: Ejercicio[] = (data ?? []).map((e: any) => ({
-        id: e.id,
-        nombre: e.nombre,
-        grupo: e.grupo_muscular || '',
-        categoria: e.dificultad || 'General',
-        descripcion: e.descripcion || '',
-        videoUrl: e.url_video ?? undefined,
-        imageUrl: e.url_imagen ?? undefined,
+        id:                   e.id as number,
+        externalId:           e.external_id ?? undefined,
+        nombre:               e.nombre as string,
+        grupo:                e.grupo_muscular ?? (e.musculos_primarios?.[0] ?? ''),
+        musculosPrimarios:    e.musculos_primarios ?? [],
+        musculosSecundarios:  e.musculos_secundarios ?? [],
+        categoriaEjercicio:   e.categoria_ejercicio ?? 'general',
+        dificultad:           e.dificultad ?? 'principiante',
+        equipamiento:         e.equipamiento ?? undefined,
+        descripcion:          e.descripcion ?? '',
+        instruccionesPasos:   e.instrucciones_pasos ?? [],
+        imagenInicio:         e.imagen_inicio ?? e.url_imagen ?? undefined,
+        imagenFinal:          e.imagen_final ?? undefined,
+        videoUrl:             e.url_video ?? undefined,
+        esPublico:            e.es_publico ?? false,
       }));
 
       setEjercicios(normalizados);
@@ -75,29 +94,49 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from('ejercicios')
       .insert({
-        nombre: e.nombre,
-        descripcion: e.descripcion,
-        instrucciones: e.descripcion, // Mantenemos por compatibilidad con schema
-        dificultad: e.categoria,
-        grupo_muscular: e.grupo,
-        url_video: e.videoUrl,
-        url_imagen: e.imageUrl,
-        es_publico: false,
-        creado_por: user.id,
+        nombre:                e.nombre,
+        descripcion:           e.descripcion,
+        instrucciones:         e.instruccionesPasos.join('\n'),
+        instrucciones_pasos:   e.instruccionesPasos,
+        dificultad:            e.dificultad,
+        grupo_muscular:        e.grupo,
+        musculos_primarios:    e.musculosPrimarios,
+        musculos_secundarios:  e.musculosSecundarios,
+        equipamiento:          e.equipamiento,
+        categoria_ejercicio:   e.categoriaEjercicio,
+        imagen_inicio:         e.imagenInicio,
+        imagen_final:          e.imagenFinal,
+        url_imagen:            e.imagenInicio,
+        url_video:             e.videoUrl,
+        es_publico:            false,
+        creado_por:            user.id,
       })
-      .select('id, nombre, descripcion, dificultad, url_video, url_imagen, grupo_muscular')
+      .select(`
+        id, nombre, descripcion, dificultad, url_video, url_imagen,
+        external_id, grupo_muscular, musculos_primarios, musculos_secundarios,
+        equipamiento, categoria_ejercicio, instrucciones_pasos,
+        imagen_inicio, imagen_final, es_publico
+      `)
       .single();
 
     if (error) throw error;
 
     const nuevo: Ejercicio = {
-      id: data.id,
-      nombre: data.nombre,
-      grupo: data.grupo_muscular || e.grupo,
-      categoria: data.dificultad || e.categoria,
-      descripcion: data.descripcion || '',
-      videoUrl: data.url_video ?? undefined,
-      imageUrl: data.url_imagen ?? undefined,
+      id:                   data.id as number,
+      externalId:           data.external_id ?? undefined,
+      nombre:               data.nombre as string,
+      grupo:                data.grupo_muscular ?? e.grupo,
+      musculosPrimarios:    data.musculos_primarios ?? e.musculosPrimarios,
+      musculosSecundarios:  data.musculos_secundarios ?? e.musculosSecundarios,
+      categoriaEjercicio:   data.categoria_ejercicio ?? e.categoriaEjercicio,
+      dificultad:           data.dificultad ?? e.dificultad,
+      equipamiento:         data.equipamiento ?? e.equipamiento,
+      descripcion:          data.descripcion ?? '',
+      instruccionesPasos:   data.instrucciones_pasos ?? [],
+      imagenInicio:         data.imagen_inicio ?? e.imagenInicio,
+      imagenFinal:          data.imagen_final ?? e.imagenFinal,
+      videoUrl:             data.url_video ?? undefined,
+      esPublico:            data.es_publico ?? false,
     };
 
     setEjercicios(prev => [nuevo, ...prev]);
@@ -109,16 +148,20 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from('ejercicios')
       .update({
-        nombre: e.nombre,
-        descripcion: e.descripcion,
-        instrucciones: e.descripcion,
-        dificultad: e.categoria,
-        grupo_muscular: e.grupo,
-        url_video: e.videoUrl,
-        url_imagen: e.imageUrl,
+        nombre:              e.nombre,
+        descripcion:         e.descripcion,
+        instrucciones:       e.instruccionesPasos.join('\n'),
+        instrucciones_pasos: e.instruccionesPasos,
+        dificultad:          e.dificultad,
+        grupo_muscular:      e.grupo,
+        equipamiento:        e.equipamiento,
+        categoria_ejercicio: e.categoriaEjercicio,
+        imagen_inicio:       e.imagenInicio,
+        imagen_final:        e.imagenFinal,
+        url_imagen:          e.imagenInicio,
+        url_video:           e.videoUrl,
       })
-      .eq('id', e.id)
-      .eq('creado_por', user.id);
+      .eq('id', e.id);
 
     if (error) throw error;
 
@@ -131,8 +174,7 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from('ejercicios')
       .delete()
-      .eq('id', id)
-      .eq('creado_por', user.id);
+      .eq('id', id);
 
     if (error) throw error;
 

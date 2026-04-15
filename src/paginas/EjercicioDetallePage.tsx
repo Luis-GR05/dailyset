@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
