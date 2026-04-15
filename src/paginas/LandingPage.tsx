@@ -12,7 +12,34 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const landingCopy = {
+    featureTags: locale === 'es' ? ["Rutinas", "Progreso", "Stats"] : ["Routines", "Progress", "Stats"],
+    tickerWords: locale === 'es'
+      ? ["FUERZA", "DISCIPLINA", "RUTINAS", "PROGRESO", "ENTRENAMIENTOS", "RESULTADOS", "CONSTANCIA", "EVOLUCIÓN"]
+      : ["STRENGTH", "DISCIPLINE", "ROUTINES", "PROGRESS", "WORKOUTS", "RESULTS", "CONSISTENCY", "EVOLUTION"],
+    whyChooseUs: locale === 'es' ? 'Por qué elegirnos' : 'Why choose us',
+    whatMakesUsDifferent1: locale === 'es' ? 'Lo que nos hace' : 'What makes us',
+    whatMakesUsDifferent2: locale === 'es' ? 'diferente' : 'different',
+    learnMore: locale === 'es' ? 'Saber más' : 'Learn more',
+    process: locale === 'es' ? 'El proceso' : 'The process',
+    socialProof1: locale === 'es' ? 'Más de' : 'More than',
+    socialProof2: locale === 'es' ? 'atletas' : 'athletes',
+    socialProof3: locale === 'es' ? 'ya están entrenando' : 'are already training',
+    reviews: locale === 'es' ? '5.0 · 2,400 reseñas' : '5.0 · 2,400 reviews',
+    startFree: locale === 'es' ? 'Empieza gratis' : 'Start free',
+    ctaNow: locale === 'es' ? '✦ El momento es ahora ✦' : '✦ The time is now ✦',
+    noCreditCard: locale === 'es' ? 'Sin tarjeta de crédito · Gratis para siempre' : 'No credit card · Free forever',
+    privacy: locale === 'es' ? 'Privacidad' : 'Privacy',
+    terms: locale === 'es' ? 'Términos' : 'Terms',
+    contact: locale === 'es' ? 'Contacto' : 'Contact',
+    heroTitle1: locale === 'es' ? 'ENTRENA' : 'TRAIN',
+    heroTitle2: locale === 'es' ? 'MÁS DURO' : 'HARDER',
+    heroTitle3: locale === 'es' ? 'CADA DÍA' : 'EVERY DAY',
+    activeUsers: locale === 'es' ? 'Usuarios activos' : 'Active users',
+    exercises: locale === 'es' ? 'Ejercicios' : 'Exercises',
+    satisfaction: locale === 'es' ? 'Satisfacción' : 'Satisfaction',
+  };
 
   useGSAP(
     () => {
@@ -179,7 +206,7 @@ export default function LandingPage() {
       ),
       title: t.landing.feature1CardTitle,
       desc: t.landing.feature1CardDesc,
-      tag: "Rutinas",
+      tag: landingCopy.featureTags[0],
     },
     {
       icon: (
@@ -190,7 +217,7 @@ export default function LandingPage() {
       ),
       title: t.landing.feature2CardTitle,
       desc: t.landing.feature2CardDesc,
-      tag: "Progreso",
+      tag: landingCopy.featureTags[1],
     },
     {
       icon: (
@@ -201,11 +228,11 @@ export default function LandingPage() {
       ),
       title: t.landing.feature3CardTitle,
       desc: t.landing.feature3CardDesc,
-      tag: "Stats",
+      tag: landingCopy.featureTags[2],
     },
   ];
 
-  const tickerWords = ["FUERZA", "DISCIPLINA", "RUTINAS", "PROGRESO", "ENTRENAMIENTOS", "RESULTADOS", "CONSTANCIA", "EVOLUCIÓN"];
+  const tickerWords = landingCopy.tickerWords;
 
   return (
     <div ref={container} className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)" }}>
@@ -266,11 +293,11 @@ export default function LandingPage() {
           {/* Title */}
           <h1 className="hero-title text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-6"
             style={{ fontFamily: "'Montserrat', sans-serif" }}>
-            <span style={{ display: "block" }}>ENTRENA</span>
+            <span style={{ display: "block" }}>{landingCopy.heroTitle1}</span>
             <span style={{ display: "block", WebkitTextStroke: "2px var(--color-primary)", WebkitTextFillColor: "transparent" }}>
-              MÁS DURO
+              {landingCopy.heroTitle2}
             </span>
-            <span style={{ display: "block" }}>CADA DÍA</span>
+            <span style={{ display: "block" }}>{landingCopy.heroTitle3}</span>
           </h1>
 
           {/* Subtitle */}
@@ -310,9 +337,9 @@ export default function LandingPage() {
           {/* Stats row */}
           <div className="hero-stats flex items-center gap-8 md:gap-14">
             {[
-              { num: "10", suffix: "K+", label: "Usuarios activos" },
-              { num: "500", suffix: "+", label: "Ejercicios" },
-              { num: "98", suffix: "%", label: "Satisfacción" },
+              { num: "10", suffix: "K+", label: landingCopy.activeUsers },
+              { num: "500", suffix: "+", label: landingCopy.exercises },
+              { num: "98", suffix: "%", label: landingCopy.satisfaction },
             ].map((s) => (
               <div key={s.label} className="flex flex-col items-center">
                 <span className="stat-num text-2xl md:text-3xl font-black" data-target={s.num} data-suffix={s.suffix}
@@ -345,11 +372,11 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
             <div>
               <p className="text-xs font-black tracking-widest uppercase mb-3" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-                Por qué elegirnos
+                {landingCopy.whyChooseUs}
               </p>
               <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 1.0 }}>
-                Lo que nos hace<br />
-                <span style={{ WebkitTextStroke: "1.5px var(--color-primary)", WebkitTextFillColor: "transparent" }}>diferente</span>
+                {landingCopy.whatMakesUsDifferent1}<br />
+                <span style={{ WebkitTextStroke: "1.5px var(--color-primary)", WebkitTextFillColor: "transparent" }}>{landingCopy.whatMakesUsDifferent2}</span>
               </h2>
             </div>
             <p className="text-sm max-w-xs leading-relaxed" style={{ color: "var(--color-neutral-3000)" }}>
@@ -406,7 +433,7 @@ export default function LandingPage() {
 
                 <div className="mt-5 flex items-center gap-1 text-xs font-bold uppercase tracking-wider transition-colors"
                   style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-                  Saber más <span className="ml-1">→</span>
+                  {landingCopy.learnMore} <span className="ml-1">→</span>
                 </div>
               </div>
             ))}
@@ -425,7 +452,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-black tracking-widest uppercase mb-3" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-              El proceso
+              {landingCopy.process}
             </p>
             <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               {t.landing.howItWorks}
@@ -473,8 +500,8 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <p className="text-xl md:text-2xl font-black uppercase tracking-tight text-center md:text-left"
             style={{ fontFamily: "'Montserrat', sans-serif" }}>
-            Más de <span style={{ color: "var(--color-primary)" }}>10.000</span> atletas<br />
-            ya están entrenando
+            {landingCopy.socialProof1} <span style={{ color: "var(--color-primary)" }}>10,000</span> {landingCopy.socialProof2}<br />
+            {landingCopy.socialProof3}
           </p>
           <div className="flex items-center gap-3">
             {[...Array(5)].map((_, i) => (
@@ -482,7 +509,7 @@ export default function LandingPage() {
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             ))}
-            <span className="text-sm font-bold ml-1" style={{ color: "var(--color-neutral-3000)" }}>5.0 · 2,400 reseñas</span>
+            <span className="text-sm font-bold ml-1" style={{ color: "var(--color-neutral-3000)" }}>{landingCopy.reviews}</span>
           </div>
           <Link to="/login">
             <button
@@ -496,7 +523,7 @@ export default function LandingPage() {
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
             >
-              Empieza gratis
+              {landingCopy.startFree}
             </button>
           </Link>
         </div>
@@ -511,7 +538,7 @@ export default function LandingPage() {
 
         <div className="cta-container relative max-w-3xl mx-auto text-center">
           <p className="text-xs font-black tracking-widest uppercase mb-5" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-            ✦ El momento es ahora ✦
+            {landingCopy.ctaNow}
           </p>
           <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6"
             style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.95 }}>
@@ -549,7 +576,7 @@ export default function LandingPage() {
           </Link>
 
           <p className="mt-5 text-xs" style={{ color: "var(--color-neutral-2000)" }}>
-            Sin tarjeta de crédito · Gratis para siempre
+            {landingCopy.noCreditCard}
           </p>
         </div>
       </section>
@@ -562,9 +589,9 @@ export default function LandingPage() {
             &copy; {t.landing.footerText}
           </p>
           <div className="flex items-center gap-5 text-xs font-semibold" style={{ color: "var(--color-neutral-3000)" }}>
-            <a href="#" className="hover:opacity-80 transition-opacity">Privacidad</a>
-            <a href="#" className="hover:opacity-80 transition-opacity">Términos</a>
-            <a href="#" className="hover:opacity-80 transition-opacity">Contacto</a>
+            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.privacy}</a>
+            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.terms}</a>
+            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.contact}</a>
           </div>
         </div>
       </footer>

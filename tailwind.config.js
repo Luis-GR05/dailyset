@@ -6,8 +6,6 @@ export default {
     extend: {
       colors: {
         brand: {
-          accent: "var(--color-brand-accent)",
-          primary: "var(--color-brand-primary)",
           black: "var(--color-black)",
           white: "var(--color-white)",
 
@@ -58,7 +56,7 @@ export default {
           },
         },
       },
-    },
-    plugins: [],
+    },  
   },
+  plugins: [],
 };

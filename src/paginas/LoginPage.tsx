@@ -59,7 +59,9 @@ export default function LoginPage() {
                 <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0a0a0a] bg-neutral-800" />
               ))}
             </div>
-            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">+10K Atletas</span>
+            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">
+              {locale === 'es' ? '+10K Atletas' : '+10K Athletes'}
+            </span>
           </div>
 
           <div className="text-center group">
@@ -69,7 +71,7 @@ export default function LoginPage() {
                 style={{ borderImage: 'linear-gradient(to right, transparent, var(--color-primary)) 1' }}></div>
               <p className="font-black tracking-[0.4em] text-xs uppercase italic"
                 style={{ color: 'var(--color-primary)' }}>
-                Domina tu progreso
+                {locale === 'es' ? 'Domina tu progreso' : 'Master your progress'}
               </p>
               <div className="h-[1px] w-8"></div>
             </div>
@@ -78,11 +80,15 @@ export default function LoginPage() {
           <div className="absolute bottom-1/4 translate-y-[100px] grid grid-cols-2 gap-8 text-center border-t border-white/5 pt-8 w-64">
             <div>
               <p className="text-white font-black text-xl italic">100%</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Enfoque</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">
+                {locale === 'es' ? 'Enfoque' : 'Focus'}
+              </p>
             </div>
             <div>
               <p className="font-black text-xl italic" style={{ color: 'var(--color-primary)' }}>∞</p>
-              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">Consistencia</p>
+              <p className="text-neutral-500 text-[9px] uppercase tracking-tighter">
+                {locale === 'es' ? 'Consistencia' : 'Consistency'}
+              </p>
             </div>
           </div>
         </div>

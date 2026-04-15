@@ -6,7 +6,7 @@ import { useI18n } from '../context/I18nContext';
 export default function PerfilPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
 
   const iniciales = (user?.nombre ?? 'U')
     .split(' ')
@@ -15,20 +15,20 @@ export default function PerfilPage() {
     .join('');
 
   const stats = [
-    { etiqueta: "SETS TOTALES", valor: user?.totalSets ?? '—' },
-    { etiqueta: "RACHA", valor: user?.racha ? `${user.racha} DÍAS` : '—' },
-    { etiqueta: "PESO TOTAL", valor: user?.pesoTotal ?? '—' },
+    { etiqueta: t.profile.totalSets.toUpperCase(), valor: user?.totalSets ?? '—' },
+    { etiqueta: t.profile.streak.toUpperCase(), valor: user?.racha ? `${user.racha} ${t.profile.days.toUpperCase()}` : '—' },
+    { etiqueta: t.profile.totalWeight.toUpperCase(), valor: user?.pesoTotal ?? '—' },
   ];
 
   const opciones = [
     {
-      nombre: locale === 'es' ? 'CONFIGURACIÓN DE CUENTA' : 'ACCOUNT SETTINGS',
+      nombre: t.profile.accountSettings.toUpperCase(),
       ruta: '/perfil/configuracion',
       flecha: true,
       esRojo: false,
     },
     {
-      nombre: locale === 'es' ? 'CERRAR SESIÓN' : 'SIGN OUT',
+      nombre: t.profile.logout.toUpperCase(),
       ruta: null,
       flecha: false,
       esRojo: true,

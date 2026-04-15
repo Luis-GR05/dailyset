@@ -5,6 +5,7 @@ import { useEjercicios } from '../context/EjerciciosContext';
 import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
 import { Pencil, Trash2, X } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 type Modal =
   | { tipo: 'crear' }
@@ -14,8 +15,9 @@ type Modal =
 
 export default function EjerciciosPage() {
   const { ejercicios, cargando, error, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
+  const { t, locale } = useI18n();
 
-  const [filtroActivo, setFiltroActivo] = useState("Fuerza");
+  const [filtroActivo, setFiltroActivo] = useState(locale === 'es' ? "Fuerza" : "Strength");
   const [busqueda, setBusqueda] = useState("");
   const [modal, setModal] = useState<Modal>(null);
 
@@ -47,24 +49,24 @@ export default function EjerciciosPage() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <TituloPagina titulo="Ejercicios" />
+          <TituloPagina titulo={t.exercises.title} />
           <div className="flex-1 w-full">
             <Input
               type="text"
-              placeholder="Buscar ejercicio..."
+              placeholder={t.exercises.search}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="bg-neutral-900 border-neutral-800 rounded-2xl px-4 py-3 md:px-6 md:py-4 w-full"
             />
           </div>
           <div onClick={() => setModal({ tipo: 'crear' })} className="cursor-pointer flex-shrink-0">
-            <BotonPrimario>+ Nuevo Ejercicio</BotonPrimario>
+            <BotonPrimario>+ {t.exercises.newExercise}</BotonPrimario>
           </div>
         </div>
 
         {/* Filtros */}
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
-          <span className="text-white font-bold text-sm">Filtros:</span>
+          <span className="text-white font-bold text-sm">{locale === 'es' ? 'Filtros:' : 'Filters:'}</span>
           {categorias.map((cat) => (
             <div key={cat} onClick={() => setFiltroActivo(cat)} className="cursor-pointer">
               <FiltroBoton
@@ -115,14 +117,14 @@ export default function EjerciciosPage() {
                 >
                   <button
                     className="card-action-btn"
-                    title="Editar ejercicio"
+                    title={t.exercises.editExercise}
                     onClick={(e) => { e.preventDefault(); setModal({ tipo: 'editar', ejercicio }); }}
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     className="card-action-btn danger"
-                    title="Eliminar ejercicio"
+                    title={t.exercises.deleteExercise}
                     onClick={(e) => { e.preventDefault(); setModal({ tipo: 'confirmarEliminar', ejercicio }); }}
                   >
                     <Trash2 size={14} />
@@ -132,7 +134,9 @@ export default function EjerciciosPage() {
             ))
           ) : (
             <p className="text-neutral-500 col-span-full py-10 text-center">
-              No se encontraron ejercicios de {filtroActivo.toLowerCase()} que coincidan con tu búsqueda.
+              {locale === 'es'
+                ? `No se encontraron ejercicios de ${filtroActivo.toLowerCase()} que coincidan con tu búsqueda.`
+                : `No ${filtroActivo.toLowerCase()} exercises matched your search.`}
             </p>
           )}
         </div>
@@ -152,22 +156,22 @@ export default function EjerciciosPage() {
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="text-lg font-bold text-white">Eliminar Ejercicio</h2>
+              <h2 className="text-lg font-bold text-white">{t.exercises.deleteExercise}</h2>
               <button className="modal-close-btn" onClick={() => setModal(null)}><X size={16} /></button>
             </div>
             <div className="modal-form">
               <p className="text-neutral-300 text-sm">
                 ¿Seguro que quieres eliminar <strong className="text-white">"{modal.ejercicio.nombre}"</strong>?
-                Esta acción no se puede deshacer.
+                {` ${t.exercises.confirmDeleteDesc}`}
               </p>
               <div className="modal-actions">
-                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancelar</button>
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>{t.exercises.cancel}</button>
                 <button
                   className="btn"
                   style={{ background: '#ef4444', color: 'white' }}
                   onClick={handleEliminar}
                 >
-                  Eliminar
+                  {t.exercises.delete}
                 </button>
               </div>
             </div>

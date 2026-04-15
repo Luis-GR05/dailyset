@@ -6,6 +6,7 @@ import type { Rutina } from '../context/RutinasContext';
 import FormularioRutina from '../componentes/forms/FormularioRutina';
 import EditarEjerciciosRutina from '../componentes/forms/EditarEjerciciosRutina';
 import { Pencil, Trash2, ListPlus, X } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 type Modal =
     | { tipo: 'crear' }
@@ -16,6 +17,7 @@ type Modal =
 
 export default function MisRutinasPage() {
     const { rutinas, cargando, error, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
+    const { t, locale } = useI18n();
 
     const categorias = [...new Set(rutinas.map(r => r.categoria))];
     const [filtroActivo, setFiltroActivo] = useState(categorias[0] ?? 'Fuerza');
@@ -52,15 +54,15 @@ export default function MisRutinasPage() {
         <AppLayout>
             <div className="space-y-6">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <TituloPagina titulo="Mis Rutinas" />
+                    <TituloPagina titulo={t.routines.title} />
                     <div onClick={() => setModal({ tipo: 'crear' })} className="cursor-pointer">
-                        <BotonPrimario>+ Crear Rutina</BotonPrimario>
+                        <BotonPrimario>+ {t.routines.newRoutine}</BotonPrimario>
                     </div>
                 </div>
 
                 {/* Filtros */}
                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                    <span className="text-white font-bold text-sm">Filtros:</span>
+                    <span className="text-white font-bold text-sm">{locale === 'es' ? 'Filtros:' : 'Filters:'}</span>
                     {categorias.map((cat) => (
                         <div key={cat} onClick={() => setFiltroActivo(cat)} className="cursor-pointer">
                             <FiltroBoton nombre={cat} activo={filtroActivo === cat} />
@@ -104,28 +106,28 @@ export default function MisRutinasPage() {
                             >
                                 <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
                                 <p className="text-neutral-400 text-sm">
-                                    {contarEjercicios(rutina)} ejercicios · {rutina.duracion} min
+                                    {contarEjercicios(rutina)} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
                                 </p>
                             </Link>
                             {/* Acciones */}
                             <div className="card-actions flex-shrink-0" style={{ opacity: 1 }}>
                                 <button
                                     className="card-action-btn info"
-                                    title="Gestionar ejercicios"
+                                    title={t.routines.addExercises}
                                     onClick={() => setModal({ tipo: 'ejercicios', rutina })}
                                 >
                                     <ListPlus size={15} />
                                 </button>
                                 <button
                                     className="card-action-btn"
-                                    title="Editar rutina"
+                                    title={t.routines.editRoutine}
                                     onClick={() => setModal({ tipo: 'editar', rutina })}
                                 >
                                     <Pencil size={14} />
                                 </button>
                                 <button
                                     className="card-action-btn danger"
-                                    title="Eliminar rutina"
+                                    title={t.routines.deleteRoutine}
                                     onClick={() => setModal({ tipo: 'confirmarEliminar', rutina })}
                                 >
                                     <Trash2 size={14} />
@@ -159,22 +161,22 @@ export default function MisRutinasPage() {
                 <div className="modal-overlay" onClick={() => setModal(null)}>
                     <div className="modal-box" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="text-lg font-bold text-white">Eliminar Rutina</h2>
+                            <h2 className="text-lg font-bold text-white">{t.routines.deleteRoutine}</h2>
                             <button className="modal-close-btn" onClick={() => setModal(null)}><X size={16} /></button>
                         </div>
                         <div className="modal-form">
                             <p className="text-neutral-300 text-sm">
                                 ¿Seguro que quieres eliminar <strong className="text-white">"{modal.rutina.nombre}"</strong>?
-                                Esta acción no se puede deshacer.
+                                {` ${t.routines.confirmDeleteDesc}`}
                             </p>
                             <div className="modal-actions">
-                                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancelar</button>
+                                <button className="btn btn-secondary" onClick={() => setModal(null)}>{t.routines.cancel}</button>
                                 <button
                                     className="btn"
                                     style={{ background: '#ef4444', color: 'white' }}
                                     onClick={handleEliminar}
                                 >
-                                    Eliminar
+                                    {t.routines.delete}
                                 </button>
                             </div>
                         </div>

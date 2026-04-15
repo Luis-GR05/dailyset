@@ -1,18 +1,30 @@
 import { AppLayout, TituloPagina } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import { Link } from 'react-router-dom';
-
-const diasSemanaVacios = [
-  { dia: "L", valor1: 0 },
-  { dia: "M", valor1: 0 },
-  { dia: "X", valor1: 0 },
-  { dia: "J", valor1: 0 },
-  { dia: "V", valor1: 0 },
-  { dia: "S", valor1: 0 },
-  { dia: "D", valor1: 0 },
-];
+import { useI18n } from '../context/I18nContext';
 
 export default function DashboardPage() {
+  const { t, locale } = useI18n();
+  const diasSemanaVacios = locale === 'es'
+    ? [
+      { dia: "L", valor1: 0 },
+      { dia: "M", valor1: 0 },
+      { dia: "X", valor1: 0 },
+      { dia: "J", valor1: 0 },
+      { dia: "V", valor1: 0 },
+      { dia: "S", valor1: 0 },
+      { dia: "D", valor1: 0 },
+    ]
+    : [
+      { dia: "M", valor1: 0 },
+      { dia: "T", valor1: 0 },
+      { dia: "W", valor1: 0 },
+      { dia: "T", valor1: 0 },
+      { dia: "F", valor1: 0 },
+      { dia: "S", valor1: 0 },
+      { dia: "S", valor1: 0 },
+    ];
+
   // TODO: Cargar rutinas reales desde Supabase cuando se implemente la funcionalidad
   const rutinas: { id: number; nombre: string; descripcion: string }[] = [];
 
@@ -21,28 +33,32 @@ export default function DashboardPage() {
 
   // TODO: Cargar estadísticas reales desde Supabase
   const statsVacias = [
-    { label: "Semanas Activo", val: "—" },
-    { label: "PR Peso Muerto", val: "—" },
-    { label: "Racha Actual", val: "—" },
-    { label: "Nivel", val: "—" },
+    { label: locale === 'es' ? "Semanas activo" : "Active weeks", val: "—" },
+    { label: locale === 'es' ? "PR peso muerto" : "Deadlift PR", val: "—" },
+    { label: locale === 'es' ? "Racha actual" : "Current streak", val: "—" },
+    { label: locale === 'es' ? "Nivel" : "Level", val: "—" },
   ];
 
   return (
     <AppLayout>
       <div className="space-y-6 pb-10">
-        <TituloPagina titulo="Panel de Control" />
+        <TituloPagina titulo={t.dashboard.title} />
 
         {/* Rutinas */}
         {rutinas.length === 0 ? (
           <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-10 backdrop-blur-xl text-center">
-            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] italic mb-3">Sin rutinas</p>
-            <p className="text-neutral-600 text-sm mb-6">Aún no has creado ninguna rutina.</p>
+            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] italic mb-3">
+              {locale === 'es' ? 'Sin rutinas' : 'No routines'}
+            </p>
+            <p className="text-neutral-600 text-sm mb-6">
+              {locale === 'es' ? 'Aún no has creado ninguna rutina.' : "You haven't created any routines yet."}
+            </p>
             <Link
               to="/mis-rutinas"
               className="inline-block text-black font-black text-xs uppercase tracking-widest italic py-3 px-8 rounded-full transition-all active:scale-95"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              Crear mi primera rutina
+              {locale === 'es' ? 'Crear mi primera rutina' : 'Create my first routine'}
             </Link>
           </div>
         ) : (
@@ -82,7 +98,9 @@ export default function DashboardPage() {
                 style={{ border: '1px solid var(--color-primary)', boxShadow: '0 0 20px var(--color-primary-glow)' }}>
                 <div className="text-center">
                   <p className="font-black italic text-xs leading-tight" style={{ color: 'var(--color-primary)' }}>STATS</p>
-                  <p className="text-white font-black italic text-[10px] uppercase opacity-50">Semanal</p>
+                  <p className="text-white font-black italic text-[10px] uppercase opacity-50">
+                    {locale === 'es' ? 'Semanal' : 'Weekly'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -90,19 +108,19 @@ export default function DashboardPage() {
             <div className="flex-1 w-full min-w-0">
               <div className="mb-4 text-center md:text-left">
                 <span className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] italic">
-                  Volumen por Sesión
+                  {locale === 'es' ? 'Volumen por sesión' : 'Volume per session'}
                 </span>
               </div>
               <div className="h-[220px] w-full">
                 <ColumnChart
                   data={diasSemana}
                   xAxisKey="dia"
-                  bars={[{ key: "valor1", color: "var(--color-primary)", name: "Kg" }]}
+                  bars={[{ key: "valor1", color: "var(--color-primary)", name: t.history.kg }]}
                   height="100%"
                 />
               </div>
               <p className="text-center text-neutral-600 text-[10px] uppercase tracking-widest italic mt-2">
-                Sin entrenamientos esta semana
+                {locale === 'es' ? 'Sin entrenamientos esta semana' : 'No workouts this week'}
               </p>
             </div>
           </div>

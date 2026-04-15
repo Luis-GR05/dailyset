@@ -442,8 +442,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('locale', l);
   };
 
+  const t = translations[locale] as Translations;
+
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t: translations[locale] as Translations }}>
+    <I18nContext.Provider value={{ locale, setLocale, t }}>
       {children}
     </I18nContext.Provider>
   );

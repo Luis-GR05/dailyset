@@ -20,9 +20,9 @@ interface Ejercicio {
 
 export default function EntrenamientoPage() {
     const location = useLocation();
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
 
-    const nombreRutina = location.state?.nombre || "Día de Empuje A";
+    const nombreRutina = location.state?.nombre || (locale === 'es' ? "Día de Empuje A" : "Push Day A");
 
     const [ejercicios, setEjercicios] = useState<Ejercicio[]>(
         () => RUTINAS_DATA[nombreRutina] ?? []
@@ -76,7 +76,9 @@ export default function EntrenamientoPage() {
                                         <ImagenPlaceholder size="sm" />
                                         <div>
                                             <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>Ver historial</p>
+                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>
+                                                {locale === 'es' ? 'Ver historial' : 'View history'}
+                                            </p>
                                         </div>
                                     </div>
                                     {/* Botón Eliminar */}

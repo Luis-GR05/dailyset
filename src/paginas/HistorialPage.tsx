@@ -1,5 +1,6 @@
 import { AppLayout, TituloPagina, MonthCard, ResumenEstadisticas } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
+import { useI18n } from '../context/I18nContext';
 
 // Generar los últimos 12 meses desde el mes actual
 function getUltimos12Meses() {
@@ -16,6 +17,7 @@ const MESES = getUltimos12Meses();
 
 export default function HistorialPage() {
   const { metricas } = useHistorial();
+  const { locale } = useI18n();
 
   return (
     <AppLayout>
@@ -23,7 +25,7 @@ export default function HistorialPage() {
 
         <div className="shrink-0 p-4 md:p-8 pb-4 bg-[var(--color-neutral-700)] z-20">
           <div className="max-w-5xl mx-auto">
-            <TituloPagina titulo="Historial de entrenamientos" />
+            <TituloPagina titulo={locale === 'es' ? "Historial de entrenamientos" : "Workout history"} />
           </div>
         </div>
 

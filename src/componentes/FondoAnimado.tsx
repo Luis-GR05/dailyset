@@ -275,6 +275,7 @@ const DotGrid: React.FC<DotGridProps> = ({
     return () => {
       window.removeEventListener('mousemove', throttledMove);
       window.removeEventListener('click', onClick);
+      dotsRef.current.forEach(dot => gsap.killTweensOf(dot));
     };
   }, [maxSpeed, speedTrigger, proximity, resistance, returnDuration, shockRadius, shockStrength]);
 

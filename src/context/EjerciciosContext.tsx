@@ -37,7 +37,7 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('ejercicios')
         .select('id, nombre, descripcion, dificultad, url_video, url_imagen')
-        .order('creado_en', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 

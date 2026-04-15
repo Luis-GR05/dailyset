@@ -1,22 +1,26 @@
 import { AppLayout } from '../componentes';
 import { Card } from '../componentes';
+import { useI18n } from '../context/I18nContext';
 
 export default function ProgresoPage() {
+    const { t, locale } = useI18n();
+    const metricas = [
+        { label: t.progress.totalVolume, value: '42.5k kg', color: 'text-accent' },
+        { label: t.progress.sessions, value: '18', color: 'text-white' },
+        { label: t.progress.records, value: '5', color: 'text-primary-700' },
+        { label: t.progress.totalTime, value: '24h', color: 'text-white' },
+    ];
+
     return (
         <AppLayout>
             <div className="space-y-8">
                 <header>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter italic">Tu Evolución</h1>
-                    <p className="text-neutral-400">Análisis detallado de tu rendimiento físico.</p>
+                    <h1 className="text-3xl font-black uppercase tracking-tighter italic">{t.progress.title}</h1>
+                    <p className="text-neutral-400">{t.progress.subtitle}</p>
                 </header>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Volumen Total', value: '42.5k kg', color: 'text-accent' },
-                        { label: 'Sesiones', value: '18', color: 'text-white' },
-                        { label: 'Récords (PR)', value: '5', color: 'text-primary-700' },
-                        { label: 'Tiempo total', value: '24h', color: 'text-white' },
-                    ].map((metric, i) => (
+                    {metricas.map((metric, i) => (
                         <Card key={i} className="p-5 bg-neutral-900/50 border-white/5">
                             <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest">{metric.label}</p>
                             <p className={`text-2xl font-black mt-1 ${metric.color}`}>{metric.value}</p>
@@ -26,10 +30,10 @@ export default function ProgresoPage() {
 
                 <Card className="p-6 h-80 bg-neutral-900/40 border-white/5 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
-                        <h3 className="font-bold">Progresión en Press de Banca</h3>
+                        <h3 className="font-bold">{locale === 'es' ? 'Progresión en press de banca' : 'Bench press progression'}</h3>
                         <select className="bg-black border border-white/10 rounded-lg text-xs p-1">
-                            <option>Últimos 30 días</option>
-                            <option>Histórico</option>
+                            <option>{locale === 'es' ? 'Últimos 30 días' : 'Last 30 days'}</option>
+                            <option>{locale === 'es' ? 'Histórico' : 'All time'}</option>
                         </select>
                     </div>
                     <div className="flex-1 flex items-end gap-2 px-2 pb-2">
@@ -45,7 +49,9 @@ export default function ProgresoPage() {
 
                 <div className="bg-neutral-900/50 rounded-3xl border border-white/5 overflow-hidden">
                     <div className="p-5 border-b border-white/5">
-                        <h3 className="font-bold uppercase italic text-sm tracking-widest text-accent">Personal Records</h3>
+                        <h3 className="font-bold uppercase italic text-sm tracking-widest text-accent">
+                            {locale === 'es' ? 'Récords personales' : 'Personal records'}
+                        </h3>
                     </div>
                     <div className="divide-y divide-white/5">
                         {['Sentadilla', 'Peso Muerto', 'Press Militar'].map((ex, i) => (
