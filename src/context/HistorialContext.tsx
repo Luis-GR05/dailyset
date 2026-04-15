@@ -35,7 +35,7 @@ interface HistorialContextType {
   cargando: boolean;
   error: string | null;
   getSesionesPorMes: (mes: number, anio: number) => number[];
-  getSesionPorFecha: (fecha: string) => Sesion | undefined;
+  getSesionesPorFecha: (fecha: string) => Sesion[];
   getMetricasPorMes: (mes: number, anio: number) => { volumenKg: number; intensidad: string };
   metricas: Metricas;
   refrescar: () => Promise<void>;
@@ -269,8 +269,8 @@ export function HistorialProvider({ children }: { children: ReactNode }) {
       .map(s => new Date(s.fecha + 'T12:00:00').getDate());
   };
 
-  const getSesionPorFecha = (fecha: string): Sesion | undefined => {
-    return sesiones.find(s => s.fecha === fecha);
+  const getSesionesPorFecha = (fecha: string): Sesion[] => {
+    return sesiones.filter(s => s.fecha === fecha);
   };
 
   const getMetricasPorMes = (mes: number, anio: number) => {
@@ -315,7 +315,7 @@ export function HistorialProvider({ children }: { children: ReactNode }) {
         cargando,
         error,
         getSesionesPorMes,
-        getSesionPorFecha,
+        getSesionesPorFecha,
         getMetricasPorMes,
         metricas,
         refrescar: cargarSesiones,

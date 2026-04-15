@@ -6,12 +6,12 @@ import { useI18n } from "../context/I18nContext";
 export default function HistorialDiaPage() {
   const { fecha } = useParams<{ fecha: string }>();
   const navigate = useNavigate();
-  const { getSesionPorFecha } = useHistorial();
+  const { getSesionesPorFecha } = useHistorial();
   const { t, locale } = useI18n();
 
-  const sesion = getSesionPorFecha(fecha ?? '');
+  const sesiones = getSesionesPorFecha(fecha ?? '');
 
-  if (!sesion) {
+  if (sesiones.length === 0) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -24,10 +24,8 @@ export default function HistorialDiaPage() {
     );
   }
 
-  const volumenTotal = sesion.ejercicios.reduce((total, ej) =>
-    total + ej.series.reduce((t, s) => t + s.kg * s.reps, 0), 0);
-
-  const fecha_ = new Date(sesion.fecha + 'T12:00:00');
+  const fechaBase = sesiones[0]!.fecha;
+  const fecha_ = new Date(fechaBase + 'T12:00:00');
   const fechaLegible = fecha_.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
@@ -50,54 +48,76 @@ export default function HistorialDiaPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Rutina realizada:' : 'Workout done:'}</p>
-            <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{sesion.rutina}</p>
-          </Card>
-          <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Puntuación:' : 'Score:'}</p>
-            <div className="flex gap-1 mt-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <svg key={star} className={`w-4 h-4 ${star <= sesion.puntuacion ? '' : 'text-neutral-600'}`} fill="currentColor" viewBox="0 0 24 24" style={star <= sesion.puntuacion ? { color: 'var(--color-primary)' } : {}}>
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              ))}
-            </div>
-          </Card>
-          <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{t.history.totalVolume}:</p>
-            <p className="text-white font-bold text-sm">{volumenTotal.toLocaleString('es-ES')} kg</p>
-          </Card>
-          <Card className="p-4" hoverable={false}>
-            <p className="text-neutral-400 text-xs mb-1">{locale === 'es' ? 'Duración:' : 'Duration:'}</p>
-            <p className="text-white font-bold text-sm">{sesion.duracionMin} min</p>
-          </Card>
-        </div>
-
         <div className="space-y-4">
-          {sesion.ejercicios.map((ejercicio, i) => {
-            const volEj = ejercicio.series.reduce((t, s) => t + s.kg * s.reps, 0);
+          {sesiones.map((sesion, idx) => {
+            const volumenTotal = sesion.ejercicios.reduce((total, ej) =>
+              total + ej.series.reduce((tt, s) => tt + s.kg * s.reps, 0), 0);
+
             return (
-              <Card key={i} className="p-6" hoverable={false}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <ImagenPlaceholder size="sm" />
+              <div key={sesion.id} className="space-y-4">
+                <Card className="p-5" hoverable={false}>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                      <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                      <p className="text-neutral-400 text-sm">{ejercicio.series.length} {t.history.sessions} · {volEj} {t.history.kg}</p>
+                      <p className="text-neutral-400 text-xs mb-1">
+                        {locale === 'es' ? `Sesión #${idx + 1}` : `Session #${idx + 1}`}
+                      </p>
+                      <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>
+                        {sesion.rutina}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="flex items-center gap-1">
+                        <span className="text-neutral-400 text-xs">{locale === 'es' ? 'Puntuación:' : 'Score:'}</span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <svg
+                              key={star}
+                              className={`w-4 h-4 ${star <= sesion.puntuacion ? '' : 'text-neutral-600'}`}
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              style={star <= sesion.puntuacion ? { color: 'var(--color-primary)' } : {}}
+                              aria-hidden="true"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-xs text-neutral-300">
+                        {t.history.totalVolume}: <span className="text-white font-bold">{volumenTotal.toLocaleString(locale === 'es' ? 'es-ES' : 'en-US')} kg</span>
+                      </div>
+                      <div className="text-xs text-neutral-300">
+                        {locale === 'es' ? 'Duración' : 'Duration'}: <span className="text-white font-bold">{sesion.duracionMin} min</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {ejercicio.series.map((serie, j) => (
-                    <div key={j} className="bg-neutral-800 rounded-lg px-3 py-2 text-center">
-                      <p className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>S{j + 1}:</p>
-                      <p className="text-white text-xs">{serie.kg > 0 ? `${serie.kg}kg` : 'BW'} × {serie.reps}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+                </Card>
+
+                {sesion.ejercicios.map((ejercicio, i) => {
+                  const volEj = ejercicio.series.reduce((tt, s) => tt + s.kg * s.reps, 0);
+                  return (
+                    <Card key={`${sesion.id}-${i}`} className="p-6" hoverable={false}>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <ImagenPlaceholder size="sm" />
+                          <div>
+                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
+                            <p className="text-neutral-400 text-sm">{ejercicio.series.length} {t.history.sessions} · {volEj} {t.history.kg}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {ejercicio.series.map((serie, j) => (
+                          <div key={j} className="bg-neutral-800 rounded-lg px-3 py-2 text-center">
+                            <p className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>S{j + 1}:</p>
+                            <p className="text-white text-xs">{serie.kg > 0 ? `${serie.kg}kg` : 'BW'} × {serie.reps}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
             );
           })}
         </div>

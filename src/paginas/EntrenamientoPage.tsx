@@ -178,6 +178,12 @@ export default function EntrenamientoPage() {
 
     const finish = async () => {
         if (guardando) return;
+        if (ejerciciosUI.length === 0) {
+            setErrorGuardar(locale === 'es'
+                ? 'No puedes finalizar: la rutina no tiene ejercicios.'
+                : "You can't finish: this routine has no exercises.");
+            return;
+        }
         setErrorGuardar(null);
         setGuardando(true);
         try {
@@ -232,6 +238,12 @@ export default function EntrenamientoPage() {
                             <button
                                 className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-all"
                                 onClick={() => {
+                                    if (ejerciciosUI.length === 0) {
+                                        setErrorGuardar(locale === 'es'
+                                            ? 'Añade ejercicios a la rutina antes de empezar.'
+                                            : 'Add exercises to the routine before starting.');
+                                        return;
+                                    }
                                     setEmpezado(true);
                                     const now = Date.now();
                                     setStartedAtMs(now);

@@ -122,16 +122,30 @@ export default function MisRutinasPage() {
                                 )}
                             </div>
                             {/* Info */}
-                            <Link
-                                to="/mis-rutinas/entrenamiento"
-                                state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
-                                className="flex-1 min-w-0"
-                            >
-                                <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
-                                <p className="text-neutral-400 text-sm">
-                                    {contarEjercicios(rutina)} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
-                                </p>
-                            </Link>
+                            {contarEjercicios(rutina) > 0 ? (
+                                <Link
+                                    to="/mis-rutinas/entrenamiento"
+                                    state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
+                                    className="flex-1 min-w-0"
+                                >
+                                    <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
+                                    <p className="text-neutral-400 text-sm">
+                                        {contarEjercicios(rutina)} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
+                                    </p>
+                                </Link>
+                            ) : (
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
+                                    <p className="text-neutral-400 text-sm">
+                                        0 {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
+                                    </p>
+                                    <p className="text-xs mt-1" style={{ color: 'var(--color-accent)' }}>
+                                        {locale === 'es'
+                                            ? 'Añade ejercicios para poder iniciar'
+                                            : 'Add exercises to start'}
+                                    </p>
+                                </div>
+                            )}
                             {/* Acciones */}
                             <div className="card-actions shrink-0" style={{ opacity: 1 }}>
                                 <button
