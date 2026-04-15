@@ -121,7 +121,7 @@ export default function ProgresoPage() {
                                 </p>
                             </div>
                         ) : (
-                            ejerciciosDisponibles.slice(0, 6).map((ex, i) => (
+                            ejerciciosDisponibles.slice(0, 6).map((ex) => (
                                 <div key={ex} className="p-4 flex justify-between items-center hover:bg-white/5 transition-colors">
                                     <span className="font-medium">{ex}</span>
                                     <div className="text-right">
