@@ -6,6 +6,8 @@ import { useI18n } from '../../context/I18nContext';
 import type { Locale } from '../../context/I18nContext';
 import { Sun, Moon, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import flagEs from '../../assets/flags/es.svg';
+import flagEn from '../../assets/flags/en.svg';
 
 interface HeaderProps {
   onAbrirMenu: () => void;
@@ -20,6 +22,7 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
 
   const otherLocale: Locale = locale === 'es' ? 'en' : 'es';
   const localeLabel = locale === 'es' ? 'EN' : 'ES';
+  const flagSrc = locale === 'es' ? flagEs : flagEn;
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md border-b px-4 py-3 md:px-6"
@@ -52,7 +55,12 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
               color: 'var(--color-neutral-3000)',
             }}
           >
-            <span className="text-xs">{locale === 'es' ? '🇪🇸' : '🇬🇧'}</span>
+            <img
+              src={flagSrc}
+              alt={locale === 'es' ? 'Español' : 'English'}
+              className="w-4 h-4 rounded-sm"
+              style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.12)' }}
+            />
             <span>{localeLabel}</span>
           </button>
 

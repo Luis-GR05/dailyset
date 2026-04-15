@@ -88,7 +88,7 @@ export default function MisRutinasPage() {
                     {rutinasFiltradas.map((rutina) => (
                         <div key={rutina.id} className="card card-hover px-6 py-5 flex items-center gap-6">
                             {/* Icono placeholder */}
-                            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            <div className="w-12 h-12 rounded-xl bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
                                 {rutina.imageUrl ? (
                                     <img src={rutina.imageUrl} alt={rutina.nombre} className="w-full h-full object-cover" />
                                 ) : (
@@ -101,7 +101,7 @@ export default function MisRutinasPage() {
                             {/* Info */}
                             <Link
                                 to="/mis-rutinas/entrenamiento"
-                                state={{ nombre: rutina.nombre }}
+                                state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
                                 className="flex-1 min-w-0"
                             >
                                 <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
@@ -110,7 +110,7 @@ export default function MisRutinasPage() {
                                 </p>
                             </Link>
                             {/* Acciones */}
-                            <div className="card-actions flex-shrink-0" style={{ opacity: 1 }}>
+                            <div className="card-actions shrink-0" style={{ opacity: 1 }}>
                                 <button
                                     className="card-action-btn info"
                                     title={t.routines.addExercises}

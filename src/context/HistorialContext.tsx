@@ -39,6 +39,16 @@ interface HistorialContextType {
   getMetricasPorMes: (mes: number, anio: number) => { volumenKg: number; intensidad: string };
   metricas: Metricas;
   refrescar: () => Promise<void>;
+  crearSesion: (args: {
+    fecha: string; // YYYY-MM-DD
+    duracionMin: number;
+    puntuacion?: number;
+    rutinaId?: number | null;
+    ejercicios: {
+      ejercicioId: number;
+      series: { kg: number; reps: number; completada: boolean }[];
+    }[];
+  }) => Promise<number>;
 }
 
 const HistorialContext = createContext<HistorialContextType | null>(null);
@@ -197,6 +207,58 @@ export function HistorialProvider({ children }: { children: ReactNode }) {
     cargarSesiones();
   }, [user?.id]);
 
+  const crearSesion: HistorialContextType['crearSesion'] = async (args) => {
+    if (!user) throw new Error('Debes iniciar sesión');
+
+    const { data: sesionInsertada, error: sesionError } = await supabase
+      .from('sesiones_entrenamiento')
+      .insert({
+        usuario_id: user.id,
+        fecha: args.fecha,
+        duracion_minutos: args.duracionMin,
+        puntuacion: args.puntuacion ?? 0,
+        rutina_id: args.rutinaId ?? null,
+      })
+      .select('id')
+      .single();
+
+    if (sesionError) throw sesionError;
+
+    const sesionId = sesionInsertada.id as number;
+
+    const filasSeries: {
+      sesion_id: number;
+      ejercicio_id: number;
+      orden: number;
+      kg: number;
+      reps: number;
+      completada: boolean;
+    }[] = [];
+
+    let orden = 0;
+    for (const ej of args.ejercicios) {
+      for (const s of ej.series) {
+        filasSeries.push({
+          sesion_id: sesionId,
+          ejercicio_id: ej.ejercicioId,
+          orden,
+          kg: Number.isFinite(s.kg) ? s.kg : 0,
+          reps: Number.isFinite(s.reps) ? s.reps : 0,
+          completada: !!s.completada,
+        });
+        orden += 1;
+      }
+    }
+
+    if (filasSeries.length > 0) {
+      const { error: seriesError } = await supabase.from('series').insert(filasSeries);
+      if (seriesError) throw seriesError;
+    }
+
+    await cargarSesiones();
+    return sesionId;
+  };
+
   const getSesionesPorMes = (mes: number, anio: number): number[] => {
     return sesiones
       .filter(s => {
@@ -256,6 +318,7 @@ export function HistorialProvider({ children }: { children: ReactNode }) {
         getMetricasPorMes,
         metricas,
         refrescar: cargarSesiones,
+        crearSesion,
       }}
     >
       {children}
