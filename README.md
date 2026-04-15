@@ -115,7 +115,7 @@ src/
 
 ---
 
-## 🎨 Design Tokens
+## 🎨 Design Tokens   
 
 La magia gráfica vive en `src/styles/global.css`:
 
