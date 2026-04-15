@@ -41,6 +41,22 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     durationMs: null,
   });
   const requestSeq = useRef(0);
+  const cacheKey = user?.id ? `dailyset:rutinas:${user.id}` : null;
+
+  // Pintar cache inmediatamente (stale-while-revalidate)
+  useEffect(() => {
+    if (!cacheKey) return;
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { rutinas: Rutina[]; savedAt: number };
+      if (Array.isArray(parsed?.rutinas) && parsed.rutinas.length >= 0) {
+        setRutinas(parsed.rutinas);
+      }
+    } catch {
+      // ignorar cache corrupta
+    }
+  }, [cacheKey]);
 
   const cargarRutinas = async () => {
     const myReq = ++requestSeq.current;
@@ -104,6 +120,15 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
       // Si hay otra petición más reciente, ignorar esta respuesta para evitar flicker/race.
       if (myReq === requestSeq.current) {
         setRutinas(normalizadas);
+        // Guardar cache para renders instantáneos la próxima vez
+        try {
+          localStorage.setItem(
+            `dailyset:rutinas:${user.id}`,
+            JSON.stringify({ rutinas: normalizadas, savedAt: Date.now() })
+          );
+        } catch {
+          // ignore quota
+        }
       }
     } catch (e: any) {
       console.error('Error cargando rutinas', e);

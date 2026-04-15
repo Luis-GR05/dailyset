@@ -34,6 +34,9 @@ export default function DashboardPage() {
     return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + serie.kg * serie.reps, 0), 0);
   };
 
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
   const diasSemana = useMemo(() => {
     // Últimos 7 días (incluyendo hoy), alineado con el idioma.
     const hoy = new Date();
@@ -43,7 +46,8 @@ export default function DashboardPage() {
       // Etiqueta ÚNICA para evitar duplicados en eje X (p.ej. Tue/Thu o Sat/Sun en "T"/"S").
       const weekday = d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' });
       const label = `${weekday} ${String(d.getDate()).padStart(2, '0')}`;
-      const key = d.toISOString().slice(0, 10);
+      // Importante: usar fecha LOCAL. toISOString usa UTC y puede desfasar el día.
+      const key = toLocalYYYYMMDD(d);
       const valor1 = Math.round(
         sesiones
           .filter(s => s.fecha === key)
