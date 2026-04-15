@@ -6,6 +6,11 @@ import { useRutinas } from '../context/RutinasContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
 
+type EntrenamientoLocationState = {
+    nombre?: string;
+    rutinaId?: number;
+} | null;
+
 interface SerieUI {
     numero: number;
     kg: number;
@@ -74,8 +79,9 @@ export default function EntrenamientoPage() {
     const { ejercicios: catalogoEjercicios } = useEjercicios();
     const { crearSesion } = useHistorial();
 
-    const rutinaId = (location.state as any)?.rutinaId as number | undefined;
-    const nombreRutinaState = (location.state as any)?.nombre as string | undefined;
+    const state = (location.state ?? null) as EntrenamientoLocationState;
+    const rutinaId = state?.rutinaId;
+    const nombreRutinaState = state?.nombre;
 
     const rutina = useMemo(() => {
         if (typeof rutinaId === 'number') return rutinas.find(r => r.id === rutinaId);
@@ -194,7 +200,8 @@ export default function EntrenamientoPage() {
             });
             navigate('/historial');
         } catch (e: any) {
-            setErrorGuardar(e?.message ?? (locale === 'es' ? 'Error guardando la sesión' : 'Error saving session'));
+            const msg = e instanceof Error ? e.message : undefined;
+            setErrorGuardar(msg ?? (locale === 'es' ? 'Error guardando la sesión' : 'Error saving session'));
         } finally {
             setGuardando(false);
         }

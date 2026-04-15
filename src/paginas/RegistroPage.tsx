@@ -39,7 +39,7 @@ export default function RegistroPage() {
       } else {
         navigate('/dashboard');
       }
-    } catch (err: any) {
+    } catch {
       setError(
         locale === 'es'
           ? 'Error al crear la cuenta. Puede que el email ya esté en uso.'

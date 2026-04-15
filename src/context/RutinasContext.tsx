@@ -1,5 +1,5 @@
 // context/RutinasContext.tsx
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthContext';
 
@@ -16,6 +16,11 @@ interface RutinasContextType {
   rutinas: Rutina[];
   cargando: boolean;
   error: string | null;
+  carga: {
+    startedAtMs: number | null;
+    endedAtMs: number | null;
+    durationMs: number | null;
+  };
   refrescar: () => Promise<void>;
   agregarRutina: (r: Omit<Rutina, 'id'>) => Promise<void>;
   editarRutina: (r: Rutina) => Promise<void>;
@@ -30,14 +35,26 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [carga, setCarga] = useState<RutinasContextType['carga']>({
+    startedAtMs: null,
+    endedAtMs: null,
+    durationMs: null,
+  });
+  const requestSeq = useRef(0);
 
   const cargarRutinas = async () => {
+    const myReq = ++requestSeq.current;
     if (!user) {
       setRutinas([]);
+      setError(null);
+      setCargando(false);
+      setCarga({ startedAtMs: null, endedAtMs: null, durationMs: null });
       return;
     }
+    const startedAtMs = performance.now();
     setCargando(true);
     setError(null);
+    setCarga(prev => ({ ...prev, startedAtMs, endedAtMs: null, durationMs: null }));
     try {
       const { data, error } = await supabase
         .from('rutinas')
@@ -84,12 +101,23 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
         };
       });
 
-      setRutinas(normalizadas);
+      // Si hay otra petición más reciente, ignorar esta respuesta para evitar flicker/race.
+      if (myReq === requestSeq.current) {
+        setRutinas(normalizadas);
+      }
     } catch (e: any) {
       console.error('Error cargando rutinas', e);
       setError(e.message ?? 'Error cargando rutinas');
     } finally {
-      setCargando(false);
+      const endedAtMs = performance.now();
+      if (myReq === requestSeq.current) {
+        setCarga(prev => ({
+          ...prev,
+          endedAtMs,
+          durationMs: prev.startedAtMs ? Math.max(0, endedAtMs - prev.startedAtMs) : null,
+        }));
+        setCargando(false);
+      }
     }
   };
 
@@ -200,6 +228,7 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
         rutinas,
         cargando,
         error,
+        carga,
         refrescar: cargarRutinas,
         agregarRutina,
         editarRutina,

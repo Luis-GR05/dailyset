@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout, TituloPagina, FiltroBoton, BotonPrimario, Loading } from "../componentes";
 import { useRutinas } from '../context/RutinasContext';
@@ -16,14 +16,32 @@ type Modal =
     | null;
 
 export default function MisRutinasPage() {
-    const { rutinas, cargando, error, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
+    const { rutinas, cargando, error, carga, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
     const { t, locale } = useI18n();
 
-    const categorias = [...new Set(rutinas.map(r => r.categoria))];
-    const [filtroActivo, setFiltroActivo] = useState(categorias[0] ?? 'Fuerza');
+    const categorias = useMemo(() => [...new Set(rutinas.map(r => r.categoria))], [rutinas]);
+    const [filtroActivo, setFiltroActivo] = useState<string>(categorias[0] ?? 'Fuerza');
     const [modal, setModal] = useState<Modal>(null);
 
-    const rutinasFiltradas = rutinas.filter(r => r.categoria === filtroActivo);
+    useEffect(() => {
+        // Si el filtro actual no existe (p.ej. al cargar), usa la primera categoría disponible.
+        if (categorias.length === 0) return;
+        if (!categorias.includes(filtroActivo)) setFiltroActivo(categorias[0]);
+    }, [categorias, filtroActivo]);
+
+    const rutinasFiltradas = useMemo(
+        () => rutinas.filter(r => r.categoria === filtroActivo),
+        [rutinas, filtroActivo]
+    );
+
+    const [elapsedMs, setElapsedMs] = useState(0);
+    useEffect(() => {
+        if (!cargando || !carga.startedAtMs) return;
+        const id = window.setInterval(() => {
+            setElapsedMs(Math.max(0, performance.now() - (carga.startedAtMs ?? performance.now())));
+        }, 100);
+        return () => window.clearInterval(id);
+    }, [cargando, carga.startedAtMs]);
 
     const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number }) => {
         if (modal?.tipo === 'crear') {
@@ -75,6 +93,11 @@ export default function MisRutinasPage() {
                     {cargando && (
                         <div className="py-10">
                             <Loading />
+                            <p className="text-neutral-500 text-xs text-center mt-3">
+                                {locale === 'es'
+                                    ? `Cargando rutinas… ${(elapsedMs / 1000).toFixed(1)}s`
+                                    : `Loading routines… ${(elapsedMs / 1000).toFixed(1)}s`}
+                            </p>
                         </div>
                     )}
                     {error && (

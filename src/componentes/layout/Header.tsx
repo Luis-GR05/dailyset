@@ -32,6 +32,7 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
         <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={onAbrirMenu}
+            aria-label={locale === 'es' ? 'Abrir menú' : 'Open menu'}
             className="transition-colors"
             style={{ color: 'var(--color-neutral-3000)' }}
           >
@@ -67,6 +68,9 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
+            aria-label={theme === 'dark'
+              ? (locale === 'es' ? 'Activar modo claro' : 'Enable light mode')
+              : (locale === 'es' ? 'Activar modo oscuro' : 'Enable dark mode')}
             title={theme === 'dark'
               ? (locale === 'es' ? 'Activar modo claro' : 'Enable light mode')
               : (locale === 'es' ? 'Activar modo oscuro' : 'Enable dark mode')}

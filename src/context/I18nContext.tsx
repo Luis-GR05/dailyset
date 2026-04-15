@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 export type Locale = 'es' | 'en';
 
@@ -443,6 +443,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   };
 
   const t = translations[locale] as Translations;
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>

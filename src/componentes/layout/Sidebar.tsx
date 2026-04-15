@@ -44,6 +44,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
           </Link>
           <button
             onClick={onCerrar}
+            aria-label="Cerrar menú"
             className="md:hidden transition-colors"
             style={{ color: 'var(--color-neutral-2000)' }}
           >
@@ -53,7 +54,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1" aria-label="Navegación principal">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.ruta || location.pathname.startsWith(item.ruta + "/");
             return (
@@ -62,6 +63,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                 to={item.ruta}
                 onClick={onCerrar}
                 className="block py-2 px-3 rounded-lg text-lg font-medium transition-all"
+                aria-current={isActive ? 'page' : undefined}
                 style={
                   isActive
                     ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-black)' }
