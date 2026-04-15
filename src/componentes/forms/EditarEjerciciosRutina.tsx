@@ -85,7 +85,7 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
                                     <div>
                                         <span className="text-white text-sm font-medium">{e.nombre}</span>
                                         <span className="text-neutral-500 text-xs ml-2">{e.grupo}</span>
-                                        <span className="ejercicio-categoria-badge">{e.categoria}</span>
+                                        <span className="ejercicio-categoria-badge">{e.categoriaEjercicio}</span>
                                     </div>
                                     <button
                                         className="ejercicio-agregar-btn"

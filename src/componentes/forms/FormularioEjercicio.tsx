@@ -8,26 +8,44 @@ interface FormularioEjercicioProps {
     onCerrar: () => void;
 }
 
-const CATEGORIAS = ['Fuerza', 'Cardio', 'Empuje'];
+const CATEGORIAS = [
+  { value: 'strength',    label: 'Fuerza' },
+  { value: 'stretching',  label: 'Estiramiento' },
+  { value: 'plyometrics', label: 'Pliométrico' },
+  { value: 'cardio',      label: 'Cardio' },
+  { value: 'strongman',   label: 'Strongman' },
+  { value: 'powerlifting','label': 'Powerlifting' },
+  { value: 'general',     label: 'General' },
+];
+
+const DIFICULTADES = [
+  { value: 'principiante', label: 'Principiante' },
+  { value: 'intermedio',   label: 'Intermedio' },
+  { value: 'avanzado',     label: 'Avanzado' },
+];
 
 export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: FormularioEjercicioProps) {
-    const [nombre, setNombre] = useState('');
-    const [grupo, setGrupo] = useState('');
-    const [categoria, setCategoria] = useState(CATEGORIAS[0]);
-    const [descripcion, setDescripcion] = useState('');
-    const [videoUrl, setVideoUrl] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [nombre,              setNombre]              = useState('');
+    const [grupo,               setGrupo]               = useState('');
+    const [categoriaEjercicio,  setCategoriaEjercicio]  = useState('strength');
+    const [dificultad,          setDificultad]          = useState('principiante');
+    const [descripcion,         setDescripcion]         = useState('');
+    const [equipamiento,        setEquipamiento]        = useState('');
+    const [videoUrl,            setVideoUrl]            = useState('');
+    const [imagenInicio,        setImagenInicio]        = useState('');
+    const [loading,             setLoading]             = useState(false);
+    const [error,               setError]               = useState<string | null>(null);
 
     useEffect(() => {
         if (ejercicio) {
             setNombre(ejercicio.nombre);
             setGrupo(ejercicio.grupo);
-            setCategoria(ejercicio.categoria);
+            setCategoriaEjercicio(ejercicio.categoriaEjercicio ?? 'strength');
+            setDificultad(ejercicio.dificultad ?? 'principiante');
             setDescripcion(ejercicio.descripcion);
-            setVideoUrl(ejercicio.videoUrl || '');
-            setImageUrl(ejercicio.imageUrl || '');
+            setEquipamiento(ejercicio.equipamiento ?? '');
+            setVideoUrl(ejercicio.videoUrl ?? '');
+            setImagenInicio(ejercicio.imagenInicio ?? '');
         }
     }, [ejercicio]);
 
@@ -38,12 +56,20 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
         setError(null);
         try {
             await onGuardar({
-                nombre: nombre.trim(),
-                grupo: grupo.trim(),
-                categoria,
-                descripcion: descripcion.trim(),
-                videoUrl: videoUrl.trim(),
-                imageUrl: imageUrl.trim()
+                externalId:           undefined,
+                nombre:               nombre.trim(),
+                grupo:                grupo.trim(),
+                musculosPrimarios:    [grupo.trim()],
+                musculosSecundarios:  [],
+                categoriaEjercicio,
+                dificultad,
+                equipamiento:         equipamiento.trim() || undefined,
+                descripcion:          descripcion.trim(),
+                instruccionesPasos:   [],
+                imagenInicio:         imagenInicio.trim() || undefined,
+                imagenFinal:          undefined,
+                videoUrl:             videoUrl.trim() || undefined,
+                esPublico:            false,
             });
         } catch (err: any) {
             setError(err?.message ?? 'Error al guardar el ejercicio');
@@ -77,28 +103,41 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Grupo muscular <span className="text-red-400">*</span></label>
+                        <label className="form-label">Músculo principal <span className="text-red-400">*</span></label>
                         <input
                             className="input"
                             type="text"
-                            placeholder="Ej. Pecho / tríceps"
+                            placeholder="Ej. chest, quadriceps, biceps..."
                             value={grupo}
                             onChange={e => setGrupo(e.target.value)}
                             required
                         />
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="form-group">
+                            <label className="form-label">Categoría</label>
+                            <select className="input" value={categoriaEjercicio} onChange={e => setCategoriaEjercicio(e.target.value)}>
+                                {CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Dificultad</label>
+                            <select className="input" value={dificultad} onChange={e => setDificultad(e.target.value)}>
+                                {DIFICULTADES.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
                     <div className="form-group">
-                        <label className="form-label">Categoría</label>
-                        <select
+                        <label className="form-label">Equipamiento</label>
+                        <input
                             className="input"
-                            value={categoria}
-                            onChange={e => setCategoria(e.target.value)}
-                        >
-                            {CATEGORIAS.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
+                            type="text"
+                            placeholder="Ej. barbell, dumbbell, body only..."
+                            value={equipamiento}
+                            onChange={e => setEquipamiento(e.target.value)}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -118,20 +157,20 @@ export default function FormularioEjercicio({ ejercicio, onGuardar, onCerrar }: 
                         <input
                             className="input"
                             type="url"
-                            placeholder="Ej. https://www.youtube.com/embed/..."
+                            placeholder="https://www.youtube.com/embed/..."
                             value={videoUrl}
                             onChange={e => setVideoUrl(e.target.value)}
                         />
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">URL de la Imagen (Portada)</label>
+                        <label className="form-label">URL de la Imagen</label>
                         <input
                             className="input"
-                            type="url"
-                            placeholder="Ej. https://images.unsplash.com/..."
-                            value={imageUrl}
-                            onChange={e => setImageUrl(e.target.value)}
+                            type="text"
+                            placeholder="https://... o /exercises/Barbell_Squat/0.jpg"
+                            value={imagenInicio}
+                            onChange={e => setImagenInicio(e.target.value)}
                         />
                     </div>
 

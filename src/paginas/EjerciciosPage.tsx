@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AppLayout, TituloPagina, FiltroBoton, Input, BotonPrimario, Loading } from "../componentes";
+import { AppLayout, TituloPagina, Input, BotonPrimario, Loading } from "../componentes";
 import { useEjercicios } from '../context/EjerciciosContext';
 import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
-import { Pencil, Trash2, X } from 'lucide-react';
+import { Pencil, Trash2, X, Dumbbell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 
 type Modal =
@@ -13,21 +13,96 @@ type Modal =
   | { tipo: 'confirmarEliminar'; ejercicio: Ejercicio }
   | null;
 
+const CATEGORY_LABELS: Record<string, string> = {
+  strength: 'Fuerza',
+  stretching: 'Estiramiento',
+  plyometrics: 'Pliométrico',
+  strongman: 'Strongman',
+  powerlifting: 'Powerlifting',
+  olympic_weightlifting: 'Halterofilia',
+  cardio: 'Cardio',
+  general: 'General',
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  strength: 'var(--color-primary)',
+  stretching: '#34d399',
+  plyometrics: '#f59e0b',
+  strongman: '#ef4444',
+  powerlifting: '#8b5cf6',
+  olympic_weightlifting: '#06b6d4',
+  cardio: '#ec4899',
+  general: 'var(--color-neutral-2000)',
+};
+
 export default function EjerciciosPage() {
   const { ejercicios, cargando, error, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
   const { t, locale } = useI18n();
 
-  const [filtroActivo, setFiltroActivo] = useState(locale === 'es' ? "Fuerza" : "Strength");
-  const [busqueda, setBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState<string>('all');
+  const [filtroMusculo, setFiltroMusculo] = useState<string>('all');
+  const [busqueda, setBusqueda] = useState('');
   const [modal, setModal] = useState<Modal>(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
-  const categorias = [...new Set(ejercicios.map(e => e.categoria))];
+  // Categorías únicas presentes en los datos
+  const categorias = useMemo(() => {
+    const cats = [...new Set(ejercicios.map(e => e.categoriaEjercicio).filter(Boolean))].sort();
+    return cats;
+  }, [ejercicios]);
 
-  const ejerciciosFiltrados = ejercicios.filter(ejercicio => {
-    const coincideFiltro = ejercicio.categoria === filtroActivo;
-    const coincideBusqueda = ejercicio.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    return coincideFiltro && coincideBusqueda;
-  });
+  // Músculos únicos presentes
+  const musculos = useMemo(() => {
+    const set = new Set<string>();
+    ejercicios.forEach(e => e.musculosPrimarios.forEach(m => set.add(m)));
+    return [...set].sort();
+  }, [ejercicios]);
+
+  const ejerciciosFiltrados = useMemo(() => {
+    return ejercicios.filter(ej => {
+      const matchCat = filtroCategoria === 'all' || ej.categoriaEjercicio === filtroCategoria;
+      const matchMus = filtroMusculo === 'all' || ej.musculosPrimarios.includes(filtroMusculo);
+      const matchBus = busqueda === '' ||
+        ej.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+        ej.grupo.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (ej.equipamiento ?? '').toLowerCase().includes(busqueda.toLowerCase());
+      return matchCat && matchMus && matchBus;
+    });
+  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [filtroCategoria, filtroMusculo, busqueda]);
+
+  const totalPaginas = Math.ceil(ejerciciosFiltrados.length / ITEMS_PER_PAGE);
+  const ejerciciosPaginados = ejerciciosFiltrados.slice(
+    (paginaActual - 1) * ITEMS_PER_PAGE,
+    paginaActual * ITEMS_PER_PAGE
+  );
+
+  const getNumerosDePagina = () => {
+    const paginas = [];
+    if (totalPaginas <= 5) {
+      for (let i = 1; i <= totalPaginas; i++) paginas.push(i);
+    } else {
+      // Siempre mostrar primera
+      paginas.push(1);
+      if (paginaActual > 3) paginas.push('...');
+
+      const inicio = Math.max(2, paginaActual - 1);
+      const fin = Math.min(totalPaginas - 1, paginaActual + 1);
+
+      for (let i = inicio; i <= fin; i++) {
+        paginas.push(i);
+      }
+
+      if (paginaActual < totalPaginas - 2) paginas.push('...');
+      paginas.push(totalPaginas);
+    }
+    return paginas;
+  };
 
   const handleGuardar = async (data: Omit<Ejercicio, 'id'>) => {
     if (modal?.tipo === 'crear') {
@@ -45,18 +120,27 @@ export default function EjerciciosPage() {
     setModal(null);
   };
 
+  const catLabel = (cat: string) => CATEGORY_LABELS[cat] ?? cat;
+  const catColor = (cat: string) => CATEGORY_COLORS[cat] ?? 'var(--color-neutral-2000)';
+
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <TituloPagina titulo={t.exercises.title} />
-          <div className="flex-1 w-full">
+          <div className="flex-1 relative">
+            <Search
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: 'var(--color-neutral-2000)' }}
+            />
             <Input
               type="text"
-              placeholder={t.exercises.search}
+              placeholder={locale === 'es' ? 'Buscar por nombre, músculo o equipo...' : 'Search by name, muscle or equipment...'}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="bg-neutral-900 border-neutral-800 rounded-2xl px-4 py-3 md:px-6 md:py-4 w-full"
+              className="pl-10 bg-neutral-900 border-neutral-800 rounded-2xl py-3 w-full"
             />
           </div>
           <div onClick={() => setModal({ tipo: 'crear' })} className="cursor-pointer flex-shrink-0">
@@ -64,85 +148,202 @@ export default function EjerciciosPage() {
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="flex flex-wrap items-center gap-2 md:gap-4">
-          <span className="text-white font-bold text-sm">{locale === 'es' ? 'Filtros:' : 'Filters:'}</span>
-          {categorias.map((cat) => (
-            <div key={cat} onClick={() => setFiltroActivo(cat)} className="cursor-pointer">
-              <FiltroBoton
-                nombre={cat}
-                activo={filtroActivo === cat}
-              />
-            </div>
+        {/* Filtros de categoría */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFiltroCategoria('all')}
+            className="btn-pill text-sm"
+            style={filtroCategoria === 'all'
+              ? { background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)' }
+              : {}}
+          >
+            {locale === 'es' ? 'Todos' : 'All'}
+            {filtroCategoria === 'all' && (
+              <span className="ml-1 text-xs opacity-70">({ejerciciosFiltrados.length})</span>
+            )}
+          </button>
+          {categorias.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFiltroCategoria(filtroCategoria === cat ? 'all' : cat)}
+              className="btn-pill text-sm"
+              style={filtroCategoria === cat
+                ? { background: catColor(cat), color: '#050505', borderColor: catColor(cat) }
+                : {}}
+            >
+              {catLabel(cat)}
+            </button>
           ))}
         </div>
 
-        {/* Estado de carga / error */}
-        {cargando && (
-          <div className="py-10">
-            <Loading />
+        {/* Filtro por músculo */}
+        {musculos.length > 0 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-neutral-2000)' }}>
+              {locale === 'es' ? 'Músculo:' : 'Muscle:'}
+            </span>
+            <button
+              onClick={() => setFiltroMusculo('all')}
+              className="btn-pill text-xs"
+              style={filtroMusculo === 'all'
+                ? { background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)' }
+                : {}}
+            >
+              {locale === 'es' ? 'Todos' : 'All'}
+            </button>
+            {musculos.map(m => (
+              <button
+                key={m}
+                onClick={() => setFiltroMusculo(filtroMusculo === m ? 'all' : m)}
+                className="btn-pill text-xs capitalize"
+                style={filtroMusculo === m
+                  ? { background: 'var(--color-primary)', color: '#050505', borderColor: 'var(--color-primary)' }
+                  : {}}
+              >
+                {m}
+              </button>
+            ))}
           </div>
         )}
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
+
+        {/* Contador */}
+        {!cargando && (
+          <p className="text-sm" style={{ color: 'var(--color-neutral-2000)' }}>
+            {ejerciciosFiltrados.length} {locale === 'es' ? 'ejercicios' : 'exercises'}
+          </p>
         )}
 
-        {/* Grid de resultados */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ejerciciosFiltrados.length > 0 ? (
-            ejerciciosFiltrados.map((ejercicio) => (
-              <div key={ejercicio.id} className="relative group">
-                <Link to={`/ejercicios/${ejercicio.id}`} className="block">
-                  <div className="card card-hover overflow-hidden">
-                    <div className="w-full aspect-square bg-neutral-800 flex items-center justify-center">
-                      {ejercicio.imageUrl ? (
-                        <img src={ejercicio.imageUrl} alt={ejercicio.nombre} className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="w-12 h-12 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      )}
+        {/* Estado de carga / error */}
+        {cargando && <div className="py-10"><Loading /></div>}
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+
+        {/* Grid de ejercicios */}
+        {!cargando && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {ejerciciosPaginados.length > 0 ? (
+              ejerciciosPaginados.map((ejercicio) => (
+                <div key={ejercicio.id} className="relative group">
+                  <Link to={`/ejercicios/${ejercicio.id}`} className="block">
+                    <div className="card card-hover overflow-hidden">
+                      {/* Imagen */}
+                      <div className="w-full aspect-square bg-neutral-900 overflow-hidden relative">
+                        {ejercicio.imagenInicio ? (
+                          <img
+                            src={ejercicio.imagenInicio}
+                            alt={ejercicio.nombre}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Dumbbell size={28} style={{ color: 'var(--color-neutral-900)' }} />
+                          </div>
+                        )}
+                        {/* Badge categoría */}
+                        <span
+                          className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full"
+                          style={{
+                            background: `${catColor(ejercicio.categoriaEjercicio)}22`,
+                            color: catColor(ejercicio.categoriaEjercicio),
+                            border: `1px solid ${catColor(ejercicio.categoriaEjercicio)}44`,
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          {catLabel(ejercicio.categoriaEjercicio)}
+                        </span>
+                      </div>
+                      {/* Info */}
+                      <div className="p-3">
+                        <h3 className="font-bold text-white text-xs leading-tight line-clamp-2 mb-1">
+                          {ejercicio.nombre}
+                        </h3>
+                        <p className="text-xs capitalize" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {ejercicio.grupo || ejercicio.musculosPrimarios[0] || '—'}
+                        </p>
+                        {ejercicio.equipamiento && (
+                          <p className="text-xs mt-0.5 capitalize" style={{ color: 'var(--color-neutral-1000)' }}>
+                            {ejercicio.equipamiento}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-white text-sm">{ejercicio.nombre}</h3>
-                      <p className="text-neutral-400 text-xs">{ejercicio.grupo}</p>
-                    </div>
+                  </Link>
+
+                  {/* Acciones hover (solo si es del usuario) */}
+                  {!ejercicio.esPublico || ejercicio.externalId === undefined ? null : null}
+                  <div
+                    className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ zIndex: 10 }}
+                  >
+                    <button
+                      className="card-action-btn"
+                      title={t.exercises.editExercise}
+                      onClick={(e) => { e.preventDefault(); setModal({ tipo: 'editar', ejercicio }); }}
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button
+                      className="card-action-btn danger"
+                      title={t.exercises.deleteExercise}
+                      onClick={(e) => { e.preventDefault(); setModal({ tipo: 'confirmarEliminar', ejercicio }); }}
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
-                </Link>
-                {/* Botones de acción superpuestos */}
-                <div
-                  className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ zIndex: 10 }}
-                >
-                  <button
-                    className="card-action-btn"
-                    title={t.exercises.editExercise}
-                    onClick={(e) => { e.preventDefault(); setModal({ tipo: 'editar', ejercicio }); }}
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    className="card-action-btn danger"
-                    title={t.exercises.deleteExercise}
-                    onClick={(e) => { e.preventDefault(); setModal({ tipo: 'confirmarEliminar', ejercicio }); }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-neutral-500 col-span-full py-10 text-center">
-              {locale === 'es'
-                ? `No se encontraron ejercicios de ${filtroActivo.toLowerCase()} que coincidan con tu búsqueda.`
-                : `No ${filtroActivo.toLowerCase()} exercises matched your search.`}
-            </p>
-          )}
-        </div>
+              ))
+            ) : (
+              <p className="text-neutral-500 col-span-full py-16 text-center">
+                {locale === 'es'
+                  ? 'No se encontraron ejercicios con esos filtros.'
+                  : 'No exercises matched your filters.'}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Paginación */}
+        {!cargando && totalPaginas > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-6">
+            <button
+              onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+              disabled={paginaActual === 1}
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {getNumerosDePagina().map((pag, index) => {
+              if (pag === '...') {
+                return <span key={`ellipsis-${index}`} className="w-10 h-10 flex items-center justify-center text-neutral-500">...</span>;
+              }
+              return (
+                <button
+                  key={pag}
+                  onClick={() => setPaginaActual(pag as number)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-colors ${paginaActual === pag
+                      ? 'bg-neutral-800 text-white border-neutral-700'
+                      : 'border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white'
+                    }`}
+                  style={paginaActual === pag ? { borderWidth: '1px' } : undefined}
+                >
+                  {pag}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaActual === totalPaginas}
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Modal: Crear / Editar ejercicio */}
+      {/* Modal: Crear / Editar */}
       {(modal?.tipo === 'crear' || modal?.tipo === 'editar') && (
         <FormularioEjercicio
           ejercicio={modal.tipo === 'editar' ? modal.ejercicio : null}
