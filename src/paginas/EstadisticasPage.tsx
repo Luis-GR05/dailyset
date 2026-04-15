@@ -184,10 +184,10 @@ export default function EstadisticasPage() {
               { label: locale === 'es' ? "Mejor racha (días)" : "Best streak (days)", value: hayDatos ? mejorRachaLabel : "—" },
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
-                <span className="text-neutral-500 text-[10px] font-black uppercase tracking-widest italic">
+                <span className="text-neutral-300 text-[10px] font-black uppercase tracking-widest italic">
                   {item.label}
                 </span>
-                <span className="text-neutral-600 font-black italic text-lg tracking-tighter">
+                <span className="text-white font-black italic text-lg tracking-tighter">
                   {item.value}
                 </span>
               </div>

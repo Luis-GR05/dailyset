@@ -1,12 +1,15 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from "../componentes";
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { useHistorial } from '../context/HistorialContext';
 
 export default function PerfilPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { locale, t } = useI18n();
+  const { sesiones } = useHistorial();
 
   const iniciales = (user?.nombre ?? 'U')
     .split(' ')
@@ -14,11 +17,36 @@ export default function PerfilPage() {
     .slice(0, 2)
     .join('');
 
-  const stats = [
-    { etiqueta: t.profile.totalSets.toUpperCase(), valor: user?.totalSets ?? '—' },
-    { etiqueta: t.profile.streak.toUpperCase(), valor: user?.racha ? `${user.racha} ${t.profile.days.toUpperCase()}` : '—' },
-    { etiqueta: t.profile.totalWeight.toUpperCase(), valor: user?.pesoTotal ?? '—' },
-  ];
+  const stats = useMemo(() => {
+    const totalSets = sesiones.reduce((t, s) => t + s.ejercicios.reduce((tt, ej) => tt + ej.series.length, 0), 0);
+    const totalWeight = Math.round(
+      sesiones.reduce((t, s) =>
+        t + s.ejercicios.reduce((tt, ej) =>
+          tt + ej.series.reduce((x, serie) => x + (serie.kg * serie.reps), 0)
+          , 0)
+        , 0)
+    );
+
+    const uniqueDays = Array.from(new Set(sesiones.map(s => new Date(s.fecha + 'T12:00:00').setHours(0, 0, 0, 0)))).sort((a, b) => a - b);
+    let streak = 0;
+    for (let i = uniqueDays.length - 1; i >= 0; i--) {
+      if (i === uniqueDays.length - 1) streak = 1;
+      else {
+        const diff = uniqueDays[i + 1] - uniqueDays[i];
+        if (diff === 24 * 60 * 60 * 1000) streak += 1;
+        else break;
+      }
+    }
+
+    return [
+      { etiqueta: t.profile.totalSets.toUpperCase(), valor: totalSets ? String(totalSets) : '—' },
+      {
+        etiqueta: t.profile.streak.toUpperCase(),
+        valor: streak ? `${streak} ${t.profile.days.toUpperCase()}` : '—'
+      },
+      { etiqueta: t.profile.totalWeight.toUpperCase(), valor: totalWeight ? `${totalWeight} kg` : '—' },
+    ];
+  }, [sesiones, t.profile.totalSets, t.profile.streak, t.profile.totalWeight, t.profile.days]);
 
   const opciones = [
     {

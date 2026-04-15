@@ -1,10 +1,15 @@
+import { useMemo } from 'react';
 import { AppLayout, TituloPagina } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import { useRutinas } from '../context/RutinasContext';
+import { useHistorial } from '../context/HistorialContext';
 
 export default function DashboardPage() {
   const { t, locale } = useI18n();
+  const { rutinas } = useRutinas();
+  const { sesiones } = useHistorial();
   const diasSemanaVacios = locale === 'es'
     ? [
       { dia: "L", valor1: 0 },
@@ -25,19 +30,72 @@ export default function DashboardPage() {
       { dia: "S", valor1: 0 },
     ];
 
-  // TODO: Cargar rutinas reales desde Supabase cuando se implemente la funcionalidad
-  const rutinas: { id: number; nombre: string; descripcion: string }[] = [];
+  const calcularVolumenSesion = (ejercicios: { series: { kg: number; reps: number }[] }[]) => {
+    return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + serie.kg * serie.reps, 0), 0);
+  };
 
-  // TODO: Cargar volumen semanal real desde Supabase
-  const diasSemana = diasSemanaVacios;
+  const diasSemana = useMemo(() => {
+    // Últimos 7 días (incluyendo hoy), alineado con el idioma.
+    const hoy = new Date();
+    const dayNamesEs = ["D", "L", "M", "X", "J", "V", "S"];
+    const dayNamesEn = ["S", "M", "T", "W", "T", "F", "S"];
 
-  // TODO: Cargar estadísticas reales desde Supabase
-  const statsVacias = [
-    { label: locale === 'es' ? "Semanas activo" : "Active weeks", val: "—" },
-    { label: locale === 'es' ? "PR peso muerto" : "Deadlift PR", val: "—" },
-    { label: locale === 'es' ? "Racha actual" : "Current streak", val: "—" },
-    { label: locale === 'es' ? "Nivel" : "Level", val: "—" },
-  ];
+    const items = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - (6 - i));
+      const label = locale === 'es' ? dayNamesEs[d.getDay()] : dayNamesEn[d.getDay()];
+      const key = d.toISOString().slice(0, 10);
+      const valor1 = Math.round(
+        sesiones
+          .filter(s => s.fecha === key)
+          .reduce((t, s) => t + calcularVolumenSesion(s.ejercicios), 0)
+      );
+      return { dia: label, valor1 };
+    });
+
+    // Si no hay nada aún, devuelve estructura vacía para mantener UI estable
+    const hay = items.some(i => i.valor1 > 0);
+    return hay ? items : diasSemanaVacios;
+  }, [sesiones, locale, diasSemanaVacios]);
+
+  const statsRapidas = useMemo(() => {
+    // Semanas activas: semanas con >=2 sesiones (similar a HistorialContext disciplina).
+    const semanasObj: Record<string, number> = {};
+    sesiones.forEach(s => {
+      const d = new Date(s.fecha + 'T12:00:00');
+      const semana = Math.floor(d.getTime() / (7 * 24 * 60 * 60 * 1000));
+      semanasObj[semana] = (semanasObj[semana] ?? 0) + 1;
+    });
+    const semanasActivas = Object.values(semanasObj).filter(n => n >= 2).length;
+
+    // Racha actual (días consecutivos con >=1 sesión)
+    const uniqueDays = Array.from(new Set(sesiones.map(s => new Date(s.fecha + 'T12:00:00').setHours(0, 0, 0, 0)))).sort((a, b) => a - b);
+    let streak = 0;
+    for (let i = uniqueDays.length - 1; i >= 0; i--) {
+      if (i === uniqueDays.length - 1) streak = 1;
+      else {
+        const diff = uniqueDays[i + 1] - uniqueDays[i];
+        if (diff === 24 * 60 * 60 * 1000) streak += 1;
+        else break;
+      }
+    }
+
+    // PR simple: máximo peso (kg) registrado en cualquier serie (aprox)
+    let maxKg = 0;
+    sesiones.forEach(s => {
+      s.ejercicios.forEach(ej => {
+        ej.series.forEach(serie => {
+          if (serie.kg > maxKg) maxKg = serie.kg;
+        });
+      });
+    });
+
+    return [
+      { label: locale === 'es' ? "Semanas activo" : "Active weeks", val: semanasActivas ? String(semanasActivas) : "—" },
+      { label: locale === 'es' ? "Mejor peso (kg)" : "Best weight (kg)", val: maxKg ? String(maxKg) : "—" },
+      { label: locale === 'es' ? "Racha actual" : "Current streak", val: streak ? String(streak) : "—" },
+      { label: locale === 'es' ? "Sesiones" : "Sessions", val: sesiones.length ? String(sesiones.length) : "—" },
+    ];
+  }, [sesiones, locale]);
 
   return (
     <AppLayout>
@@ -63,8 +121,13 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {rutinas.map((rutina) => (
-              <Link key={rutina.id} to="/mis-rutinas/entrenamiento" className="block group">
+            {rutinas.slice(0, 6).map((rutina) => (
+              <Link
+                key={rutina.id}
+                to="/mis-rutinas/entrenamiento"
+                state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
+                className="block group"
+              >
                 <div
                   className="bg-neutral-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-xl transition-all duration-300"
                   onMouseEnter={(e) => {
@@ -81,7 +144,9 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="font-black text-white italic uppercase text-sm tracking-tighter">{rutina.nombre}</h3>
-                      <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-widest">{rutina.descripcion}</p>
+                      <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-widest">
+                        {rutina.ejerciciosIds.length} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -128,10 +193,10 @@ export default function DashboardPage() {
 
         {/* Stats rápidas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {statsVacias.map((item, i) => (
+          {statsRapidas.map((item, i) => (
             <div key={i} className="bg-neutral-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-xl text-center">
               <p className="text-neutral-500 text-[8px] font-black uppercase tracking-widest mb-1 italic">{item.label}</p>
-              <p className="text-neutral-600 font-black italic text-lg">{item.val}</p>
+              <p className="text-white font-black italic text-lg">{item.val}</p>
             </div>
           ))}
         </div>
