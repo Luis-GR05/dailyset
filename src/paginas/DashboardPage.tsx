@@ -37,12 +37,12 @@ export default function DashboardPage() {
   const diasSemana = useMemo(() => {
     // Últimos 7 días (incluyendo hoy), alineado con el idioma.
     const hoy = new Date();
-    const dayNamesEs = ["D", "L", "M", "X", "J", "V", "S"];
-    const dayNamesEn = ["S", "M", "T", "W", "T", "F", "S"];
 
     const items = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - (6 - i));
-      const label = locale === 'es' ? dayNamesEs[d.getDay()] : dayNamesEn[d.getDay()];
+      // Etiqueta ÚNICA para evitar duplicados en eje X (p.ej. Tue/Thu o Sat/Sun en "T"/"S").
+      const weekday = d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' });
+      const label = `${weekday} ${String(d.getDate()).padStart(2, '0')}`;
       const key = d.toISOString().slice(0, 10);
       const valor1 = Math.round(
         sesiones
