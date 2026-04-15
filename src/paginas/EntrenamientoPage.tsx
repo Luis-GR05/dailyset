@@ -49,26 +49,33 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function calcularPuntuacion(args: {
-    totalSeries: number;
-    seriesHechas: number;
-    volumenTotalKg: number;
-    duracionMin: number;
+    ejercicios: { series: { kg: number; reps: number; completada: boolean }[] }[];
 }) {
-    const totalSeries = Math.max(0, args.totalSeries);
-    const seriesHechas = clamp(args.seriesHechas, 0, totalSeries || 0);
-    const completion = totalSeries > 0 ? seriesHechas / totalSeries : 0;
+    // Ecuación (Índice de Carga Proyectada):
+    // S = ( V_total / (N_ex * S̄) ) * ω
+    // donde V_total = Σ (kg * reps * series) de lo completado,
+    // N_ex = nº ejercicios, S̄ = promedio series por ejercicio, ω escala a 1-5.
+    //
+    // Nota: N_ex * S̄ = totalSeries, así que la expresión equivale a:
+    // S = (V_total / totalSeries) * ω
 
-    const vol = Math.max(0, args.volumenTotalKg);
-    const dur = Math.max(0, args.duracionMin);
+    const ejerciciosConTrabajo = args.ejercicios
+        .map(e => ({
+            totalSeries: e.series.filter(s => s.completada).length,
+            volumen: e.series.reduce((t, s) => t + (s.completada ? (s.kg * s.reps) : 0), 0),
+        }))
+        .filter(e => e.totalSeries > 0);
 
-    // Normalizaciones simples (0..1) con límites razonables
-    const nVol = clamp(vol / 5000, 0, 1);   // 5000 kg ≈ sesión muy densa
-    const nDur = clamp(dur / 90, 0, 1);     // 90 min ≈ sesión larga
+    const N_ex = ejerciciosConTrabajo.length;
+    const totalSeries = ejerciciosConTrabajo.reduce((t, e) => t + e.totalSeries, 0);
+    const V_total = ejerciciosConTrabajo.reduce((t, e) => t + e.volumen, 0);
 
-    // Ponderación: completar series importa más; volumen y duración suman calidad/consistencia.
-    const raw = 1 + (5.5 * completion) + (2.0 * nVol) + (1.5 * nDur);
-    const score = Math.round(clamp(raw, 1, 10));
-    return score;
+    if (N_ex === 0 || totalSeries === 0 || V_total <= 0) return 1;
+
+    const S_bar = totalSeries / N_ex;
+    const omega = 0.005; // escala empírica: ~600 de (kg*reps) por serie → ~3 puntos
+    const raw = (V_total / (N_ex * S_bar)) * omega;
+    return Math.round(clamp(raw, 1, 5));
 }
 
 export default function EntrenamientoPage() {
@@ -158,6 +165,18 @@ export default function EntrenamientoPage() {
         }));
     };
 
+    const quitarSerie = (ejercicioId: number, serieNumero: number) => {
+        setEjerciciosUI(prev => prev.map(ej => {
+            if (ej.id !== ejercicioId) return ej;
+            // Mantener al menos 1 serie por ejercicio
+            if (ej.series.length <= 1) return ej;
+            const filtradas = ej.series.filter(s => s.numero !== serieNumero);
+            // Renumerar
+            const renumeradas = filtradas.map((s, idx) => ({ ...s, numero: idx + 1 }));
+            return { ...ej, series: renumeradas };
+        }));
+    };
+
     const eliminarEjercicio = (id: number) => {
         setEjerciciosUI(prev => prev.filter(ej => ej.id !== id));
     };
@@ -178,21 +197,12 @@ export default function EntrenamientoPage() {
 
     const finish = async () => {
         if (guardando) return;
-        if (ejerciciosUI.length === 0) {
-            setErrorGuardar(locale === 'es'
-                ? 'No puedes finalizar: la rutina no tiene ejercicios.'
-                : "You can't finish: this routine has no exercises.");
-            return;
-        }
         setErrorGuardar(null);
         setGuardando(true);
         try {
             const duracionMin = Math.max(1, Math.round(elapsedSeconds / 60));
             const puntuacion = calcularPuntuacion({
-                totalSeries,
-                seriesHechas: seriesRealizadas,
-                volumenTotalKg: volumenTotal,
-                duracionMin,
+                ejercicios: ejerciciosUI,
             });
             await crearSesion({
                 fecha: todayYYYYMMDD(),
@@ -293,7 +303,9 @@ export default function EntrenamientoPage() {
                                     {/* Botón Eliminar */}
                                     <button
                                         onClick={() => eliminarEjercicio(ejercicio.id)}
-                                        className="text-red-500 hover:text-red-400 transition-all active:scale-90"
+                                        disabled={empezado}
+                                        aria-label={locale === 'es' ? 'Eliminar ejercicio' : 'Remove exercise'}
+                                        className="text-red-500 hover:text-red-400 transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed"
                                     >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -315,7 +327,22 @@ export default function EntrenamientoPage() {
                                     {ejercicio.series.map((serie) => (
                                         <div key={serie.numero} className="grid grid-cols-4 md:grid-cols-5 gap-4 items-center bg-neutral-800/50 p-3 rounded-xl border border-neutral-800">
                                             <span className="font-bold ml-2" style={{ color: 'var(--color-primary)' }}>{serie.numero}</span>
-                                            <span className="hidden md:block text-neutral-400 text-sm">—</span>
+                                            <div className="hidden md:flex items-center gap-2">
+                                                <span className="text-neutral-400 text-sm">—</span>
+                                                {!empezado && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => quitarSerie(ejercicio.id, serie.numero)}
+                                                        className="text-neutral-400 hover:text-white transition-colors"
+                                                        aria-label={locale === 'es' ? 'Quitar serie' : 'Remove set'}
+                                                        title={locale === 'es' ? 'Quitar serie' : 'Remove set'}
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
                                             <input
                                                 type="number"
                                                 value={serie.kg}
@@ -358,7 +385,7 @@ export default function EntrenamientoPage() {
                                     <div className="pt-2">
                                         <button
                                             onClick={() => addSerie(ejercicio.id)}
-                                            disabled={!empezado}
+                                            disabled={empezado}
                                             className="text-sm font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                                             style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-3000)', border: '1px solid rgba(255,255,255,0.08)' }}
                                         >
