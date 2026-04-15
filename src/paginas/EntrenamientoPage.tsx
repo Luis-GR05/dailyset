@@ -39,6 +39,33 @@ function todayYYYYMMDD() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
+function clamp(n: number, min: number, max: number) {
+    return Math.min(max, Math.max(min, n));
+}
+
+function calcularPuntuacion(args: {
+    totalSeries: number;
+    seriesHechas: number;
+    volumenTotalKg: number;
+    duracionMin: number;
+}) {
+    const totalSeries = Math.max(0, args.totalSeries);
+    const seriesHechas = clamp(args.seriesHechas, 0, totalSeries || 0);
+    const completion = totalSeries > 0 ? seriesHechas / totalSeries : 0;
+
+    const vol = Math.max(0, args.volumenTotalKg);
+    const dur = Math.max(0, args.duracionMin);
+
+    // Normalizaciones simples (0..1) con límites razonables
+    const nVol = clamp(vol / 5000, 0, 1);   // 5000 kg ≈ sesión muy densa
+    const nDur = clamp(dur / 90, 0, 1);     // 90 min ≈ sesión larga
+
+    // Ponderación: completar series importa más; volumen y duración suman calidad/consistencia.
+    const raw = 1 + (5.5 * completion) + (2.0 * nVol) + (1.5 * nDur);
+    const score = Math.round(clamp(raw, 1, 10));
+    return score;
+}
+
 export default function EntrenamientoPage() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -139,15 +166,26 @@ export default function EntrenamientoPage() {
         return ejerciciosUI.reduce((t, ej) => t + ej.series.filter(s => s.completada).length, 0);
     }, [ejerciciosUI]);
 
+    const totalSeries = useMemo(() => {
+        return ejerciciosUI.reduce((t, ej) => t + ej.series.length, 0);
+    }, [ejerciciosUI]);
+
     const finish = async () => {
         if (guardando) return;
         setErrorGuardar(null);
         setGuardando(true);
         try {
             const duracionMin = Math.max(1, Math.round(elapsedSeconds / 60));
+            const puntuacion = calcularPuntuacion({
+                totalSeries,
+                seriesHechas: seriesRealizadas,
+                volumenTotalKg: volumenTotal,
+                duracionMin,
+            });
             await crearSesion({
                 fecha: todayYYYYMMDD(),
                 duracionMin,
+                puntuacion,
                 rutinaId: rutina?.id ?? (typeof rutinaId === 'number' ? rutinaId : null),
                 ejercicios: ejerciciosUI.map(ej => ({
                     ejercicioId: ej.id,

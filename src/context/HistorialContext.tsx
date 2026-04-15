@@ -42,7 +42,7 @@ interface HistorialContextType {
   crearSesion: (args: {
     fecha: string; // YYYY-MM-DD
     duracionMin: number;
-    puntuacion?: number;
+    puntuacion?: number | null;
     rutinaId?: number | null;
     ejercicios: {
       ejercicioId: number;
@@ -216,7 +216,8 @@ export function HistorialProvider({ children }: { children: ReactNode }) {
         usuario_id: user.id,
         fecha: args.fecha,
         duracion_minutos: args.duracionMin,
-        puntuacion: args.puntuacion ?? 0,
+        // Si no se proporciona puntuación, guardarla como NULL para respetar constraints (p.ej. 1-10).
+        puntuacion: args.puntuacion ?? null,
         rutina_id: args.rutinaId ?? null,
       })
       .select('id')
