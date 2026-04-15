@@ -20,6 +20,7 @@ export default function EstadisticasPage() {
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
   const now = new Date();
   const year = now.getFullYear();
+  const nowMs = now.getTime();
 
   const {
     totalEntrenos,
@@ -66,10 +67,9 @@ export default function EstadisticasPage() {
     const intensidadMediaLabel = metricas.intensidad;
 
     // Frecuencia semanal: media de entrenos en últimas 4 semanas.
-    const msNow = Date.now();
     const last28 = sesiones.filter(s => {
       const ms = startOfDayMs(s.fecha);
-      return msNow - ms <= 28 * 24 * 60 * 60 * 1000;
+      return nowMs - ms <= 28 * 24 * 60 * 60 * 1000;
     }).length;
     const freq = (last28 / 4);
     const frecuenciaSemanalLabel = `${freq.toFixed(1)}`;

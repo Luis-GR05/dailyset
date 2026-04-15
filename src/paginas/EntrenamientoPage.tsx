@@ -191,10 +191,6 @@ export default function EntrenamientoPage() {
         return ejerciciosUI.reduce((t, ej) => t + ej.series.filter(s => s.completada).length, 0);
     }, [ejerciciosUI]);
 
-    const totalSeries = useMemo(() => {
-        return ejerciciosUI.reduce((t, ej) => t + ej.series.length, 0);
-    }, [ejerciciosUI]);
-
     const finish = async () => {
         if (guardando) return;
         setErrorGuardar(null);
