@@ -14,7 +14,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
-      <div className="flex min-h-dvh h-dvh bg-neutral-700 text-white overflow-hidden relative">
+      <div
+        className="flex min-h-dvh w-full relative"
+        style={{ backgroundColor: 'var(--color-black)', color: 'var(--color-white)', overflowX: 'hidden' }}
+      >
         <div className="absolute top-0 right-0 w-125 h-125 bg-brand-primary/10 blur-[150px] -z-10" />
         <div className="absolute bottom-0 left-0 w-75 h-75 bg-brand-accent/5 blur-[120px] -z-10" />
 
@@ -22,7 +25,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="flex-1 flex flex-col min-w-0">
           <Header onAbrirMenu={() => setMenuAbierto(true)} />
-          <main id="main" role="main" className="flex-1 overflow-y-auto p-4 md:p-8">
+          <main
+            id="main"
+            role="main"
+            className="flex-1 p-4 md:p-8"
+          >
             <div className="max-w-5xl mx-auto">
               {children}
             </div>
