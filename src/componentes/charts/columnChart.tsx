@@ -18,11 +18,18 @@ interface ColumnChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-zinc-800 p-2 border border-zinc-700 rounded shadow-lg text-xs text-zinc-100">
+      <div
+        className="p-2 border rounded shadow-lg text-xs"
+        style={{
+          backgroundColor: 'var(--color-neutral-800)',
+          borderColor: 'var(--color-neutral-900)',
+          color: 'var(--color-white)',
+        }}
+      >
         <p className="font-semibold mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} style={{ color: entry.color }}>
-            {entry.name || entry.dataKey}: <span className="text-white ml-1">{entry.value}</span>
+            {entry.name || entry.dataKey}: <span className="ml-1" style={{ color: 'var(--color-white)' }}>{entry.value}</span>
           </p>
         ))}
       </div>
@@ -32,6 +39,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const ColumnChart = ({ data, xAxisKey, bars, className, height = 300 }: ColumnChartProps) => {
+  const axisTickColor = 'var(--color-neutral-2000)';
+
   return (
     <div className={`w-full ${className}`} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -40,15 +49,15 @@ const ColumnChart = ({ data, xAxisKey, bars, className, height = 300 }: ColumnCh
             dataKey={xAxisKey}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#71717a', fontSize: 12 }}
+            tick={{ fill: axisTickColor, fontSize: 12 }}
             dy={10}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#71717a', fontSize: 12 }}
+            tick={{ fill: axisTickColor, fontSize: 12 }}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--color-primary-muted)' }} />
           {bars.map((bar) => (
             <Bar
               key={bar.key}

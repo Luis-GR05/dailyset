@@ -31,7 +31,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
 
       <aside
         className={`
-          fixed top-0 left-0 h-full w-72 p-6 flex flex-col z-50
+          fixed top-0 left-0 h-full w-64 sm:w-72 p-5 sm:p-6 flex flex-col z-50
           transform transition-transform duration-300 ease-in-out
           ${abierto ? "translate-x-0" : "-translate-x-full"}
           md:static md:translate-x-0 md:z-auto
@@ -39,7 +39,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
         style={{ backgroundColor: 'var(--color-black)', borderRight: '1px solid var(--color-neutral-800)' }}
       >
         <div className="flex items-center justify-between mb-8">
-          <Link to="/dashboard" onClick={onCerrar}>
+          <Link to="/dashboard" onClick={onCerrar} className="pl-1">
             <Logo size="lg" />
           </Link>
           <button
@@ -62,7 +62,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                 key={item.ruta}
                 to={item.ruta}
                 onClick={onCerrar}
-                className="block py-2 px-3 rounded-lg text-lg font-medium transition-all"
+                className="block py-2 px-3 rounded-lg text-base sm:text-lg font-medium transition-all"
                 aria-current={isActive ? 'page' : undefined}
                 style={
                   isActive
