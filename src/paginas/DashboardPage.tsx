@@ -108,7 +108,10 @@ export default function DashboardPage() {
 
         {/* Rutinas */}
         {rutinas.length === 0 ? (
-          <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-10 backdrop-blur-xl text-center">
+          <div
+            className="rounded-2xl p-10 backdrop-blur-xl text-center"
+            style={{ backgroundColor: 'var(--color-neutral-800)', border: '1px solid var(--color-neutral-900)' }}
+          >
             <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] italic mb-3">
               {locale === 'es' ? 'Sin rutinas' : 'No routines'}
             </p>
@@ -117,8 +120,8 @@ export default function DashboardPage() {
             </p>
             <Link
               to="/mis-rutinas"
-              className="inline-block text-black font-black text-xs uppercase tracking-widest italic py-3 px-8 rounded-full transition-all active:scale-95"
-              style={{ backgroundColor: 'var(--color-primary)' }}
+              className="inline-block font-black text-xs uppercase tracking-widest italic py-3 px-5 md:px-8 rounded-full transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-primary)', color: '#050505' }}
             >
               {locale === 'es' ? 'Crear mi primera rutina' : 'Create my first routine'}
             </Link>
@@ -133,12 +136,13 @@ export default function DashboardPage() {
                 className="block group"
               >
                 <div
-                  className="bg-neutral-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-xl transition-all duration-300"
+                  className="rounded-2xl p-6 backdrop-blur-xl transition-all duration-300"
+                  style={{ backgroundColor: 'var(--color-neutral-800)', border: '1px solid var(--color-neutral-900)' }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-primary)';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)';
+                    (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-neutral-900)';
                   }}
                 >
                   <div className="flex items-center gap-4 group">
@@ -147,8 +151,8 @@ export default function DashboardPage() {
                       <span className="font-black italic text-xs" style={{ color: 'var(--color-primary)' }}>GO</span>
                     </div>
                     <div>
-                      <h3 className="font-black text-white italic uppercase text-sm tracking-tighter">{rutina.nombre}</h3>
-                      <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-widest">
+                      <h3 className="font-black italic uppercase text-sm tracking-tighter" style={{ color: 'var(--color-white)' }}>{rutina.nombre}</h3>
+                      <p className="text-neutral-500 text-[10px] md:text-[9px] font-bold uppercase tracking-widest">
                         {rutina.ejerciciosIds.length} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
                       </p>
                     </div>
@@ -160,14 +164,17 @@ export default function DashboardPage() {
         )}
 
         {/* Gráfica de volumen semanal */}
-        <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-xl">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-32 h-32 rounded-full border-2 border-white/5 p-1 shrink-0">
+        <div
+          className="rounded-2xl p-4 sm:p-8 backdrop-blur-xl"
+          style={{ backgroundColor: 'var(--color-neutral-800)', border: '1px solid var(--color-neutral-900)' }}
+        >
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full p-1 shrink-0" style={{ border: '2px solid var(--color-neutral-900)' }}>
               <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center"
                 style={{ border: '1px solid var(--color-primary)', boxShadow: '0 0 20px var(--color-primary-glow)' }}>
                 <div className="text-center">
                   <p className="font-black italic text-xs leading-tight" style={{ color: 'var(--color-primary)' }}>STATS</p>
-                  <p className="text-white font-black italic text-[10px] uppercase opacity-50">
+                  <p className="font-black italic text-[10px] uppercase opacity-50" style={{ color: 'var(--color-white)' }}>
                     {locale === 'es' ? 'Semanal' : 'Weekly'}
                   </p>
                 </div>
@@ -176,7 +183,7 @@ export default function DashboardPage() {
 
             <div className="flex-1 w-full min-w-0">
               <div className="mb-4 text-center md:text-left">
-                <span className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] italic">
+                <span className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] italic">
                   {locale === 'es' ? 'Volumen por sesión' : 'Volume per session'}
                 </span>
               </div>
@@ -198,9 +205,13 @@ export default function DashboardPage() {
         {/* Stats rápidas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {statsRapidas.map((item, i) => (
-            <div key={i} className="bg-neutral-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-xl text-center">
+            <div
+              key={i}
+              className="rounded-2xl p-4 md:p-5 backdrop-blur-xl text-center"
+              style={{ backgroundColor: 'var(--color-neutral-800)', border: '1px solid var(--color-neutral-900)' }}
+            >
               <p className="text-neutral-500 text-[8px] font-black uppercase tracking-widest mb-1 italic">{item.label}</p>
-              <p className="text-white font-black italic text-lg">{item.val}</p>
+              <p className="font-black italic text-base md:text-lg" style={{ color: 'var(--color-white)' }}>{item.val}</p>
             </div>
           ))}
         </div>

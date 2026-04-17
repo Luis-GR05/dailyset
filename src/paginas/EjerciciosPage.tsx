@@ -35,6 +35,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   general: 'var(--color-neutral-2000)',
 };
 
+const MIN_EXERCISES_PER_CATEGORY = 2;
+const normalizeCategory = (cat?: string) => (cat === 'general' ? 'all' : (cat ?? 'all'));
+
 export default function EjerciciosPage() {
   const { ejercicios, cargando, error, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
   const { t, locale } = useI18n();
@@ -46,10 +49,20 @@ export default function EjerciciosPage() {
   const [paginaActual, setPaginaActual] = useState(1);
   const ITEMS_PER_PAGE = 20;
 
-  // Categorías únicas presentes en los datos
-  const categorias = useMemo(() => {
-    const cats = [...new Set(ejercicios.map(e => e.categoriaEjercicio).filter(Boolean))].sort();
-    return cats;
+  // Categorías del select (sin "general", unificada dentro de "all")
+  const categoriasConConteo = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    ejercicios.forEach((ej) => {
+      const cat = normalizeCategory(ej.categoriaEjercicio);
+      if (cat === 'all') return;
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    });
+
+    return Array.from(counts.entries())
+      .filter(([, count]) => count >= MIN_EXERCISES_PER_CATEGORY)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, count]) => ({ cat, count }));
   }, [ejercicios]);
 
   // Músculos únicos presentes
@@ -61,7 +74,8 @@ export default function EjerciciosPage() {
 
   const ejerciciosFiltrados = useMemo(() => {
     return ejercicios.filter(ej => {
-      const matchCat = filtroCategoria === 'all' || ej.categoriaEjercicio === filtroCategoria;
+      const categoriaNormalizada = normalizeCategory(ej.categoriaEjercicio);
+      const matchCat = filtroCategoria === 'all' || categoriaNormalizada === filtroCategoria;
       const matchMus = filtroMusculo === 'all' || ej.musculosPrimarios.includes(filtroMusculo);
       const matchBus = busqueda === '' ||
         ej.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -140,7 +154,7 @@ export default function EjerciciosPage() {
               placeholder={locale === 'es' ? 'Buscar por nombre, músculo o equipo...' : 'Search by name, muscle or equipment...'}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 rounded-2xl py-3 w-full"
+              className="pl-10 rounded-2xl py-3 w-full"
             />
           </div>
           <div onClick={() => setModal({ tipo: 'crear' })} className="cursor-pointer flex-shrink-0">
@@ -148,63 +162,56 @@ export default function EjerciciosPage() {
           </div>
         </div>
 
-        {/* Filtros de categoría */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFiltroCategoria('all')}
-            className="btn-pill text-sm"
-            style={filtroCategoria === 'all'
-              ? { background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)' }
-              : {}}
-          >
-            {locale === 'es' ? 'Todos' : 'All'}
-            {filtroCategoria === 'all' && (
-              <span className="ml-1 text-xs opacity-70">({ejerciciosFiltrados.length})</span>
-            )}
-          </button>
-          {categorias.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setFiltroCategoria(filtroCategoria === cat ? 'all' : cat)}
-              className="btn-pill text-sm"
-              style={filtroCategoria === cat
-                ? { background: catColor(cat), color: '#050505', borderColor: catColor(cat) }
-                : {}}
+        {/* Filtros compactos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="card p-2.5 sm:p-3 rounded-2xl">
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
+              {locale === 'es' ? 'Categoría' : 'Category'}
+            </label>
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              className="w-full rounded-xl px-3 py-2 text-sm"
+              style={{
+                backgroundColor: 'var(--color-neutral-800)',
+                border: '1px solid var(--color-neutral-900)',
+                color: 'var(--color-white)',
+              }}
             >
-              {catLabel(cat)}
-            </button>
-          ))}
-        </div>
-
-        {/* Filtro por músculo */}
-        {musculos.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-neutral-2000)' }}>
-              {locale === 'es' ? 'Músculo:' : 'Muscle:'}
-            </span>
-            <button
-              onClick={() => setFiltroMusculo('all')}
-              className="btn-pill text-xs"
-              style={filtroMusculo === 'all'
-                ? { background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)' }
-                : {}}
-            >
-              {locale === 'es' ? 'Todos' : 'All'}
-            </button>
-            {musculos.map(m => (
-              <button
-                key={m}
-                onClick={() => setFiltroMusculo(filtroMusculo === m ? 'all' : m)}
-                className="btn-pill text-xs capitalize"
-                style={filtroMusculo === m
-                  ? { background: 'var(--color-primary)', color: '#050505', borderColor: 'var(--color-primary)' }
-                  : {}}
-              >
-                {m}
-              </button>
-            ))}
+              <option value="all">{locale === 'es' ? 'Todos / General' : 'All / General'}</option>
+              {categoriasConConteo.map(({ cat, count }) => (
+                <option key={cat} value={cat}>
+                  {catLabel(cat)} ({count})
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          {musculos.length > 0 && (
+            <div className="card p-2.5 sm:p-3 rounded-2xl">
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
+                {locale === 'es' ? 'Músculo' : 'Muscle'}
+              </label>
+              <select
+                value={filtroMusculo}
+                onChange={(e) => setFiltroMusculo(e.target.value)}
+                className="w-full rounded-xl px-3 py-2 text-sm capitalize"
+                style={{
+                  backgroundColor: 'var(--color-neutral-800)',
+                  border: '1px solid var(--color-neutral-900)',
+                  color: 'var(--color-white)',
+                }}
+              >
+                <option value="all">{locale === 'es' ? 'Todos' : 'All'}</option>
+                {musculos.map((m) => (
+                  <option key={m} value={m} className="capitalize">
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         {/* Contador */}
         {!cargando && (
@@ -219,14 +226,14 @@ export default function EjerciciosPage() {
 
         {/* Grid de ejercicios */}
         {!cargando && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {ejerciciosPaginados.length > 0 ? (
               ejerciciosPaginados.map((ejercicio) => (
                 <div key={ejercicio.id} className="relative group">
                   <Link to={`/ejercicios/${ejercicio.id}`} className="block">
                     <div className="card card-hover overflow-hidden">
                       {/* Imagen */}
-                      <div className="w-full aspect-square bg-neutral-900 overflow-hidden relative">
+                      <div className="w-full aspect-square overflow-hidden relative" style={{ backgroundColor: 'var(--color-neutral-700)' }}>
                         {ejercicio.imagenInicio ? (
                           <img
                             src={ejercicio.imagenInicio}
@@ -254,7 +261,7 @@ export default function EjerciciosPage() {
                       </div>
                       {/* Info */}
                       <div className="p-3">
-                        <h3 className="font-bold text-white text-xs leading-tight line-clamp-2 mb-1">
+                        <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-1" style={{ color: 'var(--color-white)' }}>
                           {ejercicio.nombre}
                         </h3>
                         <p className="text-xs capitalize" style={{ color: 'var(--color-neutral-2000)' }}>
@@ -308,20 +315,20 @@ export default function EjerciciosPage() {
             <button
               onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
               disabled={paginaActual === 1}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
 
             {getNumerosDePagina().map((pag, index) => {
               if (pag === '...') {
-                return <span key={`ellipsis-${index}`} className="w-10 h-10 flex items-center justify-center text-neutral-500">...</span>;
+                return <span key={`ellipsis-${index}`} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-neutral-500">...</span>;
               }
               return (
                 <button
                   key={pag}
                   onClick={() => setPaginaActual(pag as number)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-colors ${paginaActual === pag
+                  className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl font-bold transition-colors ${paginaActual === pag
                       ? 'bg-neutral-800 text-white border-neutral-700'
                       : 'border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white'
                     }`}
@@ -335,7 +342,7 @@ export default function EjerciciosPage() {
             <button
               onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
               disabled={paginaActual === totalPaginas}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-800 hover:text-white transition-colors"
             >
               <ChevronRight size={18} />
             </button>
@@ -357,12 +364,12 @@ export default function EjerciciosPage() {
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="text-lg font-bold text-white">{t.exercises.deleteExercise}</h2>
+              <h2 className="text-lg font-bold" style={{ color: 'var(--color-white)' }}>{t.exercises.deleteExercise}</h2>
               <button className="modal-close-btn" onClick={() => setModal(null)}><X size={16} /></button>
             </div>
             <div className="modal-form">
-              <p className="text-neutral-300 text-sm">
-                ¿Seguro que quieres eliminar <strong className="text-white">"{modal.ejercicio.nombre}"</strong>?
+              <p className="text-sm" style={{ color: 'var(--color-neutral-3000)' }}>
+                ¿Seguro que quieres eliminar <strong style={{ color: 'var(--color-white)' }}>"{modal.ejercicio.nombre}"</strong>?
                 {` ${t.exercises.confirmDeleteDesc}`}
               </p>
               <div className="modal-actions">

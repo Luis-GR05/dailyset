@@ -9,7 +9,7 @@ export default function Logo({ size = 'md', className = "" }: LogoProps) {
   const sizes = {
     sm: { text: 'text-2xl', icon: 'w-5 h-7', gap: 'gap-2' },
     md: { text: 'text-4xl', icon: 'w-8 h-10', gap: 'gap-2' },
-    lg: { text: 'text-6xl', icon: 'w-14 h-18', gap: 'gap-3' },
+    lg: { text: 'text-5xl', icon: 'w-11 h-14', gap: 'gap-2.5' },
     xl: { text: 'text-8xl', icon: 'w-20 h-24', gap: 'gap-4' },
   };
 
