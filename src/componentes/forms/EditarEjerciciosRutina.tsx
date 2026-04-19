@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useEjercicios } from '../../context/EjerciciosContext';
 import type { Rutina } from '../../context/RutinasContext';
 import { X, Plus } from 'lucide-react';
+import {
+    translateEquipmentEs,
+    translateExerciseTitleEs,
+    translateMuscleEs,
+} from '../../lib/exerciseTranslations';
 
 interface EditarEjerciciosRutinaProps {
     rutina: Rutina;
@@ -19,7 +24,10 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
 
     const disponibles = ejercicios.filter(
         e => !seleccionados.includes(e.id) &&
-            e.nombre.toLowerCase().includes(busqueda.toLowerCase())
+            (
+                e.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+                translateExerciseTitleEs(e.nombre).toLowerCase().includes(busqueda.toLowerCase())
+            )
     );
 
     const enRutina = ejercicios.filter(e => seleccionados.includes(e.id));
@@ -45,8 +53,8 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
                                 enRutina.map(e => (
                                     <div key={e.id} className="ejercicio-item ejercicio-item-en-rutina">
                                         <div>
-                                            <span className="text-white text-sm font-medium">{e.nombre}</span>
-                                            <span className="text-neutral-500 text-xs ml-2">{e.grupo}</span>
+                                            <span className="text-white text-sm font-medium">{translateExerciseTitleEs(e.nombre)}</span>
+                                            <span className="text-neutral-500 text-xs ml-2">{translateMuscleEs(e.grupo)}</span>
                                         </div>
                                         <button
                                             className="ejercicio-quitar-btn"
@@ -83,9 +91,9 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
                             disponibles.map(e => (
                                 <div key={e.id} className="ejercicio-item ejercicio-item-disponible">
                                     <div>
-                                        <span className="text-white text-sm font-medium">{e.nombre}</span>
-                                        <span className="text-neutral-500 text-xs ml-2">{e.grupo}</span>
-                                        <span className="ejercicio-categoria-badge">{e.categoriaEjercicio}</span>
+                                        <span className="text-white text-sm font-medium">{translateExerciseTitleEs(e.nombre)}</span>
+                                        <span className="text-neutral-500 text-xs ml-2">{translateMuscleEs(e.grupo)}</span>
+                                        <span className="ejercicio-categoria-badge">{translateEquipmentEs(e.categoriaEjercicio)}</span>
                                     </div>
                                     <button
                                         className="ejercicio-agregar-btn"

@@ -14,7 +14,7 @@ export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
   const { t, locale } = useI18n();
   const landingCopy = {
-    featureTags: locale === 'es' ? ["Rutinas", "Progreso", "Stats"] : ["Routines", "Progress", "Stats"],
+    featureTags: locale === 'es' ? ["Rutinas", "Progreso", "Estadísticas"] : ["Routines", "Progress", "Stats"],
     tickerWords: locale === 'es'
       ? ["FUERZA", "DISCIPLINA", "RUTINAS", "PROGRESO", "ENTRENAMIENTOS", "RESULTADOS", "CONSTANCIA", "EVOLUCIÓN"]
       : ["STRENGTH", "DISCIPLINE", "ROUTINES", "PROGRESS", "WORKOUTS", "RESULTS", "CONSISTENCY", "EVOLUTION"],

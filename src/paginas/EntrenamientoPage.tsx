@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { useRutinas } from '../context/RutinasContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
+import { translateExerciseTitleEs } from '../lib/exerciseTranslations';
 
 type EntrenamientoLocationState = {
     nombre?: string;
@@ -21,6 +22,7 @@ interface SerieUI {
 interface EjercicioUI {
     id: number;
     nombre: string;
+    imagenInicio?: string;
     series: SerieUI[];
 }
 
@@ -104,7 +106,7 @@ export default function EntrenamientoPage() {
         return ids
             .map(id => map.get(id))
             .filter(Boolean)
-            .map(e => ({ id: e!.id, nombre: e!.nombre }));
+            .map(e => ({ id: e!.id, nombre: e!.nombre, imagenInicio: e!.imagenInicio }));
     }, [rutina?.ejerciciosIds, catalogoEjercicios]);
 
     const [ejerciciosUI, setEjerciciosUI] = useState<EjercicioUI[]>([]);
@@ -119,6 +121,7 @@ export default function EntrenamientoPage() {
         const base = (ejerciciosDeRutina.length > 0 ? ejerciciosDeRutina : []).map((ej) => ({
             id: ej.id,
             nombre: ej.nombre,
+            imagenInicio: ej.imagenInicio,
             series: [
                 { numero: 1, kg: 0, reps: 0, completada: false },
                 { numero: 2, kg: 0, reps: 0, completada: false },
@@ -288,12 +291,35 @@ export default function EntrenamientoPage() {
                             <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="flex items-center gap-4">
-                                        <ImagenPlaceholder size="sm" />
+                                        {ejercicio.imagenInicio ? (
+                                            <img
+                                                src={ejercicio.imagenInicio}
+                                                alt={locale === 'es' ? `Imagen de ${translateExerciseTitleEs(ejercicio.nombre)}` : `Image of ${ejercicio.nombre}`}
+                                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/10"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <ImagenPlaceholder size="sm" />
+                                        )}
                                         <div>
-                                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>
-                                                {locale === 'es' ? 'Ver historial (próx.)' : 'View history (soon)'}
-                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/ejercicios/${ejercicio.id}`)}
+                                                className="text-left hover:underline"
+                                                style={{ color: 'var(--color-white)' }}
+                                            >
+                                                <h3 className="font-bold text-lg">
+                                                    {locale === 'es' ? translateExerciseTitleEs(ejercicio.nombre) : ejercicio.nombre}
+                                                </h3>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/ejercicios/${ejercicio.id}`)}
+                                                className="text-sm cursor-pointer hover:underline"
+                                                style={{ color: 'var(--color-accent)', display: 'block', marginTop: '4px' }}
+                                            >
+                                                {locale === 'es' ? 'Ver descripción del ejercicio' : 'View exercise details'}
+                                            </button>
                                         </div>
                                     </div>
                                     {/* Botón Eliminar */}

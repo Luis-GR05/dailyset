@@ -2,6 +2,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from "../context/I18nContext";
+import { translateExerciseTitleEs } from '../lib/exerciseTranslations';
 
 export default function HistorialDiaPage() {
   const { fecha } = useParams<{ fecha: string }>();
@@ -101,7 +102,9 @@ export default function HistorialDiaPage() {
                         <div className="flex items-center gap-4">
                           <ImagenPlaceholder size="sm" />
                           <div>
-                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
+                            <h3 className="font-bold text-white text-lg">
+                              {locale === 'es' ? translateExerciseTitleEs(ejercicio.nombre) : ejercicio.nombre}
+                            </h3>
                             <p className="text-neutral-400 text-sm">{ejercicio.series.length} {t.history.sessions} · {volEj} {t.history.kg}</p>
                           </div>
                         </div>

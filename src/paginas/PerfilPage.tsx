@@ -50,6 +50,12 @@ export default function PerfilPage() {
 
   const opciones = [
     {
+      nombre: (locale === 'es' ? 'Datos físicos' : 'Physical data').toUpperCase(),
+      ruta: '/perfil/datos-fisicos',
+      flecha: true,
+      esRojo: false,
+    },
+    {
       nombre: t.profile.accountSettings.toUpperCase(),
       ruta: '/perfil/configuracion',
       flecha: true,

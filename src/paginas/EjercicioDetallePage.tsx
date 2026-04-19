@@ -5,6 +5,12 @@ import LineChartElement from '../componentes/charts/LineChartElement';
 import { useI18n } from '../context/I18nContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { ArrowLeft, Dumbbell, Target, Zap, BarChart2 } from 'lucide-react';
+import {
+  translateEquipmentEs,
+  translateExerciseTitleEs,
+  translateInstructionEs,
+  translateMuscleEs,
+} from '../lib/exerciseTranslations';
 
 const LEVEL_COLORS: Record<string, string> = {
   principiante: '#34d399',
@@ -62,6 +68,11 @@ export default function EjercicioDetallePage() {
 
   const levelColor = LEVEL_COLORS[ejercicio.dificultad] ?? 'var(--color-neutral-2000)';
   const catLabel = CATEGORY_LABELS[ejercicio.categoriaEjercicio] ?? ejercicio.categoriaEjercicio;
+  // Los datos ya están en español en la BD — se muestran directamente
+  const ejercicioNombreMostrado = ejercicio.nombre;
+  const pasosMostrados = ejercicio.instruccionesPasos;
+  const descripcionMostrada = ejercicio.descripcion;
+  const equipamientoMostrado = ejercicio.equipamiento;
 
   const imagenes = [ejercicio.imagenInicio, ejercicio.imagenFinal].filter(Boolean) as string[];
 
@@ -77,14 +88,14 @@ export default function EjercicioDetallePage() {
           >
             <ArrowLeft size={18} />
           </button>
-          <TituloPagina titulo={ejercicio.nombre} />
+          <TituloPagina titulo={ejercicioNombreMostrado} />
         </div>
 
         {/* Badges de info */}
         <div className="flex flex-wrap gap-2">
           {/* Dificultad */}
           <span
-            className="text-xs font-bold px-3 py-1 rounded-full capitalize"
+            className="text-xs font-bold px-3 py-1 rounded-full"
             style={{ background: `${levelColor}22`, color: levelColor, border: `1px solid ${levelColor}44` }}
           >
             {ejercicio.dificultad}
@@ -99,10 +110,10 @@ export default function EjercicioDetallePage() {
           {/* Equipamiento */}
           {ejercicio.equipamiento && (
             <span
-              className="text-xs font-bold px-3 py-1 rounded-full capitalize"
+              className="text-xs font-bold px-3 py-1 rounded-full"
               style={{ background: 'rgba(67,97,238,0.15)', color: '#7B9EF9', border: '1px solid rgba(67,97,238,0.3)' }}
             >
-              {ejercicio.equipamiento}
+              {equipamientoMostrado}
             </span>
           )}
         </div>
@@ -119,7 +130,7 @@ export default function EjercicioDetallePage() {
                   <>
                     <img
                       src={imagenes[imgActiva]}
-                      alt={`${ejercicio.nombre} — posición ${imgActiva === 0 ? 'inicial' : 'final'}`}
+                      alt={`${ejercicioNombreMostrado} — posición ${imgActiva === 0 ? 'inicial' : 'final'}`}
                       className="w-full h-full object-cover transition-opacity duration-300"
                     />
                     {/* Selector de imagen */}
@@ -164,9 +175,9 @@ export default function EjercicioDetallePage() {
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosPrimarios.map(m => (
                       <span key={m}
-                        className="text-xs px-2 py-1 rounded-full capitalize font-bold"
+                        className="text-xs px-2 py-1 rounded-full font-bold"
                         style={{ background: 'rgba(219,240,89,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(219,240,89,0.2)' }}
-                      >{m}</span>
+                      >{locale === 'es' ? translateMuscleEs(m) : m}</span>
                     ))}
                   </div>
                 </div>
@@ -179,9 +190,9 @@ export default function EjercicioDetallePage() {
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosSecundarios.map(m => (
                       <span key={m}
-                        className="text-xs px-2 py-1 rounded-full capitalize"
+                        className="text-xs px-2 py-1 rounded-full"
                         style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-3000)', border: '1px solid rgba(255,255,255,0.08)' }}
-                      >{m}</span>
+                      >{locale === 'es' ? translateMuscleEs(m) : m}</span>
                     ))}
                   </div>
                 </div>
@@ -192,7 +203,7 @@ export default function EjercicioDetallePage() {
           {/* Columna derecha: instrucciones + historial */}
           <div className="lg:col-span-3 space-y-4">
             {/* Instrucciones */}
-            {ejercicio.instruccionesPasos.length > 0 && (
+            {pasosMostrados.length > 0 && (
               <Card className="p-5" hoverable={false}>
                 <div className="flex items-center gap-2 mb-4">
                   <Zap size={16} style={{ color: 'var(--color-primary)' }} />
@@ -201,7 +212,7 @@ export default function EjercicioDetallePage() {
                   </h3>
                 </div>
                 <ol className="space-y-3">
-                  {ejercicio.instruccionesPasos.map((paso, i) => (
+                  {pasosMostrados.map((paso, i) => (
                     <li key={i} className="flex gap-3">
                       <span
                         className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
@@ -217,13 +228,13 @@ export default function EjercicioDetallePage() {
             )}
 
             {/* Descripción (si no hay instrucciones por pasos) */}
-            {ejercicio.instruccionesPasos.length === 0 && ejercicio.descripcion && (
+            {pasosMostrados.length === 0 && descripcionMostrada && (
               <Card className="p-5" hoverable={false}>
                 <h3 className="font-bold mb-2" style={{ color: 'var(--color-primary)' }}>
                   {t.exercises.description}
                 </h3>
                 <p className="text-sm" style={{ color: 'var(--color-neutral-3000)' }}>
-                  {ejercicio.descripcion}
+                  {descripcionMostrada}
                 </p>
               </Card>
             )}

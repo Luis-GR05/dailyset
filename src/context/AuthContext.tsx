@@ -14,6 +14,11 @@ export interface User {
   nombre: string;
   unidadesKg: boolean;
   notificaciones: boolean;
+  pesoKg?: number;
+  alturaCm?: number;
+  edad?: number;
+  genero?: string;
+  objetivoPesoKg?: number;
   rango?: string;
   progreso?: number;
   totalSets?: string;
@@ -49,6 +54,11 @@ function mapAuthUser(authUser: SupabaseUser): User {
       "Atleta",
     unidadesKg: true,
     notificaciones: false,
+    pesoKg: undefined,
+    alturaCm: undefined,
+    edad: undefined,
+    genero: "",
+    objetivoPesoKg: undefined,
     rango: "ATLETA",
     progreso: 0,
     totalSets: "0",
@@ -79,6 +89,24 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       nombre: data.nombre_completo || data.nombre_usuario || "",
       unidadesKg: prefs.unidadesKg ?? true,
       notificaciones: prefs.notificaciones ?? false,
+      pesoKg:
+        typeof prefs.pesoKg === "number" && Number.isFinite(prefs.pesoKg)
+          ? prefs.pesoKg
+          : undefined,
+      alturaCm:
+        typeof prefs.alturaCm === "number" && Number.isFinite(prefs.alturaCm)
+          ? prefs.alturaCm
+          : undefined,
+      edad:
+        typeof prefs.edad === "number" && Number.isFinite(prefs.edad)
+          ? prefs.edad
+          : undefined,
+      genero: typeof prefs.genero === "string" ? prefs.genero : "",
+      objetivoPesoKg:
+        typeof prefs.objetivoPesoKg === "number" &&
+        Number.isFinite(prefs.objetivoPesoKg)
+          ? prefs.objetivoPesoKg
+          : undefined,
       rango: data.nivel_entrenamiento?.toUpperCase() || "ATLETA",
       progreso: 0,
       totalSets: "0",
@@ -305,6 +333,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...currentPrefs,
       unidadesKg: data.unidadesKg ?? currentPrefs.unidadesKg,
       notificaciones: data.notificaciones ?? currentPrefs.notificaciones,
+      pesoKg: data.pesoKg ?? currentPrefs.pesoKg,
+      alturaCm: data.alturaCm ?? currentPrefs.alturaCm,
+      edad: data.edad ?? currentPrefs.edad,
+      genero: data.genero ?? currentPrefs.genero,
+      objetivoPesoKg: data.objetivoPesoKg ?? currentPrefs.objetivoPesoKg,
     };
 
     const dbData: Record<string, unknown> = {

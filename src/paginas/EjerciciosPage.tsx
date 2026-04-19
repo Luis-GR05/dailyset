@@ -6,6 +6,11 @@ import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
 import { Pencil, Trash2, X, Dumbbell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import {
+  translateEquipmentEs,
+  translateExerciseTitleEs,
+  translateMuscleEs,
+} from '../lib/exerciseTranslations';
 
 type Modal =
   | { tipo: 'crear' }
@@ -74,16 +79,17 @@ export default function EjerciciosPage() {
 
   const ejerciciosFiltrados = useMemo(() => {
     return ejercicios.filter(ej => {
+      const equipamientoMostrado = ej.equipamiento ?? '';
       const categoriaNormalizada = normalizeCategory(ej.categoriaEjercicio);
       const matchCat = filtroCategoria === 'all' || categoriaNormalizada === filtroCategoria;
       const matchMus = filtroMusculo === 'all' || ej.musculosPrimarios.includes(filtroMusculo);
       const matchBus = busqueda === '' ||
         ej.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         ej.grupo.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (ej.equipamiento ?? '').toLowerCase().includes(busqueda.toLowerCase());
+        equipamientoMostrado.toLowerCase().includes(busqueda.toLowerCase());
       return matchCat && matchMus && matchBus;
     });
-  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda]);
+  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda, locale]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -195,7 +201,7 @@ export default function EjerciciosPage() {
               <select
                 value={filtroMusculo}
                 onChange={(e) => setFiltroMusculo(e.target.value)}
-                className="w-full rounded-xl px-3 py-2 text-sm capitalize"
+                className="w-full rounded-xl px-3 py-2 text-sm"
                 style={{
                   backgroundColor: 'var(--color-neutral-800)',
                   border: '1px solid var(--color-neutral-900)',
@@ -204,7 +210,7 @@ export default function EjerciciosPage() {
               >
                 <option value="all">{locale === 'es' ? 'Todos' : 'All'}</option>
                 {musculos.map((m) => (
-                  <option key={m} value={m} className="capitalize">
+                  <option key={m} value={m}>
                     {m}
                   </option>
                 ))}
@@ -230,6 +236,11 @@ export default function EjerciciosPage() {
             {ejerciciosPaginados.length > 0 ? (
               ejerciciosPaginados.map((ejercicio) => (
                 <div key={ejercicio.id} className="relative group">
+                  {(() => {
+                    const nombreMostrado = ejercicio.nombre;
+                    const grupoMostrado = ejercicio.grupo || ejercicio.musculosPrimarios[0] || '';
+                    const equipamientoMostrado = ejercicio.equipamiento;
+                    return (
                   <Link to={`/ejercicios/${ejercicio.id}`} className="block">
                     <div className="card card-hover overflow-hidden">
                       {/* Imagen */}
@@ -237,7 +248,7 @@ export default function EjerciciosPage() {
                         {ejercicio.imagenInicio ? (
                           <img
                             src={ejercicio.imagenInicio}
-                            alt={ejercicio.nombre}
+                            alt={nombreMostrado}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
                           />
@@ -262,19 +273,21 @@ export default function EjerciciosPage() {
                       {/* Info */}
                       <div className="p-3">
                         <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-1" style={{ color: 'var(--color-white)' }}>
-                          {ejercicio.nombre}
+                          {nombreMostrado}
                         </h3>
-                        <p className="text-xs capitalize" style={{ color: 'var(--color-neutral-2000)' }}>
-                          {ejercicio.grupo || ejercicio.musculosPrimarios[0] || '—'}
+                        <p className="text-xs" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {grupoMostrado || '—'}
                         </p>
                         {ejercicio.equipamiento && (
-                          <p className="text-xs mt-0.5 capitalize" style={{ color: 'var(--color-neutral-1000)' }}>
-                            {ejercicio.equipamiento}
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--color-neutral-1000)' }}>
+                            {equipamientoMostrado}
                           </p>
                         )}
                       </div>
                     </div>
                   </Link>
+                    );
+                  })()}
 
                   {/* Acciones hover (solo si es del usuario) */}
                   {!ejercicio.esPublico || ejercicio.externalId === undefined ? null : null}
@@ -369,7 +382,7 @@ export default function EjerciciosPage() {
             </div>
             <div className="modal-form">
               <p className="text-sm" style={{ color: 'var(--color-neutral-3000)' }}>
-                ¿Seguro que quieres eliminar <strong style={{ color: 'var(--color-white)' }}>"{modal.ejercicio.nombre}"</strong>?
+                ¿Seguro que quieres eliminar <strong style={{ color: 'var(--color-white)' }}>"{locale === 'es' ? translateExerciseTitleEs(modal.ejercicio.nombre) : modal.ejercicio.nombre}"</strong>?
                 {` ${t.exercises.confirmDeleteDesc}`}
               </p>
               <div className="modal-actions">

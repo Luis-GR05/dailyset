@@ -6,7 +6,7 @@ const translations = {
   es: {
     // Nav / Sidebar
     nav: {
-      dashboard: 'Dashboard',
+      dashboard: 'Inicio',
       myRoutines: 'Mis rutinas',
       history: 'Historial',
       exercises: 'Ejercicios',
@@ -70,7 +70,7 @@ const translations = {
 
     // Dashboard
     dashboard: {
-      title: 'Dashboard',
+      title: 'Inicio',
       weekVolume: 'Volumen semanal',
       myRoutines: 'Mis rutinas',
       recentActivity: 'Actividad reciente',
@@ -194,6 +194,20 @@ const translations = {
       streak: 'Racha',
       totalWeight: 'Peso total',
       days: 'días',
+      physicalData: 'Datos físicos base',
+      weight: 'Peso (kg)',
+      height: 'Altura (cm)',
+      age: 'Edad',
+      gender: 'Género',
+      targetWeight: 'Peso objetivo (kg)',
+      genderFemale: 'Mujer',
+      genderMale: 'Hombre',
+      genderNonBinary: 'No binario',
+      genderOther: 'Otro',
+      genderPreferNotSay: 'Prefiero no decirlo',
+      completePhysicalData: 'Completa tus datos para mejorar tus estadísticas',
+      physicalDataSaved: 'Datos físicos guardados',
+      saveError: 'No se pudieron guardar los datos físicos',
     },
 
     // Progress
@@ -396,6 +410,20 @@ const translations = {
       streak: 'Streak',
       totalWeight: 'Total weight',
       days: 'days',
+      physicalData: 'Baseline physical data',
+      weight: 'Weight (kg)',
+      height: 'Height (cm)',
+      age: 'Age',
+      gender: 'Gender',
+      targetWeight: 'Target weight (kg)',
+      genderFemale: 'Female',
+      genderMale: 'Male',
+      genderNonBinary: 'Non-binary',
+      genderOther: 'Other',
+      genderPreferNotSay: 'Prefer not to say',
+      completePhysicalData: 'Complete your data to improve your stats',
+      physicalDataSaved: 'Physical data saved',
+      saveError: 'Could not save physical data',
     },
 
     progress: {
@@ -421,7 +449,7 @@ export type Translations = typeof translations.es;
 
 interface I18nContextType {
   locale: Locale;
-  setLocale: (l: Locale) => void;
+  setLocale: () => void;
   t: Translations;
 }
 
@@ -430,16 +458,15 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export function I18nProvider({ children }: { children: ReactNode }) {
   const getSavedLocale = (): Locale => {
     const saved = localStorage.getItem('locale');
-    if (saved === 'es' || saved === 'en') return saved;
-    const browser = navigator.language.slice(0, 2);
-    return browser === 'es' ? 'es' : 'en';
+    return (saved === 'en' || saved === 'es') ? saved : 'es';
   };
 
   const [locale, setLocaleState] = useState<Locale>(getSavedLocale);
 
-  const setLocale = (l: Locale) => {
-    setLocaleState(l);
-    localStorage.setItem('locale', l);
+  const setLocale = () => {
+    const next: Locale = locale === 'es' ? 'en' : 'es';
+    setLocaleState(next);
+    localStorage.setItem('locale', next);
   };
 
   const t = translations[locale] as Translations;

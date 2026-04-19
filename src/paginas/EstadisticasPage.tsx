@@ -4,6 +4,7 @@ import ColumnChart from "../componentes/charts/columnChart";
 import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
+import { useAuth } from "../context/AuthContext";
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -16,6 +17,7 @@ function calcularVolumenSesion(ejercicios: { series: { kg: number; reps: number 
 export default function EstadisticasPage() {
   const { t, locale } = useI18n();
   const { sesiones, metricas } = useHistorial();
+  const { user } = useAuth();
 
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
   const now = new Date();
@@ -32,6 +34,9 @@ export default function EstadisticasPage() {
     intensidadMediaLabel,
     frecuenciaSemanalLabel,
     mejorRachaLabel,
+    imcLabel,
+    progresoPesoLabel,
+    datosFisicosCompletos,
   } = useMemo(() => {
     const totalEntrenos = sesiones.length;
     const totalMin = sesiones.reduce((t, s) => t + (s.duracionMin ?? 0), 0);
@@ -90,6 +95,34 @@ export default function EstadisticasPage() {
     }
     const mejorRachaLabel = String(best);
 
+    const pesoKg = user?.pesoKg;
+    const alturaCm = user?.alturaCm;
+    const objetivoPesoKg = user?.objetivoPesoKg;
+
+    const datosFisicosCompletos = Boolean(
+      typeof pesoKg === "number" && Number.isFinite(pesoKg) &&
+      typeof alturaCm === "number" && Number.isFinite(alturaCm) &&
+      alturaCm > 0,
+    );
+
+    const imc = datosFisicosCompletos ? pesoKg! / ((alturaCm! / 100) ** 2) : undefined;
+    const imcLabel = imc ? imc.toFixed(1) : "—";
+
+    const progresoPesoLabel = (() => {
+      if (
+        typeof pesoKg !== "number" ||
+        !Number.isFinite(pesoKg) ||
+        typeof objetivoPesoKg !== "number" ||
+        !Number.isFinite(objetivoPesoKg)
+      ) {
+        return "—";
+      }
+
+      const diferencia = Math.abs(pesoKg - objetivoPesoKg);
+      if (diferencia < 0.05) return locale === "es" ? "Objetivo alcanzado" : "Goal reached";
+      return `${diferencia.toFixed(1)} kg`;
+    })();
+
     return {
       totalEntrenos,
       totalMin,
@@ -100,8 +133,11 @@ export default function EstadisticasPage() {
       intensidadMediaLabel,
       frecuenciaSemanalLabel,
       mejorRachaLabel,
+      imcLabel,
+      progresoPesoLabel,
+      datosFisicosCompletos,
     };
-  }, [sesiones, year, localeStr, metricas.intensidad]);
+  }, [sesiones, year, localeStr, metricas.intensidad, user, locale]);
 
   const estadisticas = useMemo(() => ([
     { titulo: t.statistics.totalWorkouts, valor: String(totalEntrenos) },
@@ -182,6 +218,11 @@ export default function EstadisticasPage() {
               { label: locale === 'es' ? "Intensidad media" : "Average intensity", value: hayDatos ? intensidadMediaLabel : "—" },
               { label: locale === 'es' ? "Frecuencia semanal" : "Weekly frequency", value: hayDatos ? frecuenciaSemanalLabel : "—" },
               { label: locale === 'es' ? "Mejor racha (días)" : "Best streak (days)", value: hayDatos ? mejorRachaLabel : "—" },
+              { label: locale === 'es' ? "IMC actual" : "Current BMI", value: imcLabel },
+              {
+                label: locale === 'es' ? "Distancia al objetivo de peso" : "Distance to weight goal",
+                value: progresoPesoLabel,
+              },
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
                 <span className="text-neutral-300 text-[10px] font-black uppercase tracking-widest italic">
@@ -193,6 +234,13 @@ export default function EstadisticasPage() {
               </div>
             ))}
           </div>
+          {!datosFisicosCompletos && (
+            <p className="text-neutral-500 text-[10px] mt-6 uppercase tracking-[0.16em] font-bold">
+              {locale === "es"
+                ? "Completa tus datos físicos en Perfil > Datos físicos para desbloquear métricas corporales"
+                : "Complete your physical data in Profile > Physical data to unlock body metrics"}
+            </p>
+          )}
         </div>
       </div>
     </AppLayout>

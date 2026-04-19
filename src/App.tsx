@@ -19,6 +19,7 @@ const EjercicioDetallePage = lazy(() => import('./paginas/EjercicioDetallePage')
 const EstadisticasPage = lazy(() => import('./paginas/EstadisticasPage'));
 const PerfilPage = lazy(() => import('./paginas/PerfilPage'));
 const PerfilConfigPage = lazy(() => import('./paginas/PerfilConfig'));
+const PerfilDatosFisicosPage = lazy(() => import('./paginas/PerfilDatosFisicosPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -71,6 +72,7 @@ function App() {
                   <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
                   <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
                   <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+                  <Route path="/perfil/datos-fisicos" element={<ProtectedRoute><PerfilDatosFisicosPage /></ProtectedRoute>} />
                 </Routes>
               </Suspense>
             </Router>
