@@ -237,9 +237,15 @@ export default function EjerciciosPage() {
               ejerciciosPaginados.map((ejercicio) => (
                 <div key={ejercicio.id} className="relative group">
                   {(() => {
-                    const nombreMostrado = ejercicio.nombre;
-                    const grupoMostrado = ejercicio.grupo || ejercicio.musculosPrimarios[0] || '';
-                    const equipamientoMostrado = ejercicio.equipamiento;
+                    const nombreMostrado = locale === 'es'
+                      ? translateExerciseTitleEs(ejercicio.nombre)
+                      : ejercicio.nombre;
+                    const grupoMostrado = locale === 'es'
+                      ? translateMuscleEs(ejercicio.grupo || ejercicio.musculosPrimarios[0] || '')
+                      : (ejercicio.grupo || ejercicio.musculosPrimarios[0] || '');
+                    const equipamientoMostrado = locale === 'es' && ejercicio.equipamiento
+                      ? translateEquipmentEs(ejercicio.equipamiento)
+                      : ejercicio.equipamiento;
                     return (
                   <Link to={`/ejercicios/${ejercicio.id}`} className="block">
                     <div className="card card-hover overflow-hidden">

@@ -13,7 +13,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─── Motor de traducción (mismo que exerciseTranslations.ts) ──────────────────
+// ─── Utilidades ────────────────────────────────────────────────────────────────
 
 function normalizeRawText(input) {
   return input.replaceAll('_', ' ').replaceAll('-', ' ').replace(/\s{2,}/g, ' ').trim();
@@ -26,27 +26,92 @@ function toSentenceCase(input) {
   );
 }
 
+// ─── Motor de traducción ───────────────────────────────────────────────────────
+// IMPORTANTE: phraseRules PRIMERO (frases compuestas, de más larga a más corta).
+//             wordRules DESPUÉS (palabras sueltas, de más específica a más genérica).
+//             Las preposiciones/artículos genéricos van AL FINAL de wordRules.
+
 function translate(input) {
   if (!input) return input;
   const text = normalizeRawText(input);
   if (!text) return text;
 
   const phraseRules = [
-    // Partes del cuerpo compuestas
+    // ── Equipamiento especial ─────────────────────────────────────────────────
+    [/\bab roller\b/gi, 'rueda abdominal'],
+    [/\bab wheel\b/gi, 'rueda abdominal'],
+    [/\bfoam roll(?:er)?\b/gi, 'rodillo de espuma'],
+    [/\bmedicine ball\b/gi, 'balón medicinal'],
+    [/\bexercise ball\b/gi, 'fitball'],
+    [/\bez curl bar\b/gi, 'barra Z'],
+    [/\bpull-up bar\b/gi, 'barra de dominadas'],
+    [/\bfree weights\b/gi, 'pesas libres'],
+    [/\bbody weight\b/gi, 'peso corporal'],
+    [/\bbodyweight\b/gi, 'peso corporal'],
+    [/\bsmith machine\b/gi, 'máquina Smith'],
+    [/\bcable machine\b/gi, 'máquina de poleas'],
+    [/\bleg press\b/gi, 'prensa de piernas'],
+    [/\bleg curl\b/gi, 'curl de pierna'],
+    [/\bleg extension\b/gi, 'extensión de pierna'],
+    [/\bchest press\b/gi, 'press de pecho'],
+    [/\bshoulder press\b/gi, 'press de hombros'],
+    [/\bbench press\b/gi, 'press en banco'],
+    [/\bincline press\b/gi, 'press inclinado'],
+    [/\bdecline press\b/gi, 'press declinado'],
+    [/\bhip adductor\b/gi, 'aductor de cadera'],
+    [/\badductor\/groin\b/gi, 'aductores/ingle'],
+
+    // ── Nombres de ejercicios compuestos ──────────────────────────────────────
+    [/\bclean and press\b/gi, 'levanta y presiona'],
+    [/\bpower clean\b/gi, 'cargada de potencia'],
+    [/\bhang clean\b/gi, 'cargada suspendida'],
+    [/\bclean and jerk\b/gi, 'arrancada y envión'],
+    [/\bhammer curl\b/gi, 'curl de martillo'],
+    [/\bbicep(?:s)? curl\b/gi, 'curl de bíceps'],
+    [/\bpreacher curl\b/gi, 'curl en predicador'],
+    [/\bconcentration curl\b/gi, 'curl de concentración'],
+    [/\bincline curl\b/gi, 'curl inclinado'],
+    [/\bcable curl\b/gi, 'curl en polea'],
+    [/\bbarbell curl\b/gi, 'curl con barra'],
+    [/\bdumbbell curl\b/gi, 'curl con mancuerna'],
+    [/\bchest fly(?:es)?\b/gi, 'aperturas de pecho'],
+    [/\bband hip adductions\b/gi, 'aducciones de cadera con banda'],
+    [/\bband hip abductions\b/gi, 'abducciones de cadera con banda'],
+    [/\bhip adductions\b/gi, 'aducciones de cadera'],
+    [/\bhip abductions\b/gi, 'abducciones de cadera'],
+    [/\bflyes\b/gi, 'aperturas'],
+    [/\bfly\b/gi, 'apertura'],
+    [/\bpull-ups\b/gi, 'dominadas'],
+    [/\bpull-up\b/gi, 'dominada'],
+    [/\bchin-ups\b/gi, 'dominadas supinas'],
+    [/\bchin-up\b/gi, 'dominada supina'],
+    [/\bpush-ups\b/gi, 'flexiones'],
+    [/\bpush-up\b/gi, 'flexión'],
+    [/\bsit-ups\b/gi, 'abdominales'],
+    [/\bsit-up\b/gi, 'abdominal'],
+    [/\bdeadlift\b/gi, 'peso muerto'],
+    [/\blunges\b/gi, 'zancadas'],
+    [/\blunge\b/gi, 'zancada'],
+
+    // ── Partes del cuerpo compuestas ──────────────────────────────────────────
     [/\bupper back\b/gi, 'espalda alta'],
     [/\blower back\b/gi, 'espalda baja'],
     [/\bmiddle back\b/gi, 'espalda media'],
     [/\bfull body\b/gi, 'cuerpo completo'],
     [/\bbody only\b/gi, 'peso corporal'],
     [/\bupper arm\b/gi, 'brazo'],
-    [/\bfoam roll(?:er)?\b/gi, 'rodillo de espuma'],
-    [/\bmedicine ball\b/gi, 'balón medicinal'],
-    [/\bexercise ball\b/gi, 'fitball'],
-    [/\bez curl bar\b/gi, 'barra Z'],
-    [/\bhip adductor\b/gi, 'aductor de cadera'],
-    [/\badductor\/groin\b/gi, 'aductores/ingle'],
+    [/\blower arm\b/gi, 'antebrazo'],
+    [/\bupper leg\b/gi, 'muslo'],
+    [/\blower leg\b/gi, 'pantorrilla'],
+    [/\bhip flexors?\b/gi, 'flexores de cadera'],
+    [/\bcalf(?:ves)? muscles?\b/gi, 'gemelos'],
+    [/\bquadricep(?:s)?\b/gi, 'cuádriceps'],
+    [/\bhamstrings?\b/gi, 'isquiotibiales'],
+    [/\bglute(?:al)? muscles?\b/gi, 'músculos glúteos'],
+    [/\bcore muscles?\b/gi, 'músculos del abdomen'],
+    [/\bbig toe\b/gi, 'dedo gordo del pie'],
 
-    // Artículos con género correcto (antes de the→el)
+    // ── Artículos + sustantivo (género correcto) — ANTES de the→el ────────────
     [/\bthe palms?\b/gi, 'las palmas'],
     [/\bthe hands?\b/gi, 'las manos'],
     [/\bthe arms?\b/gi, 'los brazos'],
@@ -73,8 +138,27 @@ function translate(input) {
     [/\bthe ground\b/gi, 'el suelo'],
     [/\bthe ceiling\b/gi, 'el techo'],
     [/\bthe way\b/gi, 'el recorrido'],
+    [/\bthe body\b/gi, 'el cuerpo'],
+    [/\bthe back\b/gi, 'la espalda'],
+    [/\bthe torso\b/gi, 'el torso'],
+    [/\bthe core\b/gi, 'el abdomen'],
+    [/\bthe chest\b/gi, 'el pecho'],
+    [/\bthe head\b/gi, 'la cabeza'],
+    [/\bthe neck\b/gi, 'el cuello'],
+    [/\bthe spine\b/gi, 'la columna'],
+    [/\bthe thumb\b/gi, 'el pulgar'],
+    [/\bthe bench\b/gi, 'el banco'],
+    [/\bthe rack\b/gi, 'el soporte'],
+    [/\bthe cable\b/gi, 'la polea'],
+    [/\bthe band\b/gi, 'la banda'],
+    [/\ba band\b/gi, 'una banda'],
+    [/\bthe side\b/gi, 'el lado'],
+    [/\bthe sides\b/gi, 'los lados'],
+    [/\bthe post\b/gi, 'el poste'],
+    [/\bthe posts\b/gi, 'los postes'],
+    [/\bthe apparatus\b/gi, 'el aparato'],
 
-    // Respiración
+    // ── Respiración ───────────────────────────────────────────────────────────
     [/\bas you breathe out\b/gi, 'mientras exhalas'],
     [/\bas you breathe in\b/gi, 'mientras inhalas'],
     [/\bas you exhale\b/gi, 'mientras exhalas'],
@@ -83,23 +167,21 @@ function translate(input) {
     [/\bbreathe in\b/gi, 'inhala'],
     [/\bbreath out\b/gi, 'exhala'],
     [/\bbreath in\b/gi, 'inhala'],
-    [/\brespira out\b/gi, 'exhala'],
-    [/\brespira en\b/gi, 'inhala'],
 
-    // Izquierda / derecha
+    // ── Izquierda / derecha ───────────────────────────────────────────────────
     [/\bright (arm|hand|leg|foot|side|knee|elbow|shoulder|hip|wrist|ankle)\b/gi, '$1 derecho'],
     [/\bleft (arm|hand|leg|foot|side|knee|elbow|shoulder|hip|wrist|ankle)\b/gi, '$1 izquierdo'],
     [/\bright side\b/gi, 'lado derecho'],
     [/\bleft side\b/gi, 'lado izquierdo'],
 
-    // Nivel / altura
+    // ── Nivel / altura ────────────────────────────────────────────────────────
     [/\bat shoulder level\b/gi, 'a la altura del hombro'],
     [/\bat chest level\b/gi, 'a la altura del pecho'],
     [/\bat hip level\b/gi, 'a la altura de la cadera'],
     [/\bat waist level\b/gi, 'a la altura de la cintura'],
     [/\bat (\w+) level\b/gi, 'a la altura del $1'],
 
-    // Back to (dirección) — ANTES de back→espalda
+    // ── Back to / come back / go back ─────────────────────────────────────────
     [/\bbring(?:ing)? (?:\w+ )?back to(?: the| your)?\b/gi, 'lleva de vuelta a'],
     [/\bback to starting position\b/gi, 'de vuelta a la posición inicial'],
     [/\bback to (the |your )?(start|beginning|initial position|starting position)\b/gi, 'de vuelta a la posición inicial'],
@@ -107,96 +189,118 @@ function translate(input) {
     [/\bcome back\b/gi, 'vuelve'],
     [/\bgo back\b/gi, 'vuelve'],
 
-    // Nombres de ejercicios con curl
-    [/\bhammer curl\b/gi, 'curl de martillo'],
-    [/\bbicep(?:s)? curl\b/gi, 'curl de bíceps'],
-    [/\bpreacher curl\b/gi, 'curl en predicador'],
-    [/\bconcentration curl\b/gi, 'curl de concentración'],
-    [/\bincline curl\b/gi, 'curl inclinado'],
-    [/\bcable curl\b/gi, 'curl en polea'],
-    [/\bbarbell curl\b/gi, 'curl con barra'],
-    [/\bdumbbell curl\b/gi, 'curl con mancuerna'],
-
-    // Instrucciones completas
+    // ── Frases de instrucción completas ───────────────────────────────────────
     [/\bthis will be your starting position\b/gi, 'esta será tu posición inicial'],
     [/\bthis is your starting position\b/gi, 'esta es tu posición inicial'],
     [/\brepeat for the recommended (?:number|amount) of repetitions\b/gi, 'repite el número recomendado de repeticiones'],
-    [/\bthe recommended amount of repetitions\b/gi, 'el número recomendado de repeticiones'],
-    [/\bthe recommended number of repetitions\b/gi, 'el número recomendado de repeticiones'],
-    [/\byou will begin with your back on the ground\b/gi, 'comenzarás con la espalda en el suelo'],
-    [/\bplace your hands behind or to the side of your head\b/gi, 'coloca las manos detrás o al lado de la cabeza'],
-    [/\byou may brace your leg with your hands if necessary\b/gi, 'si es necesario, puedes sujetar la pierna con las manos'],
-    [/\bkeep your head up at all times\b/gi, 'mantén la cabeza arriba en todo momento'],
-    [/\bmaintain a straight back\b/gi, 'mantén la espalda recta'],
-    [/\bfirst set the bar on a rack that best matches your height\b/gi, 'primero coloca la barra en un soporte a la altura adecuada'],
-    [/\bonce the correct height is chosen and the bar is loaded\b/gi, 'una vez elegida la altura correcta y cargada la barra'],
-    [/\bif you are holding the bar properly\b/gi, 'si sujetas la barra correctamente'],
-    [/\bstep away from the rack\b/gi, 'aléjate del soporte'],
-    [/\block your hands together\b/gi, 'junta las manos'],
-    [/\bon top of your arms\b/gi, 'encima de tus brazos'],
-    [/\bin between the forearm and upper arm\b/gi, 'entre el antebrazo y el brazo'],
-    [/\bextend your leg straight into the air\b/gi, 'extiende la pierna hacia arriba'],
-    [/\breverse the motion\b/gi, 'invierte el movimiento'],
-    [/\bgoing only\b/gi, 'bajando solo'],
-    [/\binside a squat rack\b/gi, 'dentro de una jaula de sentadillas'],
-    [/\bfor safety purposes\b/gi, 'por seguridad'],
+    [/\bthe recommended (number|amount) of repetitions\b/gi, 'el número recomendado de repeticiones'],
+    [/\bkeep(?:ing)? (?:the |your )?upper arm(?:s)? stationary\b/gi, 'mantén los brazos inmóviles'],
+    [/\bonly the forearms? should move\b/gi, 'solo los antebrazos deben moverse'],
     [/\bat the top of the contraction\b/gi, 'al máximo de la contracción'],
     [/\bswitch to the other (?:leg|side|arm)\b/gi, 'cambia al otro lado'],
-    [/\bonly the forearms? should move\b/gi, 'solo los antebrazos deben moverse'],
-    [/\bkeep(?:ing)? (?:the |your )?upper arm(?:s)? stationary\b/gi, 'mantén los brazos inmóviles'],
-
-    // Being held / arm length
-    [/\bbeing held\b/gi, 'sostenido'],
-    [/\bbeing (\w+ed)\b/gi, 'estando $1'],
-    [/\bat arm(?:\'s)? length\b/gi, 'con los brazos extendidos'],
-    [/\barm(?:\'s)? length\b/gi, 'largo del brazo'],
-
-    // Partner
-    [/\bhave your partner\b/gi, 'pide a tu compañero que'],
-    [/\bwhile your partner\b/gi, 'mientras tu compañero'],
-    [/\blet your partner know\b/gi, 'avisa a tu compañero'],
-    [/\byour partner\b/gi, 'tu compañero'],
-    [/\bpartner\b/gi, 'compañero'],
-
-    // As far as
+    [/\bstep away from the rack\b/gi, 'aléjate del soporte'],
+    [/\bfor safety purposes\b/gi, 'por seguridad'],
+    [/\breverse the motion\b/gi, 'invierte el movimiento'],
+    [/\bat all times\b/gi, 'en todo momento'],
+    [/\bin front of\b/gi, 'delante de'],
+    [/\bon top of\b/gi, 'encima de'],
+    [/\bas fast as possible\b/gi, 'lo más rápido posible'],
+    [/\bas quickly as possible\b/gi, 'lo más rápido posible'],
     [/\bas far as you can\b/gi, 'todo lo que puedas'],
     [/\bas far as possible\b/gi, 'lo máximo posible'],
     [/\bas far as\b/gi, 'todo lo que'],
+    [/\bas low as possible\b/gi, 'todo lo que puedas'],
+    [/\bas high as possible\b/gi, 'todo lo que puedas hacia arriba'],
 
-    // Or more
-    [/\bor more seconds\b/gi, 'o más segundos'],
-    [/\bor more (?:reps?|repetitions?)\b/gi, 'o más repeticiones'],
-    [/\bor more\b/gi, 'o más'],
-    [/\bor injury\b/gi, 'o lesión'],
+    // ── On all fours / position ───────────────────────────────────────────────
+    [/\bon all fours\b/gi, 'en cuatro apoyos'],
+    [/\ball fours\b/gi, 'cuatro apoyos'],
+    [/\bin a kneeling position\b/gi, 'en posición de rodillas'],
+    [/\bkneeling position\b/gi, 'posición de rodillas'],
+    [/\ba kneeling\b/gi, 'de rodillas'],
+    [/\bin a kneeling\b/gi, 'de rodillas en'],
+    [/\bpush(?:-| )?up position\b/gi, 'posición de flexiones'],
 
-    // Be sure / make sure
-    [/\bbe sure to\b/gi, 'asegúrate de'],
-    [/\bbe sure\b/gi, 'asegúrate'],
-    [/\bmake sure(?: to)?\b/gi, 'asegúrate de'],
+    // ── Yourself compounds ────────────────────────────────────────────────────
+    [/\bpull(?:ing)? yourself\b/gi, 'jálate a ti mismo'],
+    [/\bpush(?:ing)? yourself\b/gi, 'empújate a ti mismo'],
+    [/\blower(?:ing)? yourself\b/gi, 'bájate'],
+    [/\blift(?:ing)? yourself\b/gi, 'levántate'],
 
-    // Doing
+    // ── Go compounds ──────────────────────────────────────────────────────────
+    [/\bgo down\b/gi, 'baja'],
+    [/\bgo up\b/gi, 'sube'],
+    [/\bgo as far\b/gi, 've todo lo que'],
+    [/\bgo as low\b/gi, 'baja todo lo que'],
+    [/\bgo slowly\b/gi, 've lentamente'],
+    [/\bgo lentamente\b/gi, 've lentamente'],
+
+    // ── Clean (levantamiento) ─────────────────────────────────────────────────
+    [/\bclean (the |your |two |one |both |each |\d+ )/gi, 'levanta $1'],
+
+    // ── Do so / do this ───────────────────────────────────────────────────────
+    [/\bdo so\b/gi, 'hacerlo'],
+    [/\bdo this\b/gi, 'hacer esto'],
     [/\bdoing so\b/gi, 'hacerlo'],
     [/\bdoing this\b/gi, 'hacer esto'],
     [/\bdoing\b/gi, 'haciendo'],
 
-    // Continue
+    // ── Turning it so ─────────────────────────────────────────────────────────
+    [/\bturning it so\b/gi, 'girando de manera que'],
+    [/\bturning so\b/gi, 'girando de manera que'],
+    [/\bso that\b/gi, 'de manera que'],
+
+    // ── Getting it ───────────────────────────────────────────────────────────
+    [/\bgetting it around\b/gi, 'rodeando'],
+    [/\bgetting it\b/gi, 'colocándolo'],
+
+    // ── Switch ────────────────────────────────────────────────────────────────
+    [/\bswitch (sides?|legs?|arms?)\b/gi, 'cambia al otro lado'],
+    [/\bswitch lados\b/gi, 'cambia de lado'],
+    [/\bswitch\b/gi, 'cambia'],
+
+    // ── Anchor / If needed ───────────────────────────────────────────────────
+    [/\banchor (the |your |un |a )?band\b/gi, 'fija la banda'],
+    [/\banchor\b/gi, 'fija'],
+    [/\bif needed\b/gi, 'si es necesario'],
+
+    // ── Around ───────────────────────────────────────────────────────────────
+    [/\baround (the |your |un |el |la )/gi, 'alrededor de $1'],
+    [/\baround\b/gi, 'alrededor de'],
+
+    // ── Desired repetition count ──────────────────────────────────────────────
+    [/\bdesired rep(?:etition)? count\b/gi, 'número de repeticiones deseado'],
+    [/\brep count\b/gi, 'número de repeticiones'],
+    [/\brepetici[oó]n count\b/gi, 'número de repeticiones'],
+
+    // ── Onto / into ───────────────────────────────────────────────────────────
+    [/\bonto the\b/gi, 'sobre el'],
+    [/\bonto your\b/gi, 'sobre tu'],
+    [/\bonto\b/gi, 'sobre'],
+    [/\binto the\b/gi, 'hacia el'],
+    [/\binto your\b/gi, 'hacia tu'],
+    [/\binto\b/gi, 'hacia'],
+
+    // ── Faces (verb) ──────────────────────────────────────────────────────────
+    [/\bfaces your\b/gi, 'mira hacia tu'],
+    [/\bfaces the\b/gi, 'mira hacia el'],
+    [/\bfaces\b/gi, 'mira hacia'],
+    [/\bfacing your\b/gi, 'mirando hacia tu'],
+    [/\bfacing the\b/gi, 'mirando hacia el'],
+    [/\bfacing\b/gi, 'mirando hacia'],
+
+    // ── Be sure / Make sure ───────────────────────────────────────────────────
+    [/\bbe sure to\b/gi, 'asegúrate de'],
+    [/\bbe sure\b/gi, 'asegúrate'],
+    [/\bmake sure(?: to)?\b/gi, 'asegúrate de'],
+
+    // ── Continue ──────────────────────────────────────────────────────────────
     [/\bcontinue to\b/gi, 'continúa'],
     [/\bcontinue\b/gi, 'continúa'],
     [/\bcontinuing\b/gi, 'continuando'],
+    [/\bcontinúa for\b/gi, 'continúa durante'],
 
-    // Overstretching
-    [/\boverstretching\b/gi, 'estiramiento excesivo'],
-    [/\boverextending\b/gi, 'extensión excesiva'],
-
-    // Raised towards ceiling
-    [/\braised towards? (?:the )?(?:ceiling|sky)\b/gi, 'elevados hacia el techo'],
-    [/\braised towards?\b/gi, 'levantados hacia'],
-
-    // Pausing
-    [/\bpausing briefly(?: at the top)?\b/gi, 'haciendo una breve pausa'],
-    [/\bbriefly\b/gi, 'brevemente'],
-
-    // Lie
+    // ── Lie / Lying ───────────────────────────────────────────────────────────
     [/\blie down on your back\b/gi, 'túmbate boca arriba'],
     [/\blie on the floor\b/gi, 'túmbate en el suelo'],
     [/\blie on your back\b/gi, 'túmbate boca arriba'],
@@ -205,68 +309,36 @@ function translate(input) {
     [/\blie face down\b/gi, 'túmbate boca abajo'],
     [/\blie\b/gi, 'túmbate'],
 
-    // On your / on the
+    // ── Step ─────────────────────────────────────────────────────────────────
+    [/\bstep forward\b/gi, 'da un paso adelante'],
+    [/\bstep back(?:ward)?\b/gi, 'da un paso atrás'],
+
+    // ── Palms ────────────────────────────────────────────────────────────────
+    [/\bpalms facing\b/gi, 'palmas hacia'],
+    [/\bpalms down\b/gi, 'palmas hacia abajo'],
+    [/\bpalms up\b/gi, 'palmas hacia arriba'],
+    [/\barms extended\b/gi, 'brazos extendidos'],
+    [/\barms at your sides\b/gi, 'brazos a los lados'],
+
+    // ── With your (verbo + posesivo) ──────────────────────────────────────────
+    [/\bwith both\b/gi, 'con ambas'],
+    [/\bwith your\b/gi, 'con tu'],
     [/\bon your back\b/gi, 'boca arriba'],
     [/\bon your stomach\b/gi, 'boca abajo'],
-    [/\bon the floor\b/gi, 'en el suelo'],
-    [/\bon the ground\b/gi, 'en el suelo'],
+    [/\bon your\b/gi, 'en tu'],
+    [/\bof your\b/gi, 'de tu'],
+    [/\bof the\b/gi, 'de la'],
+    [/\bin the\b/gi, 'en el'],
+    [/\bat the\b/gi, 'en el'],
+    [/\bby the\b/gi, 'por el'],
+    [/\bto the\b/gi, 'hacia el'],
 
-    // Starting position
-    [/\byour starting position\b/gi, 'tu posición inicial'],
-    [/\bstarting position\b/gi, 'posición inicial'],
+    // ── Toward/towards ────────────────────────────────────────────────────────
+    [/\btoward(?:s)? your\b/gi, 'hacia tu'],
+    [/\btoward(?:s)? the\b/gi, 'hacia el'],
+    [/\btoward(?:s)?\b/gi, 'hacia'],
 
-    // Degrees
-    [/\b(\d+) degrees\b/gi, '$1 grados'],
-
-    // Close to
-    [/\bclose to the\b/gi, 'pegado al'],
-    [/\bclose to your\b/gi, 'pegado a tu'],
-    [/\bclose to\b/gi, 'pegado a'],
-    [/\bclose\b/gi, 'pegados'],
-
-    // In this manner
-    [/\bin this manner\b/gi, 'de esta manera'],
-    [/\bin this way\b/gi, 'de esta manera'],
-    [/\bin an alternating manner\b/gi, 'de manera alterna'],
-    [/\balternating manner\b/gi, 'de manera alterna'],
-
-    // Equals
-    [/\bequals one repetition\b/gi, 'equivale a una repetición'],
-    [/\bequals one rep\b/gi, 'equivale a una repetición'],
-    [/\bequals\b/gi, 'equivale a'],
-
-    // Straight
-    [/\bstraight out\b/gi, 'estirada'],
-    [/\bstraight up\b/gi, 'hacia arriba'],
-    [/\bstraight\b/gi, 'recto'],
-
-    // At the top / bottom
-    [/\bat the top\b/gi, 'arriba del todo'],
-    [/\bat the bottom\b/gi, 'abajo del todo'],
-
-    // Feet
-    [/\bfeet flat\b/gi, 'pies planos'],
-    [/\bfeet shoulder[- ]width apart\b/gi, 'pies al ancho de los hombros'],
-    [/\bshoulder[- ]width apart\b/gi, 'al ancho de los hombros'],
-    [/\bhip[- ]width apart\b/gi, 'al ancho de las caderas'],
-    [/\bsecure your feet\b/gi, 'asegura tus pies'],
-
-    // Should
-    [/\bshould be bent\b/gi, 'deben estar dobladas'],
-    [/\byour legs should be\b/gi, 'tus piernas deben estar'],
-    [/\bshould be\b/gi, 'debe estar'],
-    [/\bshould\b/gi, 'debe'],
-
-    // Bent
-    [/\bknees bent\b/gi, 'rodillas dobladas'],
-    [/\belbows bent\b/gi, 'codos doblados'],
-    [/\bbent at the\b/gi, 'doblado en las'],
-    [/\bbent at\b/gi, 'doblado en'],
-
-    // This is your
-    [/\bthis is your\b/gi, 'esta es tu'],
-
-    // Verbo + your
+    // ── Verbo + your (phraseRules para contexto) ──────────────────────────────
     [/\bflex your\b/gi, 'flexiona tu'],
     [/\braise your\b/gi, 'eleva tu'],
     [/\blower your\b/gi, 'baja tu'],
@@ -289,155 +361,116 @@ function translate(input) {
     [/\bgrip your\b/gi, 'agarra tu'],
     [/\bcross your\b/gi, 'cruza tu'],
     [/\bwrap your\b/gi, 'rodea tu'],
+    [/\bput your\b/gi, 'coloca tu'],
+    [/\buse your\b/gi, 'usa tu'],
+    [/\bgrab your\b/gi, 'agarra tu'],
+    [/\bdrive your\b/gi, 'empuja tu'],
 
-    // Toward/towards
-    [/\btoward(?:s)? your\b/gi, 'hacia tu'],
-    [/\btoward(?:s)? the\b/gi, 'hacia el'],
-    [/\btoward(?:s)?\b/gi, 'hacia'],
-
-    // With/on/of your
-    [/\bwith your\b/gi, 'con tu'],
-    [/\bon your\b/gi, 'en tu'],
-    [/\bof your\b/gi, 'de tu'],
-    [/\bof the\b/gi, 'de la'],
-    [/\bin the\b/gi, 'en el'],
-    [/\bat the\b/gi, 'en el'],
-    [/\bby the\b/gi, 'por el'],
-    [/\bto the\b/gi, 'hacia el'],
-
-    // Palms
-    [/\bpalms facing\b/gi, 'palmas hacia'],
-    [/\bpalms down\b/gi, 'palmas hacia abajo'],
-    [/\bpalms up\b/gi, 'palmas hacia arriba'],
-    [/\barms extended\b/gi, 'brazos extendidos'],
-    [/\barms at your sides\b/gi, 'brazos a los lados'],
-
-    // Perpendicular
+    // ── Perpendicular / nivel ─────────────────────────────────────────────────
     [/\bperpendicular to the\b/gi, 'perpendicular al'],
+    [/\bshoulder[- ]width apart\b/gi, 'al ancho de los hombros'],
+    [/\bhip[- ]width apart\b/gi, 'al ancho de las caderas'],
+    [/\bfeet shoulder[- ]width apart\b/gi, 'pies al ancho de los hombros'],
+    [/\bfeet flat\b/gi, 'pies planos'],
 
-    // 3/4
+    // ── Should / Bent ─────────────────────────────────────────────────────────
+    [/\bshould be bent\b/gi, 'deben estar dobladas'],
+    [/\byour legs should be\b/gi, 'tus piernas deben estar'],
+    [/\bshould be\b/gi, 'debe estar'],
+    [/\bshould\b/gi, 'debe'],
+    [/\bknees bent\b/gi, 'rodillas dobladas'],
+    [/\belbows bent\b/gi, 'codos doblados'],
+    [/\bbent at the\b/gi, 'doblado en las'],
+    [/\bbent at\b/gi, 'doblado en'],
+    [/\bbend the\b/gi, 'dobla la'],
+
+    // ── Degrees ───────────────────────────────────────────────────────────────
+    [/\b(\d+) degrees\b/gi, '$1 grados'],
+
+    // ── Close to ─────────────────────────────────────────────────────────────
+    [/\bclose to the\b/gi, 'pegado al'],
+    [/\bclose to your\b/gi, 'pegado a tu'],
+    [/\bclose to\b/gi, 'pegado a'],
+
+    // ── In this manner ────────────────────────────────────────────────────────
+    [/\bin this manner\b/gi, 'de esta manera'],
+    [/\bin this way\b/gi, 'de esta manera'],
+    [/\bin an alternating manner\b/gi, 'de manera alterna'],
+
+    // ── At the top / bottom ───────────────────────────────────────────────────
+    [/\bat the top\b/gi, 'arriba del todo'],
+    [/\bat the bottom\b/gi, 'abajo del todo'],
+
+    // ── 3/4 of the way ────────────────────────────────────────────────────────
     [/\b3\/4 of the way\b/gi, '¾ del recorrido'],
     [/\bof the way\b/gi, 'del recorrido'],
+    [/\bway down\b/gi, 'del recorrido hacia abajo'],
+    [/\bway up\b/gi, 'del recorrido hacia arriba'],
 
-    [/\ba the\b/gi, 'al'],
+    // ── Equals ────────────────────────────────────────────────────────────────
+    [/\bequals one repetition\b/gi, 'equivale a una repetición'],
+    [/\bequals one rep\b/gi, 'equivale a una repetición'],
+    [/\bequals\b/gi, 'equivale a'],
 
-    // Attempt
-    [/\battempt to\b/gi, 'intenta'],
-    [/\battempt\b/gi, 'intenta'],
-    [/\babduct\b/gi, 'separa'],
+    // ── Straight ─────────────────────────────────────────────────────────────
+    [/\bstraight out\b/gi, 'estirada'],
+    [/\bstraight up\b/gi, 'hacia arriba'],
+    [/\bstraight\b/gi, 'recto'],
 
-    // Now relax
-    [/\bnow,?\s*relax\b/gi, 'ahora, relaja'],
+    // ── Partner ───────────────────────────────────────────────────────────────
+    [/\bhave your partner\b/gi, 'pide a tu compañero que'],
+    [/\bwhile your partner\b/gi, 'mientras tu compañero'],
+    [/\byour partner\b/gi, 'tu compañero'],
+    [/\bpartner\b/gi, 'compañero'],
 
-    // As tu/tú (post-traducción)
+    // ── As tu/tú (post-traducción residual) ───────────────────────────────────
     [/\bas (?:tu|tú)\b/gi, 'mientras tú'],
     [/\bwhile (?:tu|tú)\b/gi, 'mientras tú'],
 
-    // Or more
+    // ── Or more / or injury ───────────────────────────────────────────────────
+    [/\bor more seconds\b/gi, 'o más segundos'],
+    [/\bor more (?:reps?|repetitions?)\b/gi, 'o más repeticiones'],
     [/\bor more\b/gi, 'o más'],
+    [/\bor injury\b/gi, 'o lesión'],
 
-    // Facing
-    [/\bfacing your\b/gi, 'mirando hacia tu'],
-    [/\bfacing the\b/gi, 'mirando hacia el'],
-    [/\bfacing\b/gi, 'mirando hacia'],
+    // ── Now relax ─────────────────────────────────────────────────────────────
+    [/\bnow,?\s*relax\b/gi, 'ahora, relaja'],
 
-    // Step forward/back
-    [/\bstep forward\b/gi, 'da un paso adelante'],
-    [/\bstep back(?:ward)?\b/gi, 'da un paso atrás'],
-    [/\bbend the\b/gi, 'dobla la'],
+    // ── Being held / arm length ───────────────────────────────────────────────
+    [/\bbeing held\b/gi, 'sostenido'],
+    [/\bat arm(?:'s)? length\b/gi, 'con los brazos extendidos'],
 
-    // ── NUEVAS FRASES ──────────────────────────────────────────────────────
-    // Clean (levantamiento olímpico)
-    [/\bclean and press\b/gi, 'levanta y presiona'],
-    [/\bpower clean\b/gi, 'cargada de potencia'],
-    [/\bclean (the |your |two |\d+ )/gi, 'levanta $1'],
-    // Do so / do this
-    [/\bdo so\b/gi, 'hacerlo'],
-    [/\bdo this\b/gi, 'hacer esto'],
-    // Turning it so
-    [/\bturning it so\b/gi, 'girando de manera que'],
-    [/\bturning so\b/gi, 'girando de manera que'],
-    // Getting it around
-    [/\bgetting it around\b/gi, 'rodeando'],
-    // If needed
-    [/\bif needed\b/gi, 'si es necesario'],
-    // Desired repetition count
-    [/\bdesired repetici[oó]n count\b/gi, 'número de repeticiones deseado'],
-    [/\bdesired rep(?:etition)? count\b/gi, 'número de repeticiones deseado'],
-    [/\brepetici[oó]n count\b/gi, 'número de repeticiones'],
-    [/\brep count\b/gi, 'número de repeticiones'],
-    // Switch sides / switch legs
-    [/\bswitch (sides?|legs?|arms?)\b/gi, 'cambia al otro $1'],
-    [/\bswitch\b/gi, 'cambia'],
-    // Anchor
-    [/\banchor (the |your |un |a )?band\b/gi, 'fija la banda'],
-    [/\banchor\b/gi, 'fija'],
-    // Around (preposition)
-    [/\baround (the |your |un |el |la )/gi, 'alrededor de $1'],
-    [/\baround\b/gi, 'alrededor de'],
-    // Put (verb)
-    [/\bput your\b/gi, 'coloca tu'],
-    [/\bput the\b/gi, 'coloca el'],
-    [/\bput\b/gi, 'coloca'],
-    // Getting (gerund)
-    [/\bgetting\b/gi, 'consiguiendo'],
-    // Onto / into
-    [/\bonto the\b/gi, 'sobre el'],
-    [/\bonto your\b/gi, 'sobre tu'],
-    [/\bonto\b/gi, 'sobre'],
-    [/\binto the\b/gi, 'hacia el'],
-    [/\binto your\b/gi, 'hacia tu'],
-    // So that / so
-    [/\bso that\b/gi, 'de manera que'],
-    // Faces (verb: the palm faces)
-    [/\bfaces your\b/gi, 'mira hacia tu'],
-    [/\bfaces the\b/gi, 'mira hacia el'],
-    [/\bfaces\b/gi, 'mira hacia'],
-    // Turning
-    [/\bturning\b/gi, 'girando'],
-    // Lower (verb solo)
-    [/\blower the\b/gi, 'baja el'],
-    [/\blower\b/gi, 'baja'],
-    // Pressing (gerund)
-    [/\bpressing\b/gi, 'presionando'],
-    // Pressed (participio)
-    [/\bpressed\b/gi, 'presionada'],
-    // Immediately
-    [/\bimmediately\b/gi, 'inmediatamente'],
-    // Directly
-    [/\bdirectly\b/gi, 'directamente'],
-    // Solid / object / post (noun)
-    [/\bsolid post\b/gi, 'poste sólido'],
-    [/\bsolid object\b/gi, 'objeto sólido'],
-    [/\bsolid\b/gi, 'sólido'],
-    [/\bpost\b/gi, 'poste'],
-    [/\bobject\b/gi, 'objeto'],
-    // Needed
-    [/\bneeded\b/gi, 'necesario'],
-    // Desired
-    [/\bdesired\b/gi, 'deseado'],
-    // Count (noun)
-    [/\bcount\b/gi, 'número'],
-    // So (conjunction)
-    [/\bso\b/gi, 'así'],
-    // Onto
-    [/\bonto\b/gi, 'sobre'],
-    // Hip adductions/abductions (exercise names)
-    [/\bhip adductions\b/gi, 'aducciones de cadera'],
-    [/\bhip abductions\b/gi, 'abducciones de cadera'],
-    [/\bband hip adductions\b/gi, 'aducciones de cadera con banda'],
-    [/\bband hip abductions\b/gi, 'abducciones de cadera con banda'],
-    // Flyes / fly
-    [/\bchest flyes\b/gi, 'aperturas de pecho'],
-    [/\bchest fly\b/gi, 'apertura de pecho'],
-    [/\bflyes\b/gi, 'aperturas'],
-    [/\bfly\b/gi, 'apertura'],
+    // ── Pausing ───────────────────────────────────────────────────────────────
+    [/\bpausing briefly(?: at the top)?\b/gi, 'haciendo una breve pausa'],
+    [/\bbriefly\b/gi, 'brevemente'],
+
+    // ── Starting position ─────────────────────────────────────────────────────
+    [/\byour starting position\b/gi, 'tu posición inicial'],
+    [/\bstarting position\b/gi, 'posición inicial'],
+    [/\bthis is your\b/gi, 'esta es tu'],
+
+    // ── Attempt ───────────────────────────────────────────────────────────────
+    [/\battempt to\b/gi, 'intenta'],
+    [/\battempt\b/gi, 'intenta'],
+    [/\bfocus on\b/gi, 'concéntrate en'],
+    [/\bfocus\b/gi, 'concéntrate'],
+
+    // ── Raised towards ceiling ────────────────────────────────────────────────
+    [/\braised towards? (?:the )?(?:ceiling|sky)\b/gi, 'elevados hacia el techo'],
+    [/\braised towards?\b/gi, 'levantados hacia'],
   ];
+
+  // ── wordRules: palabras sueltas ────────────────────────────────────────────
+  // Orden: específico → genérico. Las preposiciones/artículos van AL FINAL.
 
   const wordRules = [
     // Músculos
     [/\babdominals\b/gi, 'abdominales'],
     [/\babdominal\b/gi, 'abdominal'],
+    [/\badductions\b/gi, 'aducciones'],
+    [/\badduction\b/gi, 'aducción'],
+    [/\babductions\b/gi, 'abducciones'],
+    [/\babduction\b/gi, 'abducción'],
     [/\badductors\b/gi, 'aductores'],
     [/\badductor\b/gi, 'aductor'],
     [/\bgroin\b/gi, 'ingle'],
@@ -469,7 +502,6 @@ function translate(input) {
     [/\bfinger\b/gi, 'dedo'],
     [/\barms\b/gi, 'brazos'],
     [/\barm\b/gi, 'brazo'],
-    [/\bback\b/gi, 'espalda'],
     [/\bdeltoid\b/gi, 'deltoide'],
     [/\bspine\b/gi, 'columna'],
     [/\btorso\b/gi, 'torso'],
@@ -486,6 +518,9 @@ function translate(input) {
     [/\bheel\b/gi, 'talón'],
     [/\bwaist\b/gi, 'cintura'],
     [/\bribcage\b/gi, 'caja torácica'],
+    [/\bthumb\b/gi, 'pulgar'],
+    [/\bflexors\b/gi, 'flexores'],
+    [/\bextensors\b/gi, 'extensores'],
 
     // Equipamiento
     [/\bbarbell\b/gi, 'barra'],
@@ -497,43 +532,31 @@ function translate(input) {
     [/\bmachine\b/gi, 'máquina'],
     [/\bband\b/gi, 'banda'],
     [/\bbench\b/gi, 'banco'],
-    [/\bpull-up bar\b/gi, 'barra de dominadas'],
     [/\bbar\b/gi, 'barra'],
     [/\brack\b/gi, 'soporte'],
     [/\bmat\b/gi, 'esterilla'],
     [/\bweight\b/gi, 'peso'],
     [/\bweights\b/gi, 'pesos'],
     [/\bhammer\b/gi, 'martillo'],
+    [/\bapparatus\b/gi, 'aparato'],
+    [/\byoke\b/gi, 'yugo'],
+    [/\bpost\b/gi, 'poste'],
+    [/\bobject\b/gi, 'objeto'],
 
-    // Tipos de ejercicio
-    [/\badductions\b/gi, 'aducciones'],
-    [/\badduction\b/gi, 'aducción'],
-    [/\babductions\b/gi, 'abducciones'],
-    [/\babduction\b/gi, 'abducción'],
+    // Tipos de ejercicio / movimientos
     [/\bcardio\b/gi, 'cardio'],
     [/\bstrength\b/gi, 'fuerza'],
     [/\bplyometrics\b/gi, 'pliométrico'],
-    [/\bstretching\b/gi, 'estiramiento'],
     [/\bsquat\b/gi, 'sentadilla'],
-    [/\bdeadlift\b/gi, 'peso muerto'],
-    [/\blunges\b/gi, 'zancadas'],
-    [/\blunge\b/gi, 'zancada'],
-    [/\bpull-ups\b/gi, 'dominadas'],
-    [/\bpull-up\b/gi, 'dominada'],
-    [/\bchin-ups\b/gi, 'dominadas supinas'],
-    [/\bchin-up\b/gi, 'dominada supina'],
-    [/\bpush-ups\b/gi, 'flexiones'],
-    [/\bpush-up\b/gi, 'flexión'],
-    [/\bsit-ups\b/gi, 'abdominales'],
-    [/\bsit-up\b/gi, 'abdominal'],
-    [/\bcrunch\b/gi, 'crunch'],
     [/\bplank\b/gi, 'plancha'],
     [/\brows\b/gi, 'remo'],
     [/\brow\b/gi, 'remo'],
     [/\bcurl\b/gi, 'curl'],
-    [/\bpress\b/gi, 'press'],
     [/\bbound\b/gi, 'salto largo'],
     [/\bsprint\b/gi, 'sprint'],
+    [/\bcleans\b/gi, 'levanta'],
+    [/\bclean\b/gi, 'levanta'],
+    [/\bflyes\b/gi, 'aperturas'],
 
     // Posiciones
     [/\bincline\b/gi, 'inclinado'],
@@ -563,10 +586,16 @@ function translate(input) {
     [/\bdownward\b/gi, 'hacia abajo'],
     [/\boutward\b/gi, 'hacia afuera'],
     [/\binward\b/gi, 'hacia adentro'],
-    [/\bright\b/gi, 'derecho'],
-    [/\bleft\b/gi, 'izquierdo'],
+    [/\bstretched\b/gi, 'estirado'],
+    [/\bflexed\b/gi, 'flexionado'],
+    [/\barched\b/gi, 'arqueada'],
+    [/\bpressed\b/gi, 'presionada'],
+    [/\bneeded\b/gi, 'necesario'],
+    [/\bdesired\b/gi, 'deseado'],
+    [/\bsolid\b/gi, 'sólido'],
+    [/\bsteady\b/gi, 'estable'],
 
-    // Partes del cuerpo
+    // Partes del cuerpo (solo)
     [/\bfeet\b/gi, 'pies'],
     [/\bfoot\b/gi, 'pie'],
     [/\blegs\b/gi, 'piernas'],
@@ -580,12 +609,16 @@ function translate(input) {
     [/\bhand\b/gi, 'mano'],
     [/\bground\b/gi, 'suelo'],
     [/\bfloor\b/gi, 'suelo'],
-    [/\bside\b/gi, 'lado'],
     [/\bsides\b/gi, 'lados'],
+    [/\bside\b/gi, 'lado'],
     [/\btoes\b/gi, 'dedos del pie'],
     [/\btoe\b/gi, 'dedo del pie'],
     [/\blength\b/gi, 'largo'],
     [/\blevel\b/gi, 'altura'],
+    [/\bback\b/gi, 'espalda'],
+    [/\bbody\b/gi, 'cuerpo'],
+    [/\bupper\b/gi, 'superior'],
+    [/\blower\b/gi, 'inferior'],
 
     // Verbos
     [/\babduct\b/gi, 'separa'],
@@ -598,16 +631,11 @@ function translate(input) {
     [/\bsecure\b/gi, 'asegura'],
     [/\bbegin\b/gi, 'comienza'],
     [/\bstart\b/gi, 'comienza'],
-    [/\bcontinue\b/gi, 'continúa'],
-    [/\bwill\b/gi, ''],
-    [/\bbe\b/gi, ''],
-    [/\bbeing\b/gi, ''],
     [/\bperformed\b/gi, 'realizado'],
     [/\btighten\b/gi, 'aprieta'],
     [/\bsqueeze\b/gi, 'aprieta'],
     [/\bcontract\b/gi, 'contrae'],
     [/\bcontracting\b/gi, 'contrayendo'],
-    [/\bcontracted\b/gi, 'contraído'],
     [/\bholding\b/gi, 'manteniendo'],
     [/\bheld\b/gi, 'sostenido'],
     [/\bstretch\b/gi, 'estira'],
@@ -625,7 +653,6 @@ function translate(input) {
     [/\bresting\b/gi, 'apoyado'],
     [/\bproperly\b/gi, 'correctamente'],
     [/\bcrossed\b/gi, 'cruzados'],
-    [/\baway\b/gi, 'lejos'],
     [/\bwidth\b/gi, 'ancho'],
     [/\bmedium\b/gi, 'medio'],
     [/\bstance\b/gi, 'postura'],
@@ -637,18 +664,16 @@ function translate(input) {
     [/\breturn\b/gi, 'vuelve'],
     [/\braise\b/gi, 'eleva'],
     [/\bhold\b/gi, 'mantén'],
-    [/\bnow\b/gi, 'ahora'],
     [/\brelax\b/gi, 'relaja'],
     [/\bpush\b/gi, 'empuja'],
     [/\bpull\b/gi, 'jala'],
     [/\bprevents\b/gi, 'impide'],
     [/\bprevent\b/gi, 'evita'],
-    [/\bpushes\b/gi, 'empuja'],
     [/\bapart\b/gi, 'separados'],
     [/\bgrip\b/gi, 'agarra'],
     [/\bgrasp\b/gi, 'agarra'],
+    [/\bgrab\b/gi, 'agarra'],
     [/\bdrive\b/gi, 'empuja'],
-    [/\bstep\b/gi, 'da un paso'],
     [/\bsit\b/gi, 'siéntate'],
     [/\bstand\b/gi, 'ponte de pie'],
     [/\block\b/gi, 'bloquea'],
@@ -659,7 +684,15 @@ function translate(input) {
     [/\bactivate\b/gi, 'activa'],
     [/\bbring\b/gi, 'lleva'],
     [/\bmove\b/gi, 'mueve'],
-    [/\bequals\b/gi, 'equivale a'],
+    [/\bkneel\b/gi, 'arrodíllate'],
+    [/\broll\b/gi, 'rueda'],
+    [/\buse\b/gi, 'usa'],
+    [/\bgo\b/gi, 've'],
+    [/\bracking\b/gi, 'colocando en el soporte'],
+    [/\bdriving\b/gi, 'empujando'],
+    [/\bthrusting\b/gi, 'empujando'],
+    [/\blooking\b/gi, 'mirando'],
+    [/\bwalking\b/gi, 'caminando'],
 
     // Gerundios (-ing)
     [/\bextending\b/gi, 'extendiendo'],
@@ -672,7 +705,6 @@ function translate(input) {
     [/\bbending\b/gi, 'doblando'],
     [/\brotating\b/gi, 'rotando'],
     [/\bmoving\b/gi, 'moviendo'],
-    [/\bwalking\b/gi, 'caminando'],
     [/\bjumping\b/gi, 'saltando'],
     [/\bswinging\b/gi, 'balanceando'],
     [/\bflexing\b/gi, 'flexionando'],
@@ -687,9 +719,15 @@ function translate(input) {
     [/\btilting\b/gi, 'inclinando'],
     [/\bpivoting\b/gi, 'girando'],
     [/\bstarting\b/gi, 'comenzando'],
-    // Verbos que faltaban
-    [/\bcleans\b/gi, 'levanta'],
-    [/\bclean\b/gi, 'levanta'],
+    [/\bturning\b/gi, 'girando'],
+    [/\brolling\b/gi, 'rodando'],
+    [/\bstretching\b/gi, 'estiramiento'],
+    [/\bpressing\b/gi, 'presionando'],
+    [/\bkneeling\b/gi, 'de rodillas'],
+    [/\bgetting\b/gi, 'consiguiendo'],
+    [/\busing\b/gi, 'usando'],
+
+    // Verbos extra
     [/\bswitch\b/gi, 'cambia'],
     [/\banchor\b/gi, 'fija'],
     [/\bput\b/gi, 'coloca'],
@@ -698,13 +736,11 @@ function translate(input) {
     [/\bimmediately\b/gi, 'inmediatamente'],
     [/\bdirectly\b/gi, 'directamente'],
     [/\bfaces\b/gi, 'mira hacia'],
-    [/\bpressed\b/gi, 'presionada'],
-    [/\bneeded\b/gi, 'necesario'],
-    [/\bdesired\b/gi, 'deseado'],
     [/\bcount\b/gi, 'número'],
-    [/\bsolid\b/gi, 'sólido'],
-    [/\bpost\b/gi, 'poste'],
-    [/\bobject\b/gi, 'objeto'],
+    [/\byourself\b/gi, 'a ti mismo'],
+    [/\bthem\b/gi, 'ellos'],
+    [/\bsimilar\b/gi, 'similar'],
+
     // Adjetivos
     [/\bcomfortable\b/gi, 'cómodo'],
     [/\badequate\b/gi, 'adecuado'],
@@ -716,19 +752,37 @@ function translate(input) {
     [/\binjury\b/gi, 'lesión'],
     [/\binjured\b/gi, 'lesionado'],
     [/\bpain\b/gi, 'dolor'],
-    [/\bnatural\b/gi, 'natural'],
     [/\bstiff\b/gi, 'rígido'],
     [/\btight\b/gi, 'tenso'],
     [/\bloose\b/gi, 'suelto'],
     [/\bfirm\b/gi, 'firme'],
-    [/\bsure\b/gi, 'seguro'],
-    [/\bmore\b/gi, 'más'],
-    [/\bless\b/gi, 'menos'],
+    [/\bquickly\b/gi, 'rápidamente'],
+    [/\bquick\b/gi, 'rápido'],
+    [/\bfast\b/gi, 'rápido'],
+    [/\bslow\b/gi, 'lento'],
+    [/\bshort\b/gi, 'corto'],
+    [/\blong\b/gi, 'largo'],
+    [/\bhigh\b/gi, 'alto'],
+    [/\blow\b/gi, 'bajo'],
+    [/\bboth\b/gi, 'ambas'],
+    [/\ball\b/gi, 'todos'],
+    [/\bfull\b/gi, 'completo'],
+    [/\bhalf\b/gi, 'medio'],
     [/\bonly\b/gi, 'solo'],
     [/\bbrief\b/gi, 'breve'],
     [/\bgradually\b/gi, 'gradualmente'],
     [/\bfully\b/gi, 'completamente'],
     [/\bcompletely\b/gi, 'completamente'],
+    [/\bpossible\b/gi, 'posible'],
+    [/\busually\b/gi, 'generalmente'],
+    [/\bsometimes\b/gi, 'a veces'],
+    [/\bgiven\b/gi, 'determinado'],
+    [/\bsmall\b/gi, 'pequeño'],
+    [/\bhigher\b/gi, 'más alto'],
+    [/\blower\b/gi, 'inferior'],
+    [/\bhard\b/gi, 'fuerte'],
+    [/\bheavy\b/gi, 'pesado'],
+    [/\blight\b/gi, 'ligero'],
 
     // Sustantivos
     [/\bseconds\b/gi, 'segundos'],
@@ -751,51 +805,57 @@ function translate(input) {
     [/\bflexion\b/gi, 'flexión'],
     [/\bangle\b/gi, 'ángulo'],
     [/\bpath\b/gi, 'recorrido'],
-    [/\bpurposes\b/gi, 'motivos'],
     [/\bheight\b/gi, 'altura'],
-    [/\bchosen\b/gi, 'elegida'],
-    [/\bloaded\b/gi, 'cargada'],
     [/\btogether\b/gi, 'juntos'],
     [/\bacross\b/gi, 'a través de'],
     [/\binside\b/gi, 'dentro de'],
     [/\boutside\b/gi, 'fuera de'],
     [/\bbest\b/gi, 'mejor'],
-    [/\bonce\b/gi, 'una vez'],
-    [/\btip\b/gi, 'consejo'],
-    [/\bnote\b/gi, 'nota'],
     [/\bamount\b/gi, 'número'],
     [/\bmanner\b/gi, 'manera'],
-
-    // Artículos / preposiciones (al final)
-    [/\beach\b/gi, 'cada'],
-    [/\bone\b/gi, 'una'],
-    [/\bwith\b/gi, 'con'],
-    [/\band\b/gi, 'y'],
+    [/\bdistance\b/gi, 'distancia'],
+    [/\bportion\b/gi, 'parte'],
+    [/\bsection\b/gi, 'parte'],
+    [/\bphase\b/gi, 'fase'],
+    [/\btip\b/gi, 'consejo'],
+    [/\bnote\b/gi, 'nota'],
+    [/\bsteps\b/gi, 'pasos'],
+    [/\bstep\b/gi, 'paso'],
+    [/\bsurface\b/gi, 'superficie'],
+    [/\bedge\b/gi, 'borde'],
+    [/\bversion\b/gi, 'versión'],
+    [/\bopen\b/gi, 'abierto'],
+    [/\bclosed\b/gi, 'cerrado'],
+    [/\bagain\b/gi, 'de nuevo'],
+    [/\balso\b/gi, 'también'],
+    [/\bjust\b/gi, 'solo'],
+    [/\bstill\b/gi, 'quieto'],
+    [/\beven\b/gi, 'incluso'],
+    [/\bonce\b/gi, 'una vez'],
+    [/\bmore\b/gi, 'más'],
+    [/\bless\b/gi, 'menos'],
+    [/\bnow\b/gi, 'ahora'],
     [/\bthen\b/gi, 'luego'],
+    [/\bnext\b/gi, 'siguiente'],
+    [/\bfirst\b/gi, 'primero'],
+    [/\bsecond\b/gi, 'segundo'],
+    [/\bthird\b/gi, 'tercero'],
+    [/\bone\b/gi, 'uno'],
+    [/\btwo\b/gi, 'dos'],
+    [/\bthree\b/gi, 'tres'],
+    [/\bfour\b/gi, 'cuatro'],
+    [/\bfive\b/gi, 'cinco'],
+    [/\bten\b/gi, 'diez'],
+    [/\bhundred\b/gi, 'cien'],
+
+    // Conjunciones / pronombres
+    [/\beach\b/gi, 'cada'],
     [/\byour\b/gi, 'tu'],
     [/\byou\b/gi, 'tú'],
     [/\bthis\b/gi, 'esto'],
     [/\bthat\b/gi, 'eso'],
     [/\bthese\b/gi, 'estos'],
     [/\bthose\b/gi, 'esos'],
-    [/\bthe\b/gi, 'el'],
-    [/\ba\b/gi, 'un'],
-    [/\ban\b/gi, 'un'],
-    [/\bis\b/gi, 'es'],
-    [/\bare\b/gi, 'son'],
-    [/\bwas\b/gi, 'era'],
-    [/\bwere\b/gi, 'eran'],
-    [/\bhas\b/gi, 'tiene'],
-    [/\bhave\b/gi, 'tener'],
-    [/\bcan\b/gi, 'puedes'],
-    [/\bcould\b/gi, 'podrías'],
-    [/\bmay\b/gi, 'puedes'],
-    [/\bmight\b/gi, 'podrías'],
-    [/\bwhile\b/gi, 'mientras'],
-    [/\bwhen\b/gi, 'cuando'],
-    [/\bif\b/gi, 'si'],
-    [/\bor\b/gi, 'o'],
-    [/\bnot\b/gi, 'no'],
     [/\bwithout\b/gi, 'sin'],
     [/\bbetween\b/gi, 'entre'],
     [/\bthrough\b/gi, 'a través de'],
@@ -805,29 +865,58 @@ function translate(input) {
     [/\buntil\b/gi, 'hasta'],
     [/\babove\b/gi, 'encima de'],
     [/\bbelow\b/gi, 'debajo de'],
-    [/\bover\b/gi, 'por encima de'],
-    [/\bunder\b/gi, 'debajo de'],
     [/\bnear\b/gi, 'cerca de'],
     [/\baway\b/gi, 'lejos'],
+    [/\bwhile\b/gi, 'mientras'],
+    [/\bwhen\b/gi, 'cuando'],
+    [/\bnot\b/gi, 'no'],
+    [/\bany\b/gi, 'ningún'],
+    [/\bno\b/gi, 'ningún'],
+    [/\boff\b/gi, 'alejado de'],
+
+    // ── Preposiciones y artículos genéricos — AL FINAL (más peligrosos) ───────
+    [/\band\b/gi, 'y'],
+    [/\bwith\b/gi, 'con'],
+    [/\bdown\b/gi, 'abajo'],
+    [/\bup\b/gi, 'arriba'],
+    [/\bout\b/gi, 'fuera'],
+    [/\bover\b/gi, 'por encima de'],
+    [/\bunder\b/gi, 'debajo de'],
+    [/\bthe\b/gi, 'el'],
+    [/\ban\b/gi, 'un'],
+    [/\bto\b/gi, 'a'],
+    [/\bat\b/gi, 'en'],
     [/\bof\b/gi, 'de'],
     [/\bin\b/gi, 'en'],
     [/\bon\b/gi, 'sobre'],
-    [/\bat\b/gi, 'en'],
     [/\bby\b/gi, 'por'],
     [/\bfor\b/gi, 'durante'],
     [/\bfrom\b/gi, 'desde'],
-    [/\bto\b/gi, 'a'],
-    [/\bup\b/gi, 'arriba'],
-    [/\bdown\b/gi, 'abajo'],
+    [/\bso\b/gi, 'así que'],
+    [/\bor\b/gi, 'o'],
+    [/\bif\b/gi, 'si'],
+    [/\bis\b/gi, 'es'],
+    [/\bare\b/gi, 'están'],
+    [/\bwas\b/gi, 'era'],
+    [/\bwere\b/gi, 'eran'],
+    [/\bhas\b/gi, 'tiene'],
+    [/\bhave\b/gi, 'tener'],
+    [/\bcan\b/gi, 'puedes'],
+    [/\bcould\b/gi, 'podrías'],
+    [/\bmay\b/gi, 'puedes'],
+    [/\bmight\b/gi, 'podrías'],
+    [/\bneed\b/gi, 'necesitas'],
     [/\blet\b/gi, 'deja'],
-    [/\bknow\b/gi, 'saber'],
     [/\blook\b/gi, 'mira'],
-    [/\bout\b/gi, 'fuera'],
+    [/\bremember\b/gi, 'recuerda'],
+    [/\bensure\b/gi, 'asegura'],
+    // "a" SOLO como artículo inglés (no al final de palabra española)
+    [/(?<=[\s.(]|^)a(?=\s)/gi, 'un'],
   ];
 
   let output = text;
-  // Dos pasadas para capturar residuos
-  for (let pass = 0; pass < 2; pass++) {
+  // Tres pasadas para capturar residuos progresivos
+  for (let pass = 0; pass < 3; pass++) {
     for (const [regex, replacement] of phraseRules) output = output.replace(regex, replacement);
     for (const [regex, replacement] of wordRules) output = output.replace(regex, replacement);
   }
@@ -868,12 +957,12 @@ async function main() {
 
     for (const ej of data) {
       try {
-        const nombreEs = translate(ej.nombre);
-        const descEs   = translate(ej.descripcion ?? '');
-        const pasosEs  = (ej.instrucciones_pasos ?? []).map(translate);
-        const muscPrimEs = (ej.musculos_primarios ?? []).map(translate);
-        const muscSecEs  = (ej.musculos_secundarios ?? []).map(translate);
-        const equipEs    = ej.equipamiento ? translate(ej.equipamiento) : ej.equipamiento;
+        const nombreEs    = translate(ej.nombre);
+        const descEs      = translate(ej.descripcion ?? '');
+        const pasosEs     = (ej.instrucciones_pasos ?? []).map(translate);
+        const muscPrimEs  = (ej.musculos_primarios ?? []).map(translate);
+        const muscSecEs   = (ej.musculos_secundarios ?? []).map(translate);
+        const equipEs     = ej.equipamiento ? translate(ej.equipamiento) : ej.equipamiento;
 
         const { error: upError } = await supabase
           .from('ejercicios')

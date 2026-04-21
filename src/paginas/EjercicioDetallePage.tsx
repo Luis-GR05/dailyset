@@ -68,11 +68,19 @@ export default function EjercicioDetallePage() {
 
   const levelColor = LEVEL_COLORS[ejercicio.dificultad] ?? 'var(--color-neutral-2000)';
   const catLabel = CATEGORY_LABELS[ejercicio.categoriaEjercicio] ?? ejercicio.categoriaEjercicio;
-  // Los datos ya están en español en la BD — se muestran directamente
-  const ejercicioNombreMostrado = ejercicio.nombre;
-  const pasosMostrados = ejercicio.instruccionesPasos;
-  const descripcionMostrada = ejercicio.descripcion;
-  const equipamientoMostrado = ejercicio.equipamiento;
+  // Si el locale es español, aplicar traducción residual sobre datos de la BD
+  const ejercicioNombreMostrado = locale === 'es'
+    ? translateExerciseTitleEs(ejercicio.nombre)
+    : ejercicio.nombre;
+  const pasosMostrados = locale === 'es'
+    ? ejercicio.instruccionesPasos.map(translateInstructionEs)
+    : ejercicio.instruccionesPasos;
+  const descripcionMostrada = locale === 'es'
+    ? translateInstructionEs(ejercicio.descripcion)
+    : ejercicio.descripcion;
+  const equipamientoMostrado = locale === 'es' && ejercicio.equipamiento
+    ? translateEquipmentEs(ejercicio.equipamiento)
+    : ejercicio.equipamiento;
 
   const imagenes = [ejercicio.imagenInicio, ejercicio.imagenFinal].filter(Boolean) as string[];
 
