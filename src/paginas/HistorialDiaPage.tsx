@@ -1,6 +1,7 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
+import { useEjercicios } from "../context/EjerciciosContext";
 import { useI18n } from "../context/I18nContext";
 import { translateExerciseTitleEs } from '../lib/exerciseTranslations';
 
@@ -8,7 +9,10 @@ export default function HistorialDiaPage() {
   const { fecha } = useParams<{ fecha: string }>();
   const navigate = useNavigate();
   const { getSesionesPorFecha } = useHistorial();
+  const { ejercicios: catalogoEjercicios } = useEjercicios();
   const { t, locale } = useI18n();
+
+  const ejercicioMapPorNombre = new Map(catalogoEjercicios.map(e => [e.nombre, e]));
 
   const sesiones = getSesionesPorFecha(fecha ?? '');
 
@@ -100,7 +104,20 @@ export default function HistorialDiaPage() {
                     <Card key={`${sesion.id}-${i}`} className="p-6" hoverable={false}>
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-4">
-                          <ImagenPlaceholder size="sm" />
+                          {(() => {
+                            const catalogo = ejercicioMapPorNombre.get(ejercicio.nombre);
+                            return catalogo?.imagenInicio ? (
+                              <img
+                                src={catalogo.imagenInicio}
+                                alt={ejercicio.nombre}
+                                className="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/10"
+                                loading="lazy"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            ) : (
+                              <ImagenPlaceholder size="sm" />
+                            );
+                          })()}
                           <div>
                             <h3 className="font-bold text-white text-lg">
                               {locale === 'es' ? translateExerciseTitleEs(ejercicio.nombre) : ejercicio.nombre}

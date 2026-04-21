@@ -1,52 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from "../componentes";
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
-import { useHistorial } from '../context/HistorialContext';
+import { useEstadisticas } from '../hooks/useEstadisticas';
+import { X } from 'lucide-react';
 
 export default function PerfilPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { locale, t } = useI18n();
-  const { sesiones } = useHistorial();
-
+  const { rachaActual, totalEntrenos, volumenTotal } = useEstadisticas();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const iniciales = (user?.nombre ?? 'U')
     .split(' ')
     .map((p: string) => p[0])
     .slice(0, 2)
     .join('');
 
-  const stats = useMemo(() => {
-    const totalSets = sesiones.reduce((t, s) => t + s.ejercicios.reduce((tt, ej) => tt + ej.series.length, 0), 0);
-    const totalWeight = Math.round(
-      sesiones.reduce((t, s) =>
-        t + s.ejercicios.reduce((tt, ej) =>
-          tt + ej.series.reduce((x, serie) => x + (serie.kg * serie.reps), 0)
-          , 0)
-        , 0)
-    );
-
-    const uniqueDays = Array.from(new Set(sesiones.map(s => new Date(s.fecha + 'T12:00:00').setHours(0, 0, 0, 0)))).sort((a, b) => a - b);
-    let streak = 0;
-    for (let i = uniqueDays.length - 1; i >= 0; i--) {
-      if (i === uniqueDays.length - 1) streak = 1;
-      else {
-        const diff = uniqueDays[i + 1] - uniqueDays[i];
-        if (diff === 24 * 60 * 60 * 1000) streak += 1;
-        else break;
-      }
-    }
-
-    return [
-      { etiqueta: t.profile.totalSets.toUpperCase(), valor: totalSets ? String(totalSets) : '—' },
-      {
-        etiqueta: t.profile.streak.toUpperCase(),
-        valor: streak ? `${streak} ${t.profile.days.toUpperCase()}` : '—'
-      },
-      { etiqueta: t.profile.totalWeight.toUpperCase(), valor: totalWeight ? `${totalWeight} kg` : '—' },
-    ];
-  }, [sesiones, t.profile.totalSets, t.profile.streak, t.profile.totalWeight, t.profile.days]);
+  const stats = useMemo(() => [
+    { etiqueta: t.profile.totalSets.toUpperCase(), valor: totalEntrenos ? String(totalEntrenos) : '—' },
+    {
+      etiqueta: t.profile.streak.toUpperCase(),
+      valor: rachaActual ? `${rachaActual} ${t.profile.days.toUpperCase()}` : '—'
+    },
+    { etiqueta: t.profile.totalWeight.toUpperCase(), valor: volumenTotal ? `${Math.round(volumenTotal)} kg` : '—' },
+  ], [totalEntrenos, rachaActual, volumenTotal, t.profile.totalSets, t.profile.streak, t.profile.totalWeight, t.profile.days]);
 
   const opciones = [
     {
@@ -71,15 +50,18 @@ export default function PerfilPage() {
 
   const handleAction = async (opcion: typeof opciones[0]) => {
     if (opcion.esRojo) {
-      if (confirm(locale === 'es' ? '¿Cerrar sesión en DailySet Elite?' : 'Sign out of DailySet Elite?')) {
-        await logout();
-        navigate('/login');
-      }
+      setShowLogoutDialog(true);
       return;
     }
     if (opcion.ruta) {
       navigate(opcion.ruta);
     }
+  };
+
+  const handleConfirmarLogout = async () => {
+    setShowLogoutDialog(false);
+    await logout();
+    navigate('/login');
   };
 
   return (
@@ -186,6 +168,37 @@ export default function PerfilPage() {
         </div>
 
       </div>
+
+      {/* Dialog: Confirmar logout */}
+      {showLogoutDialog && (
+        <div className="modal-overlay" onClick={() => setShowLogoutDialog(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="text-lg font-bold text-white">
+                {locale === 'es' ? 'Cerrar sesión' : 'Sign out'}
+              </h2>
+              <button className="modal-close-btn" onClick={() => setShowLogoutDialog(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-form">
+              <p className="text-neutral-300 text-sm">
+                {locale === 'es' ? '¿Cerrar sesión en DailySet?' : 'Sign out of DailySet?'}
+              </p>
+              <div className="modal-actions">
+                <button className="btn btn-secondary" onClick={() => setShowLogoutDialog(false)}>
+                  {locale === 'es' ? 'Cancelar' : 'Cancel'}
+                </button>
+                <button
+                  className="btn"
+                  style={{ background: '#ef4444', color: 'white' }}
+                  onClick={handleConfirmarLogout}
+                >
+                  {locale === 'es' ? 'Cerrar sesión' : 'Sign out'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

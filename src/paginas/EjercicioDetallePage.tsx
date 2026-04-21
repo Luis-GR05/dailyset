@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
 import { useI18n } from '../context/I18nContext';
 import { useEjercicios } from '../context/EjerciciosContext';
+import { useHistorial } from '../context/HistorialContext';
 import { ArrowLeft, Dumbbell, Target, Zap, BarChart2 } from 'lucide-react';
 import {
   translateEquipmentEs,
@@ -34,41 +35,69 @@ export default function EjercicioDetallePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { ejercicios } = useEjercicios();
+  const { sesiones } = useHistorial();
 
   const [imgActiva, setImgActiva] = useState<0 | 1>(0);
+  const [imgError, setImgError] = useState(false);
 
   const ejercicioId = parseInt(id || '0', 10);
   const ejercicio = ejercicios.find(e => e.id === ejercicioId);
+
+  // Historial real de progreso: máximo kg por sesión para este ejercicio
+  const { historialReal, datosGrafico } = useMemo(() => {
+    if (!ejercicio) return { historialReal: [], datosGrafico: [] };
+
+    const puntos: { fecha: string; peso: number; reps: number }[] = [];
+
+    sesiones
+      .slice()
+      .sort((a, b) => a.fecha.localeCompare(b.fecha))
+      .forEach(sesion => {
+        const ejEnSesion = sesion.ejercicios.find(e => e.nombre === ejercicio.nombre);
+        if (!ejEnSesion || ejEnSesion.series.length === 0) return;
+
+        // Serie con mayor kg (si empatan, la de más reps)
+        const mejorSerie = ejEnSesion.series.reduce((mejor, serie) => {
+          if (serie.kg > mejor.kg) return serie;
+          if (serie.kg === mejor.kg && serie.reps > mejor.reps) return serie;
+          return mejor;
+        }, ejEnSesion.series[0]);
+
+        const fechaObj = new Date(sesion.fecha + 'T12:00:00');
+        const fechaMostrada = fechaObj.toLocaleDateString(
+          locale === 'es' ? 'es-ES' : 'en-US',
+          { day: 'numeric', month: 'short' }
+        );
+
+        puntos.push({
+          fecha: fechaMostrada,
+          peso: mejorSerie.kg,
+          reps: mejorSerie.reps,
+        });
+      });
+
+    // Limitar a los últimos 10 para no saturar la gráfica
+    const ultimos = puntos.slice(-10);
+    const grafico = ultimos.map(p => ({ name: p.fecha, value: p.peso }));
+    return { historialReal: ultimos, datosGrafico: grafico };
+  }, [sesiones, ejercicio, locale]);
 
   if (!ejercicio) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center p-10 gap-4">
           <Dumbbell size={48} style={{ color: 'var(--color-neutral-900)' }} />
-          <h2 className="text-xl text-white">
-            {locale === 'es' ? 'Ejercicio no encontrado' : 'Exercise not found'}
-          </h2>
+          <h2 className="text-xl text-white">Ejercicio no encontrado</h2>
           <BotonPrimario onClick={() => navigate('/ejercicios')}>
-            {locale === 'es' ? 'Volver a ejercicios' : 'Back to exercises'}
+            Volver a ejercicios
           </BotonPrimario>
         </div>
       </AppLayout>
     );
   }
 
-  // Historial de progreso simulado (se conectará con series reales en próxima iteración)
-  const historial = [
-    { fecha: locale === 'es' ? "29 Enero" : "29 January", peso: 60, reps: 5 },
-    { fecha: locale === 'es' ? "18 Marzo"  : "18 March",   peso: 70, reps: 6 },
-    { fecha: locale === 'es' ? "7 Junio"   : "7 June",     peso: 80, reps: 8 },
-    { fecha: locale === 'es' ? "14 Sep"    : "14 Sep",     peso: 95, reps: 6 },
-    { fecha: locale === 'es' ? "23 Dic"    : "23 Dec",     peso: 105, reps: 8 },
-  ];
-  const datosGrafico = historial.map(h => ({ name: h.fecha, value: h.peso }));
-
   const levelColor = LEVEL_COLORS[ejercicio.dificultad] ?? 'var(--color-neutral-2000)';
   const catLabel = CATEGORY_LABELS[ejercicio.categoriaEjercicio] ?? ejercicio.categoriaEjercicio;
-  // Si el locale es español, aplicar traducción residual sobre datos de la BD
   const ejercicioNombreMostrado = locale === 'es'
     ? translateExerciseTitleEs(ejercicio.nombre)
     : ejercicio.nombre;
@@ -101,21 +130,18 @@ export default function EjercicioDetallePage() {
 
         {/* Badges de info */}
         <div className="flex flex-wrap gap-2">
-          {/* Dificultad */}
           <span
             className="text-xs font-bold px-3 py-1 rounded-full"
             style={{ background: `${levelColor}22`, color: levelColor, border: `1px solid ${levelColor}44` }}
           >
             {ejercicio.dificultad}
           </span>
-          {/* Categoría */}
           <span
             className="text-xs font-bold px-3 py-1 rounded-full"
             style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-3000)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             {catLabel}
           </span>
-          {/* Equipamiento */}
           {ejercicio.equipamiento && (
             <span
               className="text-xs font-bold px-3 py-1 rounded-full"
@@ -134,12 +160,13 @@ export default function EjercicioDetallePage() {
             {/* Visor de imagen */}
             <Card className="overflow-hidden" hoverable={false}>
               <div className="aspect-square w-full bg-neutral-900 relative overflow-hidden">
-                {imagenes.length > 0 ? (
+                {imagenes.length > 0 && !imgError ? (
                   <>
                     <img
                       src={imagenes[imgActiva]}
-                      alt={`${ejercicioNombreMostrado} — posición ${imgActiva === 0 ? 'inicial' : 'final'}`}
+                      alt={`${ejercicioNombreMostrado} — ${imgActiva === 0 ? (locale === 'es' ? 'posición inicial' : 'start position') : (locale === 'es' ? 'posición final' : 'end position')}`}
                       className="w-full h-full object-cover transition-opacity duration-300"
+                      onError={() => setImgError(true)}
                     />
                     {/* Selector de imagen */}
                     {imagenes.length > 1 && (
@@ -153,7 +180,7 @@ export default function EjercicioDetallePage() {
                               ? { background: 'var(--color-primary)', color: '#050505' }
                               : { background: 'rgba(0,0,0,0.6)', color: 'white', backdropFilter: 'blur(8px)' }}
                           >
-                            {i === 0 ? (locale === 'es' ? 'Ini' : 'Ini') : (locale === 'es' ? 'Fin' : 'End')}
+                            {i === 0 ? 'Ini' : (locale === 'es' ? 'Fin' : 'End')}
                           </button>
                         ))}
                       </div>
@@ -171,15 +198,11 @@ export default function EjercicioDetallePage() {
             <Card className="p-5" hoverable={false}>
               <div className="flex items-center gap-2 mb-3">
                 <Target size={16} style={{ color: 'var(--color-primary)' }} />
-                <h3 className="font-bold text-white text-sm">
-                  {locale === 'es' ? 'Músculos trabajados' : 'Target muscles'}
-                </h3>
+                <h3 className="font-bold text-white text-sm">Músculos trabajados</h3>
               </div>
               {ejercicio.musculosPrimarios.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
-                    {locale === 'es' ? 'Primarios' : 'Primary'}
-                  </p>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--color-neutral-2000)' }}>Primarios</p>
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosPrimarios.map(m => (
                       <span key={m}
@@ -192,9 +215,7 @@ export default function EjercicioDetallePage() {
               )}
               {ejercicio.musculosSecundarios.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
-                    {locale === 'es' ? 'Secundarios' : 'Secondary'}
-                  </p>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--color-neutral-2000)' }}>Secundarios</p>
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosSecundarios.map(m => (
                       <span key={m}
@@ -215,9 +236,7 @@ export default function EjercicioDetallePage() {
               <Card className="p-5" hoverable={false}>
                 <div className="flex items-center gap-2 mb-4">
                   <Zap size={16} style={{ color: 'var(--color-primary)' }} />
-                  <h3 className="font-bold text-white text-sm">
-                    {locale === 'es' ? 'Instrucciones' : 'Instructions'}
-                  </h3>
+                  <h3 className="font-bold text-white text-sm">Instrucciones</h3>
                 </div>
                 <ol className="space-y-3">
                   {pasosMostrados.map((paso, i) => (
@@ -247,58 +266,66 @@ export default function EjercicioDetallePage() {
               </Card>
             )}
 
-            {/* Gráfico de progreso */}
+            {/* Gráfico de progreso real */}
             <Card className="p-5" hoverable={false}>
               <div className="flex items-center gap-2 mb-3">
                 <BarChart2 size={16} style={{ color: 'var(--color-primary)' }} />
-                <h3 className="font-bold text-white text-sm">
-                  {locale === 'es' ? 'Tu progreso' : 'Your progress'}
-                </h3>
+                <h3 className="font-bold text-white text-sm">Tu progreso</h3>
               </div>
-              <LineChartElement
-                items={datosGrafico}
-                title={locale === 'es' ? 'Peso máximo (kg)' : 'Max weight (kg)'}
-                height={120}
-                showGrid={false}
-                lineColor="var(--color-primary)"
-              />
+              {datosGrafico.length > 0 ? (
+                <LineChartElement
+                  items={datosGrafico}
+                  title={'Peso máximo (kg)'}
+                  height={120}
+                  showGrid={false}
+                  lineColor="var(--color-primary)"
+                />
+              ) : (
+                <div className="h-28 flex items-center justify-center">
+                  <p className="text-neutral-600 text-sm text-center">
+                    Haz este ejercicio para ver tu progresión aquí.
+                  </p>
+                </div>
+              )}
             </Card>
 
-            {/* Tabla de historial */}
-            <Card className="p-5" hoverable={false}>
-              <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
-                {t.exerciseDetail.progressHistory}
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--color-neutral-800)' }}>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.exerciseDetail.dateCol}
-                      </th>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.exerciseDetail.maxWeight}
-                      </th>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.training.reps}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historial.map((item, index) => (
-                      <tr
-                        key={index}
-                        style={{ borderBottom: index < historial.length - 1 ? '1px solid var(--color-neutral-800)' : 'none' }}
-                      >
-                        <td className="py-2.5 text-white">{item.fecha}</td>
-                        <td className="py-2.5 font-bold" style={{ color: 'var(--color-primary)' }}>{item.peso} kg</td>
-                        <td className="py-2.5 text-white">{item.reps}</td>
+            {/* Tabla de historial real */}
+            {historialReal.length > 0 && (
+              <Card className="p-5" hoverable={false}>
+                <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
+                  {t.exerciseDetail.progressHistory}
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--color-neutral-800)' }}>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.exerciseDetail.dateCol}
+                        </th>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.exerciseDetail.maxWeight}
+                        </th>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.training.reps}
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                    </thead>
+                    <tbody>
+                      {historialReal.map((item, index) => (
+                        <tr
+                          key={index}
+                          style={{ borderBottom: index < historialReal.length - 1 ? '1px solid var(--color-neutral-800)' : 'none' }}
+                        >
+                          <td className="py-2.5 text-white">{item.fecha}</td>
+                          <td className="py-2.5 font-bold" style={{ color: 'var(--color-primary)' }}>{item.peso} kg</td>
+                          <td className="py-2.5 text-white">{item.reps}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>

@@ -6,7 +6,6 @@ import { useI18n } from '../../context/I18nContext';
 import { Sun, Moon, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import flagEs from '../../assets/flags/es.svg';
-import flagEn from '../../assets/flags/en.svg';
 
 interface HeaderProps {
   onAbrirMenu: () => void;
@@ -14,7 +13,7 @@ interface HeaderProps {
 
 export default function Header({ onAbrirMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -40,11 +39,10 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
 
-          {/* Language toggle */}
-          <button
-            onClick={setLocale}
-            title={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-full text-xs sm:text-sm font-bold transition-all hover:scale-105 active:scale-95"
+          {/* Idioma (fijo en español) */}
+          <div
+            title="Español"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-full text-xs sm:text-sm font-bold"
             style={{
               backgroundColor: 'var(--color-neutral-800)',
               border: '1px solid var(--color-neutral-900)',
@@ -52,13 +50,13 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
             }}
           >
             <img
-              src={locale === 'es' ? flagEs : flagEn}
-              alt={locale === 'es' ? 'Español' : 'English'}
+              src={flagEs}
+              alt="Español"
               className="w-4 h-4 rounded-sm"
               style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.12)' }}
             />
-            <span>{locale === 'es' ? 'ES' : 'EN'}</span>
-          </button>
+            <span>ES</span>
+          </div>
 
           {/* Theme toggle */}
           <button

@@ -217,7 +217,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const profileRefreshInterval = window.setInterval(async () => {
       if (!isMounted) return;
-      setUser((currentUser) => currentUser);
 
       try {
         const {

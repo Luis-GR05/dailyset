@@ -1,23 +1,19 @@
+import { useMemo } from 'react';
 import { AppLayout, TituloPagina, MonthCard, ResumenEstadisticas } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
-import { useI18n } from '../context/I18nContext';
-
-// Generar los últimos 12 meses desde el mes actual
-function getUltimos12Meses() {
-  const meses = [];
-  const ahora = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-    meses.push({ mes: d.getMonth(), anio: d.getFullYear() });
-  }
-  return meses;
-}
-
-const MESES = getUltimos12Meses();
 
 export default function HistorialPage() {
   const { metricas } = useHistorial();
-  const { locale } = useI18n();
+
+  const MESES = useMemo(() => {
+    const meses = [];
+    const ahora = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      meses.push({ mes: d.getMonth(), anio: d.getFullYear() });
+    }
+    return meses;
+  }, []);
 
   return (
     <AppLayout>
@@ -25,7 +21,7 @@ export default function HistorialPage() {
 
         <div className="shrink-0 p-4 md:p-8 pb-4 bg-[var(--color-neutral-700)] z-20">
           <div className="max-w-5xl mx-auto">
-            <TituloPagina titulo={locale === 'es' ? "Historial de entrenamientos" : "Workout history"} />
+            <TituloPagina titulo={"Historial de entrenamientos"} />
           </div>
         </div>
 

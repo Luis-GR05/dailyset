@@ -347,8 +347,23 @@ export default function EntrenamientoPage() {
 
                                     {/* Filas de Series */}
                                     {ejercicio.series.map((serie) => (
-                                        <div key={serie.numero} className="grid grid-cols-4 md:grid-cols-5 gap-4 items-center bg-neutral-800/50 p-3 rounded-xl border border-neutral-800">
-                                            <span className="font-bold ml-2" style={{ color: 'var(--color-primary)' }}>{serie.numero}</span>
+                                        <div className="grid grid-cols-4 md:grid-cols-5 gap-4 items-center bg-neutral-800/50 p-3 rounded-xl border border-neutral-800">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{serie.numero}</span>
+                                                {!empezado && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => quitarSerie(ejercicio.id, serie.numero)}
+                                                        className="text-neutral-500 hover:text-red-400 transition-colors md:hidden"
+                                                        aria-label={locale === 'es' ? 'Quitar serie' : 'Remove set'}
+                                                        title={locale === 'es' ? 'Quitar serie' : 'Remove set'}
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
                                             <div className="hidden md:flex items-center gap-2">
                                                 <span className="text-neutral-400 text-sm">—</span>
                                                 {!empezado && (

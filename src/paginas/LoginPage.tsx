@@ -203,7 +203,7 @@ export default function LoginPage() {
                   (e.currentTarget as HTMLAnchorElement).style.color = '';
                 }}
               >
-                ← {locale === 'es' ? 'Volver al inicio' : 'Back to home'}
+                ← Volver al inicio
               </Link>
             </div>
           </div>

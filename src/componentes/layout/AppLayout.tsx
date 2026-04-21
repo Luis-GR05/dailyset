@@ -12,7 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="sr-only focus:not-sr-only focus:absolute focus:z-100 focus:m-4 focus:px-4 focus:py-2 focus:rounded-lg"
         style={{ backgroundColor: 'var(--color-neutral-800)', color: 'var(--color-white)', border: '1px solid rgba(255,255,255,0.12)' }}
       >
-        Skip to content
+        Saltar al contenido
       </a>
       <div
         className="flex min-h-dvh w-full relative"

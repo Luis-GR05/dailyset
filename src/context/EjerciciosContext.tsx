@@ -32,6 +32,25 @@ interface EjerciciosContextType {
 
 const EjerciciosContext = createContext<EjerciciosContextType | undefined>(undefined);
 
+interface EjercicioDbRow {
+  id: number;
+  external_id?: string | null;
+  nombre: string;
+  descripcion?: string | null;
+  dificultad?: string | null;
+  url_video?: string | null;
+  url_imagen?: string | null;
+  grupo_muscular?: string | null;
+  musculos_primarios?: string[] | null;
+  musculos_secundarios?: string[] | null;
+  equipamiento?: string | null;
+  categoria_ejercicio?: string | null;
+  instrucciones_pasos?: string[] | null;
+  imagen_inicio?: string | null;
+  imagen_final?: string | null;
+  es_publico?: boolean | null;
+}
+
 export function EjerciciosProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
@@ -57,7 +76,8 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      const normalizados: Ejercicio[] = (data ?? []).map((e: any) => ({
+
+      const normalizados: Ejercicio[] = (data ?? []).map((e: EjercicioDbRow) => ({
         id:                   e.id as number,
         externalId:           e.external_id ?? undefined,
         nombre:               e.nombre as string,

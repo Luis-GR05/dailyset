@@ -230,6 +230,7 @@ const translations = {
     },
   },
 
+  // Nota: el proyecto funciona en español; se mantiene 'en' solo como referencia.
   en: {
     nav: {
       dashboard: 'Dashboard',

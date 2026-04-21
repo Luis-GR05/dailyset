@@ -96,16 +96,18 @@ export default function MisRutinasPage() {
                             <p className="text-neutral-500 text-xs text-center mt-3">
                                 {locale === 'es'
                                     ? `Cargando rutinas… ${(elapsedMs / 1000).toFixed(1)}s`
-                                    : `Loading routines… ${(elapsedMs / 1000).toFixed(1)}s`}
+                                    : `Cargando rutinas… ${(elapsedMs / 1000).toFixed(1)}s`}
                             </p>
                         </div>
                     )}
                     {error && (
                         <p className="text-red-400 text-sm">{error}</p>
                     )}
-                    {rutinasFiltradas.length === 0 && (
+                    {rutinasFiltradas.length === 0 && !cargando && (
                         <p className="text-neutral-500 text-center py-10">
-                            No hay rutinas de {filtroActivo.toLowerCase()}. ¡Crea una!
+                            {locale === 'es'
+                                ? `No hay rutinas de ${filtroActivo.toLowerCase()}. ¡Crea una!`
+                                : `No ${filtroActivo.toLowerCase()} routines yet. Create one!`}
                         </p>
                     )}
                     {rutinasFiltradas.map((rutina) => (

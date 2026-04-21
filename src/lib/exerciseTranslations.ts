@@ -13,7 +13,14 @@ function toSentenceCase(input: string): string {
   );
 }
 
-function translateDatasetTextEs(input: string): string {
+function toTitleCase(input: string): string {
+  const lowered = input.toLocaleLowerCase("es-ES");
+  return lowered.replace(/(^|[\s/()-]+)(\p{L})/gu, (_match, sep, letter) =>
+    `${sep}${letter.toLocaleUpperCase("es-ES")}`
+  );
+}
+
+function translateDatasetTextEs(input: string, format: "sentence" | "title"): string {
   const text = normalizeRawText(input);
   if (!text) return text;
 
@@ -220,9 +227,10 @@ function translateDatasetTextEs(input: string): string {
     [/\bequals\b/gi, "equivale a"],
 
     // For N repetitions / seconds
-    [/\bfor \d+ to \d+ (?:repetitions?|reps?)\b/gi, (m) => m.replace(/for (\d+) to (\d+) (?:repetitions?|reps?)/i, "durante $1 a $2 repeticiones")],
-    [/\bfor \d+ (?:or more) (?:repetitions?|reps?|seconds?)\b/gi, (m) => m.replace(/for (\d+) or more (\w+)/i, "durante $1 o más $2")],
-    [/\bfor \d+ seconds?\b/gi, (m) => m.replace(/for (\d+) seconds?/i, "durante $1 segundos")],
+    [/\bfor (\d+) to (\d+) (?:repetitions?|reps?)\b/gi, "durante $1 a $2 repeticiones"],
+    [/\bfor (\d+) or more (repetitions?|reps?)\b/gi, "durante $1 o más repeticiones"],
+    [/\bfor (\d+) or more seconds?\b/gi, "durante $1 o más segundos"],
+    [/\bfor (\d+) seconds?\b/gi, "durante $1 segundos"],
 
     // Straight
     [/\bstraight out\b/gi, "estirada"],
@@ -672,21 +680,21 @@ function translateDatasetTextEs(input: string): string {
     .replace(/\s+([,.!?;:])/g, "$1")
     .trim();
 
-  return toSentenceCase(cleaned);
+  return format === "sentence" ? toSentenceCase(cleaned) : toTitleCase(cleaned);
 }
 
 export function translateExerciseTitleEs(title: string): string {
-  return translateDatasetTextEs(title);
+  return translateDatasetTextEs(title, "title");
 }
 
 export function translateMuscleEs(muscle: string): string {
-  return translateDatasetTextEs(muscle);
+  return translateDatasetTextEs(muscle, "title");
 }
 
 export function translateEquipmentEs(equipment: string): string {
-  return translateDatasetTextEs(equipment);
+  return translateDatasetTextEs(equipment, "title");
 }
 
 export function translateInstructionEs(instruction: string): string {
-  return translateDatasetTextEs(instruction);
+  return translateDatasetTextEs(instruction, "sentence");
 }

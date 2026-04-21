@@ -89,7 +89,7 @@ export default function EjerciciosPage() {
         equipamientoMostrado.toLowerCase().includes(busqueda.toLowerCase());
       return matchCat && matchMus && matchBus;
     });
-  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda, locale]);
+  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function EjerciciosPage() {
             />
             <Input
               type="text"
-              placeholder={locale === 'es' ? 'Buscar por nombre, músculo o equipo...' : 'Search by name, muscle or equipment...'}
+              placeholder={'Buscar por nombre, músculo o equipo...'}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="pl-10 rounded-2xl py-3 w-full"
@@ -257,6 +257,18 @@ export default function EjerciciosPage() {
                             alt={nombreMostrado}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
+                            onError={(e) => {
+                              const img = e.currentTarget as HTMLImageElement;
+                              img.style.display = 'none';
+                              const parent = img.parentElement;
+                              if (parent && !parent.querySelector('[data-fallback]')) {
+                                const fb = document.createElement('div');
+                                fb.setAttribute('data-fallback', '1');
+                                fb.className = 'w-full h-full flex items-center justify-center';
+                                fb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="var(--color-neutral-900)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M6.5 17.5l11-11M3 12h3m15 0h-3M12 3v3m0 12v3"/></svg>`;
+                                parent.appendChild(fb);
+                              }
+                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -295,8 +307,7 @@ export default function EjerciciosPage() {
                     );
                   })()}
 
-                  {/* Acciones hover (solo si es del usuario) */}
-                  {!ejercicio.esPublico || ejercicio.externalId === undefined ? null : null}
+                  {/* Acciones hover */}
                   <div
                     className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{ zIndex: 10 }}

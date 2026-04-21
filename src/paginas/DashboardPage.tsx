@@ -4,12 +4,18 @@ import ColumnChart from "../componentes/charts/columnChart";
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import { useRutinas } from '../context/RutinasContext';
+import { useEstadisticas, calcularVolumenSesion } from '../hooks/useEstadisticas';
 import { useHistorial } from '../context/HistorialContext';
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 export default function DashboardPage() {
   const { t, locale } = useI18n();
   const { rutinas } = useRutinas();
   const { sesiones } = useHistorial();
+  const { semanasActivas, maxKg, rachaActual, totalEntrenos } = useEstadisticas();
+
   const diasSemanaVacios = locale === 'es'
     ? [
       { dia: "L", valor1: 0 },
@@ -30,23 +36,12 @@ export default function DashboardPage() {
       { dia: "S", valor1: 0 },
     ];
 
-  const calcularVolumenSesion = (ejercicios: { series: { kg: number; reps: number }[] }[]) => {
-    return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + serie.kg * serie.reps, 0), 0);
-  };
-
-  const pad2 = (n: number) => String(n).padStart(2, '0');
-  const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-
   const diasSemana = useMemo(() => {
-    // Últimos 7 días (incluyendo hoy), alineado con el idioma.
     const hoy = new Date();
-
     const items = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - (6 - i));
-      // Etiqueta ÚNICA para evitar duplicados en eje X (p.ej. Tue/Thu o Sat/Sun en "T"/"S").
       const weekday = d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' });
       const label = `${weekday} ${String(d.getDate()).padStart(2, '0')}`;
-      // Importante: usar fecha LOCAL. toISOString usa UTC y puede desfasar el día.
       const key = toLocalYYYYMMDD(d);
       const valor1 = Math.round(
         sesiones
@@ -56,50 +51,16 @@ export default function DashboardPage() {
       return { dia: label, valor1 };
     });
 
-    // Si no hay nada aún, devuelve estructura vacía para mantener UI estable
     const hay = items.some(i => i.valor1 > 0);
-    return hay ? items : diasSemanaVacios;
+    return { data: hay ? items : diasSemanaVacios, hayDatos: hay };
   }, [sesiones, locale, diasSemanaVacios]);
 
-  const statsRapidas = useMemo(() => {
-    // Semanas activas: semanas con >=2 sesiones (similar a HistorialContext disciplina).
-    const semanasObj: Record<string, number> = {};
-    sesiones.forEach(s => {
-      const d = new Date(s.fecha + 'T12:00:00');
-      const semana = Math.floor(d.getTime() / (7 * 24 * 60 * 60 * 1000));
-      semanasObj[semana] = (semanasObj[semana] ?? 0) + 1;
-    });
-    const semanasActivas = Object.values(semanasObj).filter(n => n >= 2).length;
-
-    // Racha actual (días consecutivos con >=1 sesión)
-    const uniqueDays = Array.from(new Set(sesiones.map(s => new Date(s.fecha + 'T12:00:00').setHours(0, 0, 0, 0)))).sort((a, b) => a - b);
-    let streak = 0;
-    for (let i = uniqueDays.length - 1; i >= 0; i--) {
-      if (i === uniqueDays.length - 1) streak = 1;
-      else {
-        const diff = uniqueDays[i + 1] - uniqueDays[i];
-        if (diff === 24 * 60 * 60 * 1000) streak += 1;
-        else break;
-      }
-    }
-
-    // PR simple: máximo peso (kg) registrado en cualquier serie (aprox)
-    let maxKg = 0;
-    sesiones.forEach(s => {
-      s.ejercicios.forEach(ej => {
-        ej.series.forEach(serie => {
-          if (serie.kg > maxKg) maxKg = serie.kg;
-        });
-      });
-    });
-
-    return [
-      { label: locale === 'es' ? "Semanas activo" : "Active weeks", val: semanasActivas ? String(semanasActivas) : "—" },
-      { label: locale === 'es' ? "Mejor peso (kg)" : "Best weight (kg)", val: maxKg ? String(maxKg) : "—" },
-      { label: locale === 'es' ? "Racha actual" : "Current streak", val: streak ? String(streak) : "—" },
-      { label: locale === 'es' ? "Sesiones" : "Sessions", val: sesiones.length ? String(sesiones.length) : "—" },
-    ];
-  }, [sesiones, locale]);
+  const statsRapidas = useMemo(() => [
+    { label: locale === 'es' ? "Semanas activo" : "Active weeks", val: semanasActivas ? String(semanasActivas) : "—" },
+    { label: locale === 'es' ? "Mejor peso (kg)" : "Best weight (kg)", val: maxKg ? String(maxKg) : "—" },
+    { label: locale === 'es' ? "Racha actual" : "Current streak", val: rachaActual ? String(rachaActual) : "—" },
+    { label: locale === 'es' ? "Sesiones" : "Sessions", val: totalEntrenos ? String(totalEntrenos) : "—" },
+  ], [locale, semanasActivas, maxKg, rachaActual, totalEntrenos]);
 
   return (
     <AppLayout>
@@ -189,15 +150,17 @@ export default function DashboardPage() {
               </div>
               <div className="h-[220px] w-full">
                 <ColumnChart
-                  data={diasSemana}
+                  data={diasSemana.data}
                   xAxisKey="dia"
                   bars={[{ key: "valor1", color: "var(--color-primary)", name: t.history.kg }]}
                   height="100%"
                 />
               </div>
-              <p className="text-center text-neutral-600 text-[10px] uppercase tracking-widest italic mt-2">
-                {locale === 'es' ? 'Sin entrenamientos esta semana' : 'No workouts this week'}
-              </p>
+              {!diasSemana.hayDatos && (
+                <p className="text-center text-neutral-600 text-[10px] uppercase tracking-widest italic mt-2">
+                  {locale === 'es' ? 'Sin entrenamientos esta semana' : 'No workouts this week'}
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -4,46 +4,28 @@ import ColumnChart from "../componentes/charts/columnChart";
 import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
-import { useAuth } from "../context/AuthContext";
-
-function startOfDayMs(yyyyMmDd: string) {
-  return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
-}
-
-function calcularVolumenSesion(ejercicios: { series: { kg: number; reps: number }[] }[]) {
-  return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + serie.kg * serie.reps, 0), 0);
-}
+import { useEstadisticas, calcularVolumenSesion } from '../hooks/useEstadisticas';
 
 export default function EstadisticasPage() {
   const { t, locale } = useI18n();
-  const { sesiones, metricas } = useHistorial();
-  const { user } = useAuth();
-
-  const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
-  const now = new Date();
-  const year = now.getFullYear();
-  const nowMs = now.getTime();
-
+  const { sesiones } = useHistorial();
   const {
     totalEntrenos,
     totalMin,
     kcal,
-    mesesVolumen,
-    mesesEntrenos,
-    hayDatos,
-    intensidadMediaLabel,
-    frecuenciaSemanalLabel,
-    mejorRachaLabel,
-    imcLabel,
-    progresoPesoLabel,
+    mejorRacha,
+    frecuenciaSemanal,
     datosFisicosCompletos,
-  } = useMemo(() => {
-    const totalEntrenos = sesiones.length;
-    const totalMin = sesiones.reduce((t, s) => t + (s.duracionMin ?? 0), 0);
+    imc,
+    progresoPeso,
+    metricas,
+    hayDatos,
+  } = useEstadisticas();
 
-    // Estimación sencilla para fuerza general: ~5 kcal/min.
-    const kcal = Math.round(totalMin * 5);
+  const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
+  const year = new Date().getFullYear();
 
+  const { mesesVolumen, mesesEntrenos } = useMemo(() => {
     const mesesVolumen = Array.from({ length: 12 }, (_, m) => {
       const d = new Date(year, m, 1);
       const name = d.toLocaleString(localeStr, { month: 'short' });
@@ -66,78 +48,19 @@ export default function EstadisticasPage() {
       return { name, entrenos };
     });
 
-    const hayDatos = totalEntrenos > 0;
+    return { mesesVolumen, mesesEntrenos };
+  }, [sesiones, year, localeStr]);
 
-    // Intensidad media (de HistorialContext) + etiquetas para UI.
-    const intensidadMediaLabel = metricas.intensidad;
+  const intensidadMediaLabel = metricas.intensidad;
+  const frecuenciaSemanalLabel = frecuenciaSemanal.toFixed(1);
+  const mejorRachaLabel = String(mejorRacha);
+  const imcLabel = imc ? imc.toFixed(1) : "—";
 
-    // Frecuencia semanal: media de entrenos en últimas 4 semanas.
-    const last28 = sesiones.filter(s => {
-      const ms = startOfDayMs(s.fecha);
-      return nowMs - ms <= 28 * 24 * 60 * 60 * 1000;
-    }).length;
-    const freq = (last28 / 4);
-    const frecuenciaSemanalLabel = `${freq.toFixed(1)}`;
-
-    // Mejor racha (días consecutivos con >=1 sesión)
-    const uniqueDays = Array.from(new Set(sesiones.map(s => startOfDayMs(s.fecha)))).sort((a, b) => a - b);
-    let best = 0;
-    let cur = 0;
-    for (let i = 0; i < uniqueDays.length; i++) {
-      if (i === 0) {
-        cur = 1;
-      } else {
-        const diff = uniqueDays[i] - uniqueDays[i - 1];
-        if (diff === 24 * 60 * 60 * 1000) cur += 1;
-        else cur = 1;
-      }
-      best = Math.max(best, cur);
-    }
-    const mejorRachaLabel = String(best);
-
-    const pesoKg = user?.pesoKg;
-    const alturaCm = user?.alturaCm;
-    const objetivoPesoKg = user?.objetivoPesoKg;
-
-    const datosFisicosCompletos = Boolean(
-      typeof pesoKg === "number" && Number.isFinite(pesoKg) &&
-      typeof alturaCm === "number" && Number.isFinite(alturaCm) &&
-      alturaCm > 0,
-    );
-
-    const imc = datosFisicosCompletos ? pesoKg! / ((alturaCm! / 100) ** 2) : undefined;
-    const imcLabel = imc ? imc.toFixed(1) : "—";
-
-    const progresoPesoLabel = (() => {
-      if (
-        typeof pesoKg !== "number" ||
-        !Number.isFinite(pesoKg) ||
-        typeof objetivoPesoKg !== "number" ||
-        !Number.isFinite(objetivoPesoKg)
-      ) {
-        return "—";
-      }
-
-      const diferencia = Math.abs(pesoKg - objetivoPesoKg);
-      if (diferencia < 0.05) return locale === "es" ? "Objetivo alcanzado" : "Goal reached";
-      return `${diferencia.toFixed(1)} kg`;
-    })();
-
-    return {
-      totalEntrenos,
-      totalMin,
-      kcal,
-      mesesVolumen,
-      mesesEntrenos,
-      hayDatos,
-      intensidadMediaLabel,
-      frecuenciaSemanalLabel,
-      mejorRachaLabel,
-      imcLabel,
-      progresoPesoLabel,
-      datosFisicosCompletos,
-    };
-  }, [sesiones, year, localeStr, metricas.intensidad, user, locale]);
+  const progresoPesoLabel = (() => {
+    if (progresoPeso === null) return "—";
+    if (progresoPeso < 0.05) return locale === "es" ? "Objetivo alcanzado" : "Goal reached";
+    return `${progresoPeso.toFixed(1)} kg`;
+  })();
 
   const estadisticas = useMemo(() => ([
     { titulo: t.statistics.totalWorkouts, valor: String(totalEntrenos) },
@@ -219,10 +142,7 @@ export default function EstadisticasPage() {
               { label: locale === 'es' ? "Frecuencia semanal" : "Weekly frequency", value: hayDatos ? frecuenciaSemanalLabel : "—" },
               { label: locale === 'es' ? "Mejor racha (días)" : "Best streak (days)", value: hayDatos ? mejorRachaLabel : "—" },
               { label: locale === 'es' ? "IMC actual" : "Current BMI", value: imcLabel },
-              {
-                label: locale === 'es' ? "Distancia al objetivo de peso" : "Distance to weight goal",
-                value: progresoPesoLabel,
-              },
+              { label: locale === 'es' ? "Distancia al objetivo de peso" : "Distance to weight goal", value: progresoPesoLabel },
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
                 <span className="text-neutral-300 text-[10px] font-black uppercase tracking-widest italic">
@@ -236,9 +156,7 @@ export default function EstadisticasPage() {
           </div>
           {!datosFisicosCompletos && (
             <p className="text-neutral-500 text-[10px] mt-6 uppercase tracking-[0.16em] font-bold">
-              {locale === "es"
-                ? "Completa tus datos físicos en Perfil > Datos físicos para desbloquear métricas corporales"
-                : "Complete your physical data in Profile > Physical data to unlock body metrics"}
+              {"Completa tus datos físicos en Perfil > Datos físicos para desbloquear métricas corporales"}
             </p>
           )}
         </div>
