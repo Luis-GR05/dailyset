@@ -152,10 +152,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setUser(null);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error inicializando autenticación:", error);
-        // Si hay sesión cacheada, no invalidar usuario por un timeout/fallo temporal de red.
-        if (!hydratedFromCache) {
+        const err = error as { message?: string; code?: string; status?: number };
+        const isInvalidToken =
+          err?.message?.toLowerCase().includes("refresh token") ||
+          err?.code === "invalid_grant" ||
+          err?.status === 400;
+
+        if (isInvalidToken) {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+          try {
+            await supabase.auth.signOut();
+          } catch {
+            // ignore
+          }
+          setUser(null);
+        } else if (!hydratedFromCache) {
           setUser(null);
         }
       } finally {
