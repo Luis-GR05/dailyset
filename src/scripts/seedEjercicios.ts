@@ -23,12 +23,16 @@ config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.VITE_SUPABASE_SERVICE_KEY 
-  ?? process.env.VITE_SUPABASE_ANON_KEY!;
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_KEY =
+  process.env.VITE_SUPABASE_SERVICE_KEY ??
+  process.env.SUPABASE_SERVICE_KEY ??
+  process.env.VITE_SUPABASE_ANON_KEY ??
+  process.env.SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌ Faltan VITE_SUPABASE_URL y/o VITE_SUPABASE_ANON_KEY en .env');
+  console.error('❌ Faltan las variables de entorno de Supabase (SUPABASE_URL y SUPABASE_ANON_KEY / VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY).');
   process.exit(1);
 }
 
