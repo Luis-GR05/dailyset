@@ -128,23 +128,23 @@ export default function EjercicioDetallePage() {
         <div className="flex flex-wrap gap-2">
           {/* Dificultad */}
           <span
-            className="text-xs font-bold px-3 py-1 rounded-full capitalize"
-            style={{ background: `${levelColor}22`, color: levelColor, border: `1px solid ${levelColor}44` }}
+            className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+            style={{ background: levelColor, color: '#000000', border: '1px solid rgba(0,0,0,0.15)' }}
           >
             {ejercicio.dificultad}
           </span>
           {/* Categoría */}
           <span
-            className="text-xs font-bold px-3 py-1 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-3000)', border: '1px solid rgba(255,255,255,0.1)' }}
+            className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+            style={{ background: 'var(--color-primary)', color: '#000000', border: '1px solid rgba(0,0,0,0.15)' }}
           >
             {catLabel}
           </span>
           {/* Equipamiento */}
           {ejercicio.equipamiento && (
             <span
-              className="text-xs font-bold px-3 py-1 rounded-full"
-              style={{ background: 'rgba(67,97,238,0.15)', color: '#7B9EF9', border: '1px solid rgba(67,97,238,0.3)' }}
+              className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+              style={{ background: '#e2e8f0', color: '#000000', border: '1px solid rgba(0,0,0,0.15)' }}
             >
               {getEquipmentText(ejercicio.equipamiento)}
             </span>

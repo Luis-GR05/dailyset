@@ -433,13 +433,14 @@
     .ejercicio-categoria-badge {
         display: inline-block;
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 900;
         padding: 2px 8px;
         border-radius: 9999px;
-        background: rgba(67, 97, 238, 0.12);
-        color: #7B9EF9;
+        background: var(--color-primary);
+        color: #000000;
         margin-left: 6px;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
     }
 
     /* ===================== CARD ACTION MENU ===================== */

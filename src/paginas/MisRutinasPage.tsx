@@ -293,8 +293,8 @@ export default function MisRutinasPage() {
                                                 <div className="flex items-center gap-2">
                                                     <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
                                                     <span
-                                                        className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full"
-                                                        style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--color-neutral-2000)' }}
+                                                        className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
+                                                        style={{ background: 'var(--color-primary)', color: '#000000' }}
                                                     >
                                                         {rutina.categoria}
                                                     </span>
@@ -308,8 +308,8 @@ export default function MisRutinasPage() {
                                                 <div className="flex items-center gap-2">
                                                     <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
                                                     <span
-                                                        className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full"
-                                                        style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--color-neutral-2000)' }}
+                                                        className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
+                                                        style={{ background: 'var(--color-primary)', color: '#000000' }}
                                                     >
                                                         {rutina.categoria}
                                                     </span>
@@ -392,21 +392,21 @@ export default function MisRutinasPage() {
                                             <div className="flex items-center justify-between gap-2 flex-wrap">
                                                 <div className="flex items-center gap-2">
                                                     <span
-                                                        className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                                                        className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm"
                                                         style={{
-                                                            background: `${plantilla.color}22`,
-                                                            color: plantilla.color,
-                                                            border: `1px solid ${plantilla.color}44`,
+                                                            background: plantilla.color,
+                                                            color: ['#4361EE', '#8b5cf6'].includes(plantilla.color) ? '#ffffff' : '#000000',
+                                                            border: '1px solid rgba(0, 0, 0, 0.15)',
                                                         }}
                                                     >
                                                         {plantilla.categoria}
                                                     </span>
                                                     <span
-                                                        className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                                        className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm"
                                                         style={{
-                                                            background: `${nivelBadgeColor}18`,
-                                                            color: nivelBadgeColor,
-                                                            border: `1px solid ${nivelBadgeColor}33`,
+                                                            background: nivelBadgeColor,
+                                                            color: '#000000',
+                                                            border: '1px solid rgba(0, 0, 0, 0.15)',
                                                         }}
                                                     >
                                                         {plantilla.nivel}

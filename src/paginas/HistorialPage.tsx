@@ -17,21 +17,8 @@ import {
   Activity
 } from 'lucide-react';
 
-// Generar los últimos 24 meses desde el mes actual
-function getUltimos24Meses() {
-  const meses = [];
-  const ahora = new Date();
-  for (let i = 0; i < 24; i++) {
-    const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-    meses.push({ mes: d.getMonth(), anio: d.getFullYear() });
-  }
-  return meses;
-}
-
-const TODOS_MESES = getUltimos24Meses();
-
 export default function HistorialPage() {
-  const { metricas, sesiones, getSesionesPorMes, getMetricasPorMes } = useHistorial();
+  const { metricas, sesiones, getSesionesPorMes, getSesionesPorFecha, getMetricasPorMes } = useHistorial();
   const { locale } = useI18n();
   const navigate = useNavigate();
 
@@ -46,6 +33,12 @@ export default function HistorialPage() {
   // Búsqueda en historial completo
   const [busqueda, setBusqueda] = useState('');
   const [filtroAnio, setFiltroAnio] = useState<number | 'todos'>('todos');
+
+  // Configuración de alcance temporal y selección de fecha específica
+  const [anioLimite, setAnioLimite] = useState<number>(2020);
+  const [fechaIr, setFechaIr] = useState<string>('');
+  const [fechaDesde, setFechaDesde] = useState<string>('');
+  const [fechaHasta, setFechaHasta] = useState<string>('');
 
   // Nombre formateado del mes
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
@@ -104,22 +97,47 @@ export default function HistorialPage() {
 
   const esMesDeHoy = mesActual === ahora.getMonth() && anioActual === ahora.getFullYear();
 
-  // Años disponibles en el historial
+  // Años disponibles en el historial: desde año actual hasta anioLimite o año de sesión más antigua
   const aniosDisponibles = useMemo(() => {
     const years = new Set<number>();
-    sesiones.forEach(s => {
-      const y = parseInt(s.fecha.split('-')[0], 10);
-      if (!isNaN(y)) years.add(y);
-    });
-    years.add(ahora.getFullYear());
+    const anioMax = ahora.getFullYear();
+    const anioMinSesiones = sesiones.length > 0
+      ? Math.min(...sesiones.map(s => parseInt(s.fecha.split('-')[0], 10) || anioMax))
+      : anioMax;
+    const anioMin = Math.min(anioLimite, anioMinSesiones);
+
+    for (let y = anioMax; y >= anioMin; y--) {
+      years.add(y);
+    }
     return Array.from(years).sort((a, b) => b - a);
-  }, [sesiones, ahora]);
+  }, [sesiones, ahora, anioLimite]);
+
+  // Lista dinámica de meses generados
+  const todosLosMeses = useMemo(() => {
+    const meses: { mes: number; anio: number }[] = [];
+    const anioMax = ahora.getFullYear();
+    const anioMinSesiones = sesiones.length > 0
+      ? Math.min(...sesiones.map(s => parseInt(s.fecha.split('-')[0], 10) || anioMax))
+      : anioMax;
+    const anioMin = Math.min(anioLimite, anioMinSesiones);
+
+    for (let y = anioMax; y >= anioMin; y--) {
+      const mesMax = y === anioMax ? ahora.getMonth() : 11;
+      for (let m = mesMax; m >= 0; m--) {
+        if (fechaDesde || fechaHasta) {
+          const primerDiaMes = new Date(y, m, 1);
+          const ultimoDiaMes = new Date(y, m + 1, 0);
+          if (fechaDesde && ultimoDiaMes < new Date(fechaDesde)) continue;
+          if (fechaHasta && primerDiaMes > new Date(fechaHasta)) continue;
+        }
+        meses.push({ mes: m, anio: y });
+      }
+    }
+    return meses;
+  }, [ahora, anioLimite, sesiones, fechaDesde, fechaHasta]);
 
   // Sesiones filtradas para la vista completa
   const sesionesFiltradasTodo = useMemo(() => {
-    if (!busqueda.trim() && filtroAnio === 'todos') {
-      return sesiones;
-    }
     return sesiones.filter(s => {
       const matchBusqueda = !busqueda.trim() ||
         s.rutina.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -128,9 +146,32 @@ export default function HistorialPage() {
       const anio = parseInt(s.fecha.split('-')[0], 10);
       const matchAnio = filtroAnio === 'todos' || anio === filtroAnio;
 
-      return matchBusqueda && matchAnio;
-    });
-  }, [sesiones, busqueda, filtroAnio]);
+      const matchDesde = !fechaDesde || s.fecha >= fechaDesde;
+      const matchHasta = !fechaHasta || s.fecha <= fechaHasta;
+
+      return matchBusqueda && matchAnio && matchDesde && matchHasta;
+    }).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  }, [sesiones, busqueda, filtroAnio, fechaDesde, fechaHasta]);
+
+  // Saltar a cualquier fecha seleccionada
+  const handleIrAFecha = (fechaDestino: string) => {
+    if (!fechaDestino) return;
+    const parts = fechaDestino.split('-').map(Number);
+    if (parts.length < 3 || isNaN(parts[0])) return;
+    const [y, m] = parts;
+
+    // Si hay una sesión ese día, navegar a su detalle
+    const sesionesEseDia = getSesionesPorFecha(fechaDestino);
+    if (sesionesEseDia && sesionesEseDia.length > 0) {
+      navigate(`/historial/${fechaDestino}`);
+      return;
+    }
+
+    // Si no hay sesión o para consultar ese mes en el calendario
+    setAnioActual(y);
+    setMesActual(m - 1);
+    setVista('mes_actual');
+  };
 
   // Manejar clic en un día del calendario
   const handleDiaClick = (dia: number) => {
@@ -221,10 +262,24 @@ export default function HistorialPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
-                    {nombreMesSeleccionado} <span className="text-neutral-400 font-mono text-base font-normal">{anioActual}</span>
-                  </h2>
-                  <p className="text-xs text-neutral-400">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
+                      {nombreMesSeleccionado} <span className="text-neutral-400 font-mono text-base font-normal">{anioActual}</span>
+                    </h2>
+                    <input
+                      type="month"
+                      value={`${anioActual}-${String(mesActual + 1).padStart(2, '0')}`}
+                      onChange={(e) => {
+                        if (!e.target.value) return;
+                        const [y, m] = e.target.value.split('-').map(Number);
+                        setAnioActual(y);
+                        setMesActual(m - 1);
+                      }}
+                      title={locale === 'es' ? 'Seleccionar mes y año' : 'Select month and year'}
+                      className="bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs rounded-xl px-2.5 py-1 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
+                    />
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-0.5">
                     {sesionesDelMes.length} {locale === 'es' ? 'sesiones registradas este mes' : 'sessions recorded this month'}
                   </p>
                 </div>
@@ -438,47 +493,129 @@ export default function HistorialPage() {
         {vista === 'todo' && (
           <div className="space-y-6">
 
-            {/* Filtros y Buscador para todo el historial */}
-            <div className="card p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="relative w-full md:w-80">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
-                <input
-                  type="text"
-                  placeholder={locale === 'es' ? "Buscar por rutina o ejercicio..." : "Search routine or exercise..."}
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-white text-xs sm:text-sm outline-none focus:border-[var(--color-primary)] transition-colors"
-                />
+            {/* Panel de Selección de Fechas, Alcance Temporal y Búsqueda */}
+            <div className="card p-4 sm:p-5 rounded-2xl space-y-4">
+              
+              {/* Fila 1: Buscador y Salto directo a fecha específica */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                {/* Buscador */}
+                <div className="relative flex-1">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    type="text"
+                    placeholder={locale === 'es' ? "Buscar por rutina o ejercicio..." : "Search routine or exercise..."}
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-white text-xs sm:text-sm outline-none focus:border-[var(--color-primary)] transition-colors"
+                  />
+                </div>
+
+                {/* Ir directamente a una fecha elegida */}
+                <div className="flex items-center gap-2 bg-neutral-800/90 p-1.5 rounded-xl border border-neutral-700 shrink-0">
+                  <span className="text-xs text-neutral-300 font-bold px-2 flex items-center gap-1.5">
+                    <Calendar size={13} className="text-[var(--color-primary)]" />
+                    {locale === 'es' ? 'Ir a fecha:' : 'Go to date:'}
+                  </span>
+                  <input
+                    type="date"
+                    value={fechaIr}
+                    onChange={(e) => setFechaIr(e.target.value)}
+                    className="bg-neutral-900 border border-neutral-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-primary)]"
+                  />
+                  <button
+                    onClick={() => handleIrAFecha(fechaIr)}
+                    disabled={!fechaIr}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                      fechaIr
+                        ? 'bg-[var(--color-primary)] text-black cursor-pointer hover:brightness-110'
+                        : 'bg-white/5 text-neutral-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {locale === 'es' ? 'Ver' : 'Go'}
+                  </button>
+                </div>
               </div>
 
-              {/* Selector de años */}
-              <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
-                <span className="text-xs font-bold text-neutral-400 mr-1 flex items-center gap-1">
-                  <Filter size={12} /> {locale === 'es' ? 'Año:' : 'Year:'}
-                </span>
-                <button
-                  onClick={() => setFiltroAnio('todos')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                    filtroAnio === 'todos'
-                      ? 'bg-[var(--color-primary)] text-black font-black'
-                      : 'bg-white/5 text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  {locale === 'es' ? 'Todos' : 'All'}
-                </button>
-                {aniosDisponibles.map((y) => (
+              {/* Fila 2: Filtro por Año + Selector de límite hasta qué año ir + Rango personalizado */}
+              <div className="pt-3 border-t border-neutral-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                
+                {/* Selector rápido de años */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0">
+                  <span className="text-xs font-bold text-neutral-400 mr-1 flex items-center gap-1 shrink-0">
+                    <Filter size={12} /> {locale === 'es' ? 'Año:' : 'Year:'}
+                  </span>
                   <button
-                    key={y}
-                    onClick={() => setFiltroAnio(y)}
+                    onClick={() => setFiltroAnio('todos')}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                      filtroAnio === y
+                      filtroAnio === 'todos'
                         ? 'bg-[var(--color-primary)] text-black font-black'
                         : 'bg-white/5 text-neutral-400 hover:text-white'
                     }`}
                   >
-                    {y}
+                    {locale === 'es' ? 'Todos' : 'All'}
                   </button>
-                ))}
+                  {aniosDisponibles.map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => setFiltroAnio(y)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                        filtroAnio === y
+                          ? 'bg-[var(--color-primary)] text-black font-black'
+                          : 'bg-white/5 text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Controles de Límite y Rango de Fechas */}
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  {/* Selector de hasta qué año consultar */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-neutral-400 font-semibold">{locale === 'es' ? 'Hasta año:' : 'Back to year:'}</span>
+                    <select
+                      value={anioLimite}
+                      onChange={(e) => setAnioLimite(Number(e.target.value))}
+                      className="bg-neutral-800 border border-neutral-700 text-white rounded-lg px-2.5 py-1 text-xs font-mono outline-none focus:border-[var(--color-primary)]"
+                    >
+                      <option value={2024}>2024 (2 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2023}>2023 (3 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2022}>2022 (4 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2020}>2020 (6 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2018}>2018 (8 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2015}>2015 (10 {locale === 'es' ? 'años' : 'years'})</option>
+                      <option value={2010}>2010 ({locale === 'es' ? 'Histórico completo' : 'Full history'})</option>
+                    </select>
+                  </div>
+
+                  {/* Rango Desde / Hasta */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-neutral-500 font-semibold">{locale === 'es' ? 'Desde:' : 'From:'}</span>
+                    <input
+                      type="date"
+                      value={fechaDesde}
+                      onChange={(e) => setFechaDesde(e.target.value)}
+                      className="bg-neutral-800 border border-neutral-700 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[var(--color-primary)]"
+                    />
+                    <span className="text-neutral-500 font-semibold">{locale === 'es' ? 'Hasta:' : 'To:'}</span>
+                    <input
+                      type="date"
+                      value={fechaHasta}
+                      onChange={(e) => setFechaHasta(e.target.value)}
+                      className="bg-neutral-800 border border-neutral-700 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[var(--color-primary)]"
+                    />
+                    {(fechaDesde || fechaHasta) && (
+                      <button
+                        onClick={() => { setFechaDesde(''); setFechaHasta(''); }}
+                        className="text-[11px] text-red-400 hover:underline px-1"
+                      >
+                        {locale === 'es' ? 'Limpiar' : 'Clear'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -518,20 +655,20 @@ export default function HistorialPage() {
                 </div>
               </div>
             ) : (
-              /* Grid completo de meses históricos */
+              /* Grid completo de meses históricos dinámicos */
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h3 className="text-base font-extrabold text-white">
                     {locale === 'es' ? 'Todos los Meses' : 'All Months'}
                   </h3>
                   <span className="text-xs text-neutral-400 font-mono">
-                    {TODOS_MESES.length} {locale === 'es' ? 'meses en archivo' : 'months archived'}
+                    {todosLosMeses.filter(m => filtroAnio === 'todos' || m.anio === filtroAnio).length} {locale === 'es' ? 'meses en archivo' : 'months archived'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {TODOS_MESES.filter(m => filtroAnio === 'todos' || m.anio === filtroAnio).map((m, i) => (
-                    <MonthCard key={i} mes={m.mes} anio={m.anio} />
+                  {todosLosMeses.filter(m => filtroAnio === 'todos' || m.anio === filtroAnio).map((m, i) => (
+                    <MonthCard key={`${m.anio}-${m.mes}-${i}`} mes={m.mes} anio={m.anio} />
                   ))}
                 </div>
               </div>
