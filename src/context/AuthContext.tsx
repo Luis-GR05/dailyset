@@ -67,7 +67,48 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       .single();
 
     if (error || !data) {
-      console.warn("Perfil no disponible, usando sesión auth:", error);
+      console.warn("Perfil no disponible, intentando sincronizar perfil:", error);
+      try {
+        const rawName =
+          (authUser.user_metadata?.nombre_completo as string | undefined) ||
+          (authUser.user_metadata?.nombre_usuario as string | undefined) ||
+          authUser.email?.split("@")[0] ||
+          "Atleta";
+        const baseUsername = rawName
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/[^a-z0-9_]/g, "");
+        const username = `${baseUsername}_${Date.now().toString().slice(-4)}`;
+
+        const { data: created, error: insertError } = await supabase
+          .from("perfiles")
+          .insert({
+            id: authUser.id,
+            nombre_usuario: authUser.user_metadata?.nombre_usuario || username,
+            nombre_completo: authUser.user_metadata?.nombre_completo || rawName,
+          })
+          .select("*")
+          .single();
+
+        if (!insertError && created) {
+          const prefs = created.preferencias || {};
+          return {
+            id: created.id,
+            email: authUser.email || "",
+            nombre: created.nombre_completo || created.nombre_usuario || "",
+            unidadesKg: prefs.unidadesKg ?? true,
+            notificaciones: prefs.notificaciones ?? false,
+            rango: created.nivel_entrenamiento?.toUpperCase() || "ATLETA",
+            progreso: 0,
+            totalSets: "0",
+            racha: 0,
+            pesoTotal: "0",
+          };
+        }
+      } catch (autoCreateErr) {
+        console.warn("No se pudo auto-crear perfil:", autoCreateErr);
+      }
+
       return mapAuthUser(authUser);
     }
 

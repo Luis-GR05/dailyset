@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 const LandingPage = lazy(() => import('./paginas/LandingPage'));
 const LoginPage = lazy(() => import('./paginas/LoginPage'));
 const RegistroPage = lazy(() => import('./paginas/RegistroPage'));
+const RegistroConfirmacionPage = lazy(() => import('./paginas/RegistroConfirmacionPage'));
 
 const DashboardPage = lazy(() => import('./paginas/DashboardPage'));
 const MisRutinasPage = lazy(() => import('./paginas/MisRutinasPage'));
@@ -71,6 +72,12 @@ function App() {
                   <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
                   <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
                   <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+
+                  {/* Confirmación de registro */}
+                  <Route path="/registro-confirmacion" element={<RegistroConfirmacionPage />} />
+
+                  {/* Redirección para rutas no encontradas (evita pantalla en negro) */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </Router>

@@ -22,12 +22,18 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch {
-      setError(
-        locale === 'es'
-          ? 'Email o contraseña incorrectos'
-          : 'Invalid email or password'
-      );
+    } catch (err: any) {
+      console.error('Error al iniciar sesión:', err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+        setError(t.auth.emailNotConfirmed);
+      } else {
+        setError(
+          locale === 'es'
+            ? 'Email o contraseña incorrectos'
+            : 'Invalid email or password'
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -140,8 +146,19 @@ export default function LoginPage() {
 
               {/* Mensaje de error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-center">
-                  <p className="text-red-400 text-xs font-bold uppercase tracking-wider">{error}</p>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 text-center space-y-2">
+                  <p className="text-red-400 text-xs font-semibold leading-relaxed">{error}</p>
+                  {error === t.auth.emailNotConfirmed && (
+                    <div className="pt-1">
+                      <Link
+                        to="/registro-confirmacion"
+                        state={{ email }}
+                        className="inline-block text-xs font-bold text-white underline hover:text-neutral-200 transition-colors"
+                      >
+                        {t.auth.confirmEmailTitle} / {t.auth.resendEmail} →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 

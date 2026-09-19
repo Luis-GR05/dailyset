@@ -35,16 +35,30 @@ export default function RegistroPage() {
       const { requiresEmailConfirmation } = await register(email, password, nombre);
 
       if (requiresEmailConfirmation) {
-        navigate('/registro-confirmacion');
+        navigate('/registro-confirmacion', { state: { email } });
       } else {
         navigate('/dashboard');
       }
-    } catch {
-      setError(
-        locale === 'es'
-          ? 'Error al crear la cuenta. Puede que el email ya esté en uso.'
-          : 'Error creating account. Email may already be in use.'
-      );
+    } catch (err: any) {
+      console.error('Error al registrar usuario:', err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (msg.includes('rate limit')) {
+        setError(
+          locale === 'es'
+            ? 'Límite de correos de Supabase superado (máx. 3-4/hora). Espera unos minutos o desactiva "Confirm email" en el panel de Supabase para registro instantáneo.'
+            : 'Supabase email rate limit reached. Please wait a few minutes or disable "Confirm email" in Supabase.'
+        );
+      } else if (msg.includes('already registered') || msg.includes('user_already_exists') || msg.includes('already exists')) {
+        setError(t.auth.alreadyRegisteredDesc);
+      } else if (err?.message) {
+        setError(err.message);
+      } else {
+        setError(
+          locale === 'es'
+            ? 'Error al crear la cuenta. Por favor, inténtalo de nuevo.'
+            : 'Error creating account. Please try again.'
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -190,8 +204,19 @@ export default function RegistroPage() {
 
               {/* Mensaje de error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-center">
-                  <p className="text-red-400 text-xs font-bold uppercase tracking-wider">{error}</p>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 text-center space-y-2">
+                  <p className="text-red-400 text-xs font-semibold leading-relaxed">{error}</p>
+                  {(error.includes('registrado') || error.includes('registered')) && (
+                    <div className="flex items-center justify-center gap-4 pt-1 text-xs">
+                      <Link to="/login" className="font-bold underline text-white hover:text-white/80 transition-colors">
+                        {t.auth.signIn}
+                      </Link>
+                      <span className="text-neutral-500">·</span>
+                      <Link to="/registro-confirmacion" state={{ email }} className="font-bold underline text-neutral-300 hover:text-white transition-colors">
+                        {t.auth.confirmEmailTitle}
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
