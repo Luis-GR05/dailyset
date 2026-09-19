@@ -35,6 +35,42 @@ const CATEGORY_COLORS: Record<string, string> = {
   general: 'var(--color-neutral-2000)',
 };
 
+const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+  abductors: { es: 'Abductores', en: 'Abductors' },
+  abs: { es: 'Abdominales', en: 'Abs' },
+  adductors: { es: 'Aductores', en: 'Adductors' },
+  biceps: { es: 'Bíceps', en: 'Biceps' },
+  calves: { es: 'Gemelos', en: 'Calves' },
+  cardio: { es: 'Cardio', en: 'Cardio' },
+  delts: { es: 'Deltoides (Hombros)', en: 'Deltoids' },
+  forearms: { es: 'Antebrazos', en: 'Forearms' },
+  glutes: { es: 'Glúteos', en: 'Glutes' },
+  hamstrings: { es: 'Isquiotibiales', en: 'Hamstrings' },
+  lats: { es: 'Dorsales', en: 'Lats' },
+  'levator-scapulae': { es: 'Elevador de la escápula', en: 'Levator Scapulae' },
+  pectorals: { es: 'Pectorales', en: 'Pectorals' },
+  quads: { es: 'Cuádriceps', en: 'Quads' },
+  'serratus-anterior': { es: 'Serrato anterior', en: 'Serratus Anterior' },
+  spine: { es: 'Espina / Lumbar', en: 'Spine / Lower Back' },
+  traps: { es: 'Trapecios', en: 'Traps' },
+  triceps: { es: 'Tríceps', en: 'Triceps' },
+  'upper-back': { es: 'Espalda superior', en: 'Upper Back' },
+};
+
+const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+  barbell: { es: 'Barra', en: 'Barbell' },
+  dumbbell: { es: 'Mancuerna', en: 'Dumbbell' },
+  cable: { es: 'Polea', en: 'Cable' },
+  machine: { es: 'Máquina', en: 'Machine' },
+  bodyweight: { es: 'Peso corporal', en: 'Bodyweight' },
+  band: { es: 'Banda elástica', en: 'Band' },
+  kettlebell: { es: 'Pesa rusa (Kettlebell)', en: 'Kettlebell' },
+  smith: { es: 'Máquina Smith', en: 'Smith' },
+  'ez-bar': { es: 'Barra Z', en: 'EZ Bar' },
+  lever: { es: 'Palanca', en: 'Lever' },
+  other: { es: 'Otro', en: 'Other' },
+};
+
 const MIN_EXERCISES_PER_CATEGORY = 2;
 const normalizeCategory = (cat?: string) => (cat === 'general' ? 'all' : (cat ?? 'all'));
 
@@ -44,6 +80,7 @@ export default function EjerciciosPage() {
 
   const [filtroCategoria, setFiltroCategoria] = useState<string>('all');
   const [filtroMusculo, setFiltroMusculo] = useState<string>('all');
+  const [filtroEquipamiento, setFiltroEquipamiento] = useState<string>('all');
   const [busqueda, setBusqueda] = useState('');
   const [modal, setModal] = useState<Modal>(null);
   const [paginaActual, setPaginaActual] = useState(1);
@@ -72,23 +109,44 @@ export default function EjerciciosPage() {
     return [...set].sort();
   }, [ejercicios]);
 
+  // Equipamientos únicos
+  const equipamientos = useMemo(() => {
+    const set = new Set<string>();
+    ejercicios.forEach(e => {
+      if (e.equipamiento) set.add(e.equipamiento);
+    });
+    return [...set].sort();
+  }, [ejercicios]);
+
+  const getMuscleText = (m: string) => {
+    const item = MUSCLE_TRANSLATIONS[m.toLowerCase()];
+    return item ? (locale === 'es' ? item.es : item.en) : m;
+  };
+
+  const getEquipmentText = (eq: string) => {
+    const item = EQUIPMENT_TRANSLATIONS[eq.toLowerCase()];
+    return item ? (locale === 'es' ? item.es : item.en) : eq;
+  };
+
   const ejerciciosFiltrados = useMemo(() => {
     return ejercicios.filter(ej => {
       const categoriaNormalizada = normalizeCategory(ej.categoriaEjercicio);
       const matchCat = filtroCategoria === 'all' || categoriaNormalizada === filtroCategoria;
       const matchMus = filtroMusculo === 'all' || ej.musculosPrimarios.includes(filtroMusculo);
+      const matchEq = filtroEquipamiento === 'all' || ej.equipamiento === filtroEquipamiento;
       const matchBus = busqueda === '' ||
         ej.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         ej.grupo.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (ej.equipamiento ?? '').toLowerCase().includes(busqueda.toLowerCase());
-      return matchCat && matchMus && matchBus;
+        (ej.equipamiento ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
+        ej.musculosPrimarios.some(m => getMuscleText(m).toLowerCase().includes(busqueda.toLowerCase()));
+      return matchCat && matchMus && matchEq && matchBus;
     });
-  }, [ejercicios, filtroCategoria, filtroMusculo, busqueda]);
+  }, [ejercicios, filtroCategoria, filtroMusculo, filtroEquipamiento, busqueda, locale]);
 
   // Reset page when filters change
   useEffect(() => {
     setPaginaActual(1);
-  }, [filtroCategoria, filtroMusculo, busqueda]);
+  }, [filtroCategoria, filtroMusculo, filtroEquipamiento, busqueda]);
 
   const totalPaginas = Math.ceil(ejerciciosFiltrados.length / ITEMS_PER_PAGE);
   const ejerciciosPaginados = ejerciciosFiltrados.slice(
@@ -163,7 +221,8 @@ export default function EjerciciosPage() {
         </div>
 
         {/* Filtros compactos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {/* Categoría */}
           <div className="card p-2.5 sm:p-3 rounded-2xl">
             <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
               {locale === 'es' ? 'Categoría' : 'Category'}
@@ -173,7 +232,7 @@ export default function EjerciciosPage() {
               onChange={(e) => setFiltroCategoria(e.target.value)}
               className="w-full"
             >
-              <option value="all">{locale === 'es' ? 'Todos / General' : 'All / General'}</option>
+              <option value="all">{locale === 'es' ? 'Todas' : 'All'}</option>
               {categoriasConConteo.map(({ cat, count }) => (
                 <option key={cat} value={cat}>
                   {catLabel(cat)} ({count})
@@ -182,6 +241,7 @@ export default function EjerciciosPage() {
             </select>
           </div>
 
+          {/* Músculo */}
           {musculos.length > 0 && (
             <div className="card p-2.5 sm:p-3 rounded-2xl">
               <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
@@ -192,10 +252,36 @@ export default function EjerciciosPage() {
                 onChange={(e) => setFiltroMusculo(e.target.value)}
                 className="w-full capitalize"
               >
-                <option value="all">{locale === 'es' ? 'Todos' : 'All'}</option>
+                <option value="all">{locale === 'es' ? 'Todos los músculos' : 'All muscles'}</option>
                 {musculos.map((m) => (
-                  <option key={m} value={m} className="capitalize">
-                    {m}
+                  <option key={m} value={m}>
+                    {getMuscleText(m)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Equipamiento */}
+          {equipamientos.length > 0 && (
+            <div className="card p-2.5 sm:p-3 rounded-2xl">
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--color-neutral-2000)' }}>
+                {locale === 'es' ? 'Equipamiento' : 'Equipment'}
+              </label>
+              <select
+                value={filtroEquipamiento}
+                onChange={(e) => setFiltroEquipamiento(e.target.value)}
+                className="w-full rounded-xl px-3 py-2 text-sm"
+                style={{
+                  backgroundColor: 'var(--color-neutral-800)',
+                  border: '1px solid var(--color-neutral-900)',
+                  color: 'var(--color-white)',
+                }}
+              >
+                <option value="all">{locale === 'es' ? 'Todo el equipamiento' : 'All equipment'}</option>
+                {equipamientos.map((eq) => (
+                  <option key={eq} value={eq}>
+                    {getEquipmentText(eq)}
                   </option>
                 ))}
               </select>
@@ -236,6 +322,16 @@ export default function EjerciciosPage() {
                             <Dumbbell size={28} style={{ color: 'var(--color-neutral-900)' }} />
                           </div>
                         )}
+
+                        {/* Insignia GIF */}
+                        {ejercicio.imagenInicio?.endsWith('.gif') && (
+                          <span
+                            className="absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 rounded tracking-widest uppercase bg-black/60 text-white backdrop-blur-md border border-white/20"
+                          >
+                            GIF
+                          </span>
+                        )}
+
                         {/* Badge categoría */}
                         <span
                           className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full"
