@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Flame,
   Clock,
-  Footprints,
   Dumbbell,
   Trophy,
   Flame as FireIcon
@@ -23,6 +22,9 @@ export default function DashboardPage() {
   const hoyFecha = new Date();
   const hoyDiaIndex = (hoyFecha.getDay() + 6) % 7; // Convertir: 0 = Lunes, 6 = Domingo
   const [diaSeleccionado, setDiaSeleccionado] = useState<number>(hoyDiaIndex);
+
+  // Avatar del usuario: sin foto por defecto, solo foto real si existe o la inicial
+  const displayAvatar = user?.avatar_url || localStorage.getItem('dailyset_avatar') || null;
 
   // Generar los 7 días de la semana actual
   const diasSemanaBar = useMemo(() => {
@@ -48,19 +50,19 @@ export default function DashboardPage() {
 
   // Cálculo de volumen por sesión
   const calcularVolumenSesion = (ejercicios: { series: { kg: number; reps: number }[] }[]) => {
-    return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + serie.kg * serie.reps, 0), 0);
+    return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + (serie.kg || 0) * (serie.reps || 0), 0), 0);
   };
 
   const pad2 = (n: number) => String(n).padStart(2, '0');
   const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
-  // Actividad de los 7 días para el histograma de la tarjeta principal
+  // Actividad real de los 7 días de la semana actual
   const actividadSemanal = useMemo(() => {
     const inicioSemana = new Date(hoyFecha);
     const diaActual = (hoyFecha.getDay() + 6) % 7;
     inicioSemana.setDate(hoyFecha.getDate() - diaActual);
 
-    return Array.from({ length: 7 }, (_, i) => {
+    const dias = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(inicioSemana);
       d.setDate(inicioSemana.getDate() + i);
       const key = toLocalYYYYMMDD(d);
@@ -69,32 +71,71 @@ export default function DashboardPage() {
       return {
         letra: (locale === 'es' ? 'LMXJVSD' : 'MTWTFSS')[i],
         volumen: vol,
-        alturaPct: vol > 0 ? Math.min(100, Math.max(25, (vol / 4000) * 100)) : (i === hoyDiaIndex ? 65 : 18 + (i * 7) % 35),
+        entrenado: sesionesDia.length > 0,
       };
     });
-  }, [sesiones, hoyDiaIndex, locale]);
 
-  // Estadísticas rápidas calculadas
+    const maxVol = Math.max(...dias.map(d => d.volumen), 1);
+
+    return dias.map(d => ({
+      ...d,
+      alturaPct: d.volumen > 0 ? Math.min(100, Math.max(22, Math.round((d.volumen / maxVol) * 100))) : 8,
+    }));
+  }, [sesiones, locale]);
+
+  // Estadísticas 100% reales calculadas a partir de sesiones
   const statsCalculadas = useMemo(() => {
-    // Total volumen
+    // Sesiones de esta semana
+    const hoy = new Date();
+    const diaActual = (hoy.getDay() + 6) % 7;
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - diaActual);
+    inicioSemana.setHours(0, 0, 0, 0);
+
+    const sesionesEstaSemana = sesiones.filter(s => {
+      const d = new Date(s.fecha + 'T12:00:00');
+      return d >= inicioSemana;
+    });
+
+    const volumenSemana = sesionesEstaSemana.reduce((acc, s) => acc + calcularVolumenSesion(s.ejercicios), 0);
+    const seriesSemana = sesionesEstaSemana.reduce((acc, s) => acc + s.ejercicios.reduce((sTot, e) => sTot + e.series.length, 0), 0);
+    const minutosSemana = sesionesEstaSemana.reduce((acc, s) => acc + (s.duracionMin || 0), 0);
+
+    // Total volumen histórico
     const totalVol = sesiones.reduce((acc, s) => acc + calcularVolumenSesion(s.ejercicios), 0);
-    // Calorías estimadas: base ~0.08 kcal por kg movido + base activa
-    const caloriasTotales = sesiones.length > 0 ? Math.round(sesiones.length * 320 + totalVol * 0.05) : 380;
-    // Minutos totales de entrenamiento
-    const minutosTotales = sesiones.length > 0 ? sesiones.length * 45 : 60;
-    // Racha
-    const uniqueDays = Array.from(new Set(sesiones.map(s => new Date(s.fecha + 'T12:00:00').setHours(0, 0, 0, 0)))).sort((a, b) => a - b);
+    const minutosTotales = sesiones.reduce((acc, s) => acc + (s.duracionMin || 0), 0);
+
+    // Calorías estimadas reales basadas en sesiones reales
+    const caloriasSemana = sesionesEstaSemana.length > 0
+      ? Math.round(minutosSemana * 6.5 + volumenSemana * 0.03)
+      : 0;
+
+    const caloriasTotales = sesiones.length > 0
+      ? Math.round(minutosTotales * 6.5 + totalVol * 0.03)
+      : 0;
+
+    // Racha histórica real
+    const uniqueDays = Array.from(new Set(sesiones.map(s => s.fecha.split('T')[0]))).sort();
+    const todayStr = toLocalYYYYMMDD(new Date());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = toLocalYYYYMMDD(yesterday);
+
     let streak = 0;
-    for (let i = uniqueDays.length - 1; i >= 0; i--) {
-      if (i === uniqueDays.length - 1) streak = 1;
-      else {
-        const diff = uniqueDays[i + 1] - uniqueDays[i];
-        if (diff === 24 * 60 * 60 * 1000) streak += 1;
+    if (uniqueDays.includes(todayStr) || uniqueDays.includes(yesterdayStr)) {
+      streak = 1;
+      const lastTrainedDateStr = uniqueDays.includes(todayStr) ? todayStr : yesterdayStr;
+      const lastIdx = uniqueDays.lastIndexOf(lastTrainedDateStr);
+      for (let i = lastIdx; i > 0; i--) {
+        const dCurr = new Date(uniqueDays[i] + 'T00:00:00');
+        const dPrev = new Date(uniqueDays[i - 1] + 'T00:00:00');
+        const diffDays = Math.round((dCurr.getTime() - dPrev.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) streak++;
         else break;
       }
     }
 
-    // PR máximo peso
+    // PR máximo peso real
     let maxKg = 0;
     sesiones.forEach(s => {
       s.ejercicios.forEach(ej => {
@@ -105,13 +146,16 @@ export default function DashboardPage() {
     });
 
     return {
-      calorias: caloriasTotales,
-      minutos: minutosTotales,
-      streak: streak > 0 ? streak : 1,
-      maxKg: maxKg || 85,
+      volumenSemana,
+      seriesSemana,
+      minutosSemana,
+      caloriasSemana,
+      caloriasTotales,
+      minutosTotales,
+      streak,
+      maxKg,
       sesionesTotal: sesiones.length,
-      pasosEstimados: 3246 + (sesiones.length * 450),
-      distanciaKm: (2.5 + sesiones.length * 0.4).toFixed(2),
+      sesionesSemanaCount: sesionesEstaSemana.length,
     };
   }, [sesiones]);
 
@@ -124,21 +168,23 @@ export default function DashboardPage() {
         {/* ─── 1. HEADER: AVATAR, SALUDO Y CAMPANA ─── */}
         <header className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-3.5">
-            {/* Avatar circular */}
+            {/* Avatar circular con foto real o inicial si no hay foto */}
             <Link to="/perfil" className="relative group">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-neutral-800 group-hover:border-[var(--color-primary)] transition-all">
-                <img
-                  src="/avatars/avatar1.jpg"
-                  alt={user?.nombre || 'Usuario'}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback con inicial
-                    (e.currentTarget as HTMLElement).style.display = 'none';
-                  }}
-                />
-                <div className="w-full h-full bg-neutral-800 flex items-center justify-center font-bold text-white text-sm">
-                  {primerNombre.charAt(0).toUpperCase()}
-                </div>
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-neutral-800 group-hover:border-[var(--color-primary)] transition-all flex items-center justify-center bg-black/40 shadow-md">
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={user?.nombre || 'Usuario'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full bg-neutral-900 flex items-center justify-center font-black text-white text-base italic"
+                    style={{ border: '1px solid var(--color-primary)' }}
+                  >
+                    {primerNombre.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             </Link>
 
@@ -230,16 +276,16 @@ export default function DashboardPage() {
 
           {/* Grid responsivo ancho completo: Pasos + Calorías/Duración */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Tarjeta Principal: Pasos / Actividad Diaria */}
+            {/* Tarjeta Principal: Carga de Entrenamiento y Volumen Real */}
             <div className="lg:col-span-7 xl:col-span-8 card card-hover p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between">
               {/* Header de la tarjeta */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-neutral-300">
-                    <Footprints size={16} />
+                    <Dumbbell size={16} />
                   </div>
                   <span className="font-bold text-white text-sm">
-                    {locale === 'es' ? 'Pasos y Actividad' : 'Steps & Activity'}
+                    {locale === 'es' ? 'Carga de Entrenamiento' : 'Training Load'}
                   </span>
                 </div>
                 <Link to="/historial" className="text-neutral-400 hover:text-white transition-colors">
@@ -247,29 +293,35 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Contenido: Número a la izquierda, Histograma limpio a la derecha */}
+              {/* Contenido: Volumen a la izquierda, Histograma limpio de la semana a la derecha */}
               <div className="flex items-end justify-between gap-4 mt-2">
                 <div>
                   <p className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    {statsCalculadas.pasosEstimados.toLocaleString()} <span className="text-xs font-normal text-neutral-400">{locale === 'es' ? 'pasos' : 'steps'}</span>
+                    {statsCalculadas.volumenSemana >= 1000
+                      ? `${(statsCalculadas.volumenSemana / 1000).toFixed(1)} Ton`
+                      : `${statsCalculadas.volumenSemana} kg`}
                   </p>
                   <p className="text-xs text-neutral-400 font-medium mt-1">
-                    {statsCalculadas.distanciaKm} km · {statsCalculadas.calorias} kcal
+                    {statsCalculadas.sesionesSemanaCount} {locale === 'es' ? 'sesiones esta semana' : 'sessions this week'} · {statsCalculadas.seriesSemana} {locale === 'es' ? 'series' : 'sets'}
                   </p>
                 </div>
 
-                {/* Histograma limpio */}
+                {/* Histograma limpio basado 100% en volumen real */}
                 <div className="flex items-end gap-2 sm:gap-3 h-16 pb-0.5">
                   {actividadSemanal.map((dia, idx) => {
                     const esDiaActual = idx === hoyDiaIndex;
                     return (
-                      <div key={idx} className="flex flex-col items-center gap-1.5">
+                      <div key={idx} className="flex flex-col items-center gap-1.5" title={`${dia.volumen} kg`}>
                         <div
                           className="w-3 sm:w-4 rounded-full transition-all duration-300"
                           style={{
                             height: `${dia.alturaPct}%`,
-                            minHeight: '8px',
-                            background: esDiaActual ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.22)',
+                            minHeight: '6px',
+                            background: dia.volumen > 0
+                              ? 'var(--color-primary)'
+                              : esDiaActual
+                              ? 'rgba(255, 255, 255, 0.25)'
+                              : 'rgba(255, 255, 255, 0.08)',
                           }}
                         />
                         <span className={`text-[10px] font-bold ${esDiaActual ? 'text-white' : 'text-neutral-500'}`}>
@@ -299,12 +351,12 @@ export default function DashboardPage() {
                 <div className="flex items-end justify-between mt-3">
                   <div>
                     <p className="text-xl sm:text-2xl font-black text-white leading-none">
-                      {statsCalculadas.calorias}
+                      {statsCalculadas.caloriasSemana}
                     </p>
-                    <p className="text-[10px] text-neutral-400 font-medium mt-1">Kcal quemadas</p>
+                    <p className="text-[10px] text-neutral-400 font-medium mt-1">Kcal estimadas</p>
                   </div>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-neutral-300">
-                    {locale === 'es' ? 'Diario' : 'Daily'}
+                    {locale === 'es' ? 'Semana' : 'Week'}
                   </span>
                 </div>
               </div>
@@ -324,14 +376,14 @@ export default function DashboardPage() {
                 <div className="flex items-end justify-between mt-3">
                   <div>
                     <p className="text-xl sm:text-2xl font-black text-white leading-none">
-                      {statsCalculadas.minutos}
+                      {statsCalculadas.minutosSemana}
                     </p>
                     <p className="text-[10px] text-neutral-400 font-medium mt-1">
                       {locale === 'es' ? 'Minutos sesión' : 'Workout mins'}
                     </p>
                   </div>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-neutral-300">
-                    {locale === 'es' ? 'Tiempo' : 'Time'}
+                    {locale === 'es' ? 'Semana' : 'Week'}
                   </span>
                 </div>
               </div>
