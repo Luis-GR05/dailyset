@@ -1,28 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../shared/Logo';
-import { useTheme } from '../../context/ThemeContext';
 import { useI18n } from '../../context/I18nContext';
-import type { Locale } from '../../context/I18nContext';
-import { Sun, Moon, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import flagEs from '../../assets/flags/es.svg';
-import flagEn from '../../assets/flags/en.svg';
+import NotificacionesDropdown from '../ui/NotificacionesDropdown';
 
 interface HeaderProps {
   onAbrirMenu: () => void;
 }
 
 export default function Header({ onAbrirMenu }: HeaderProps) {
-  const { theme, toggleTheme } = useTheme();
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
-
-  const otherLocale: Locale = locale === 'es' ? 'en' : 'es';
-  const localeLabel = locale === 'es' ? 'EN' : 'ES';
-  const flagSrc = locale === 'es' ? flagEs : flagEn;
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md border-b px-4 py-3 md:px-6"
@@ -43,51 +35,8 @@ export default function Header({ onAbrirMenu }: HeaderProps) {
           <Logo size="sm" />
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-
-          {/* Language toggle */}
-          <button
-            onClick={() => setLocale(otherLocale)}
-            title={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-full text-xs sm:text-sm font-bold transition-all"
-            style={{
-              backgroundColor: 'var(--color-neutral-800)',
-              border: '1px solid var(--color-neutral-900)',
-              color: 'var(--color-neutral-3000)',
-            }}
-          >
-            <img
-              src={flagSrc}
-              alt={locale === 'es' ? 'Español' : 'English'}
-              className="w-4 h-4 rounded-sm"
-              style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.12)' }}
-            />
-            <span>{localeLabel}</span>
-          </button>
-
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label={theme === 'dark'
-              ? (locale === 'es' ? 'Activar modo claro' : 'Enable light mode')
-              : (locale === 'es' ? 'Activar modo oscuro' : 'Enable dark mode')}
-            title={theme === 'dark'
-              ? (locale === 'es' ? 'Activar modo claro' : 'Enable light mode')
-              : (locale === 'es' ? 'Activar modo oscuro' : 'Enable dark mode')}
-            className="flex items-center justify-center w-9 h-9 rounded-full transition-all"
-            style={{
-              backgroundColor: 'var(--color-neutral-800)',
-              border: '1px solid var(--color-neutral-900)',
-              color: theme === 'dark' ? '#DBF059' : '#4361EE',
-            }}
-          >
-            {theme === 'dark'
-              ? <Sun className="w-4 h-4" />
-              : <Moon className="w-4 h-4" />
-            }
-          </button>
-
-          {/* Logout */}
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <NotificacionesDropdown />
           <button
             onClick={async () => {
               if (loggingOut) return;

@@ -17,8 +17,10 @@ const ThemeContext = createContext<ThemeContextType>({
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const getInitialTheme = (): Theme => {
     const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (saved === 'dark') return 'dark';
+    // Si no está guardado o era light de sesiones anteriores, establecer dark por defecto
+    localStorage.setItem('theme', 'dark');
+    return 'dark';
   };
 
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);

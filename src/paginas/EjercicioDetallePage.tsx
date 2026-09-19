@@ -4,7 +4,8 @@ import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import LineChartElement from '../componentes/charts/LineChartElement';
 import { useI18n } from '../context/I18nContext';
 import { useEjercicios } from '../context/EjerciciosContext';
-import { ArrowLeft, Dumbbell, Target, Zap, BarChart2 } from 'lucide-react';
+import { useHistorial } from '../context/HistorialContext';
+import { ArrowLeft, Dumbbell, Target, Zap, BarChart2, TrendingUp } from 'lucide-react';
 
 const LEVEL_COLORS: Record<string, string> = {
   principiante: '#34d399',
@@ -23,11 +24,20 @@ const CATEGORY_LABELS: Record<string, string> = {
   general:     'General',
 };
 
+function formatFecha(fecha: string, locale: string): string {
+  const d = new Date(fecha + 'T12:00:00');
+  return d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
 export default function EjercicioDetallePage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { ejercicios } = useEjercicios();
+  const { sesiones } = useHistorial();
 
   const [imgActiva, setImgActiva] = useState<0 | 1>(0);
 
@@ -50,15 +60,38 @@ export default function EjercicioDetallePage() {
     );
   }
 
-  // Historial de progreso simulado (se conectará con series reales en próxima iteración)
-  const historial = [
-    { fecha: locale === 'es' ? "29 Enero" : "29 January", peso: 60, reps: 5 },
-    { fecha: locale === 'es' ? "18 Marzo"  : "18 March",   peso: 70, reps: 6 },
-    { fecha: locale === 'es' ? "7 Junio"   : "7 June",     peso: 80, reps: 8 },
-    { fecha: locale === 'es' ? "14 Sep"    : "14 Sep",     peso: 95, reps: 6 },
-    { fecha: locale === 'es' ? "23 Dic"    : "23 Dec",     peso: 105, reps: 8 },
-  ];
-  const datosGrafico = historial.map(h => ({ name: h.fecha, value: h.peso }));
+  // ── Datos REALES del historial del usuario ──────────────────────────────────
+  // Extraer todas las series de este ejercicio de todas las sesiones
+  const entradas: { fecha: string; peso: number; reps: number }[] = [];
+
+  sesiones.forEach(sesion => {
+    const ejSesion = sesion.ejercicios.find(e => e.id === ejercicioId);
+    if (!ejSesion) return;
+
+    const seriesCompletadas = ejSesion.series.filter(s => s.completada && s.kg > 0);
+    if (seriesCompletadas.length === 0) return;
+
+    // Peso máximo de la sesión para este ejercicio
+    const pesoMax = Math.max(...seriesCompletadas.map(s => s.kg));
+    const repsEnPesoMax = seriesCompletadas.find(s => s.kg === pesoMax)?.reps ?? 0;
+
+    entradas.push({
+      fecha: sesion.fecha,
+      peso: pesoMax,
+      reps: repsEnPesoMax,
+    });
+  });
+
+  // Ordenar por fecha ascendente
+  entradas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  const datosGrafico = entradas.map(h => ({
+    name: formatFecha(h.fecha, locale),
+    value: h.peso,
+  }));
+
+  const hayDatos = entradas.length > 0;
+  // ───────────────────────────────────────────────────────────────────────────
 
   const levelColor = LEVEL_COLORS[ejercicio.dificultad] ?? 'var(--color-neutral-2000)';
   const catLabel = CATEGORY_LABELS[ejercicio.categoriaEjercicio] ?? ejercicio.categoriaEjercicio;
@@ -236,13 +269,31 @@ export default function EjercicioDetallePage() {
                   {locale === 'es' ? 'Tu progreso' : 'Your progress'}
                 </h3>
               </div>
-              <LineChartElement
-                items={datosGrafico}
-                title={locale === 'es' ? 'Peso máximo (kg)' : 'Max weight (kg)'}
-                height={120}
-                showGrid={false}
-                lineColor="var(--color-primary)"
-              />
+
+              {hayDatos ? (
+                <LineChartElement
+                  items={datosGrafico}
+                  title={locale === 'es' ? 'Peso máximo (kg)' : 'Max weight (kg)'}
+                  height={120}
+                  showGrid={false}
+                  lineColor="var(--color-primary)"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 gap-3">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: 'var(--color-neutral-700)' }}>
+                    <TrendingUp size={22} style={{ color: 'var(--color-neutral-1000)' }} />
+                  </div>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--color-neutral-3000)' }}>
+                    {locale === 'es' ? 'Sin datos aún' : 'No data yet'}
+                  </p>
+                  <p className="text-xs text-center max-w-[200px]" style={{ color: 'var(--color-neutral-1000)' }}>
+                    {locale === 'es'
+                      ? 'Completa un entrenamiento con este ejercicio para ver tu progreso'
+                      : 'Complete a workout with this exercise to see your progress'}
+                  </p>
+                </div>
+              )}
             </Card>
 
             {/* Tabla de historial */}
@@ -250,35 +301,49 @@ export default function EjercicioDetallePage() {
               <h3 className="font-bold mb-4" style={{ color: 'var(--color-primary)' }}>
                 {t.exerciseDetail.progressHistory}
               </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--color-neutral-800)' }}>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.exerciseDetail.dateCol}
-                      </th>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.exerciseDetail.maxWeight}
-                      </th>
-                      <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
-                        {t.training.reps}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historial.map((item, index) => (
-                      <tr
-                        key={index}
-                        style={{ borderBottom: index < historial.length - 1 ? '1px solid var(--color-neutral-800)' : 'none' }}
-                      >
-                        <td className="py-2.5 text-white">{item.fecha}</td>
-                        <td className="py-2.5 font-bold" style={{ color: 'var(--color-primary)' }}>{item.peso} kg</td>
-                        <td className="py-2.5 text-white">{item.reps}</td>
+
+              {hayDatos ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--color-neutral-800)' }}>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.exerciseDetail.dateCol}
+                        </th>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.exerciseDetail.maxWeight}
+                        </th>
+                        <th className="text-left py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--color-neutral-2000)' }}>
+                          {t.training.reps}
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {[...entradas].reverse().map((item, index) => (
+                        <tr
+                          key={index}
+                          style={{ borderBottom: index < entradas.length - 1 ? '1px solid var(--color-neutral-800)' : 'none' }}
+                        >
+                          <td className="py-2.5 text-white">{formatFecha(item.fecha, locale)}</td>
+                          <td className="py-2.5 font-bold" style={{ color: 'var(--color-primary)' }}>{item.peso} kg</td>
+                          <td className="py-2.5 text-white">{item.reps}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 gap-2">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--color-neutral-3000)' }}>
+                    {locale === 'es' ? 'Sin registros' : 'No records'}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--color-neutral-1000)' }}>
+                    {locale === 'es'
+                      ? 'Aquí aparecerán tus sesiones con este ejercicio'
+                      : 'Your sessions with this exercise will appear here'}
+                  </p>
+                </div>
+              )}
             </Card>
           </div>
         </div>

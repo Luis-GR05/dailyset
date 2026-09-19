@@ -72,6 +72,7 @@ function App() {
                   <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
                   <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
                   <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+                  <Route path="/perfil/datos" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
 
                   {/* Confirmación de registro */}
                   <Route path="/registro-confirmacion" element={<RegistroConfirmacionPage />} />

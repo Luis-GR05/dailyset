@@ -169,12 +169,23 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
 
     if (error) throw error;
 
+    const ejerciciosIniciales = r.ejerciciosIds || [];
+    if (ejerciciosIniciales.length > 0) {
+      const inserciones = ejerciciosIniciales.map((ejercicioId, indice) => ({
+        rutina_id: data.id,
+        ejercicio_id: ejercicioId,
+        indice_orden: indice,
+      }));
+      const { error: insertError } = await supabase.from('ejercicios_rutina').insert(inserciones);
+      if (insertError) console.error('Error insertando ejercicios iniciales de rutina:', insertError);
+    }
+
     const nueva: Rutina = {
       id: data.id,
       nombre: data.nombre,
       categoria: data.categoria || r.categoria,
       duracion: data.duracion_estimada_minutos ?? r.duracion,
-      ejerciciosIds: [],
+      ejerciciosIds: ejerciciosIniciales,
       imageUrl: r.imageUrl,
     };
 

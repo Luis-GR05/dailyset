@@ -5,13 +5,14 @@ import {
   useEffect,
 } from "react";
 import type { ReactNode } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, supabaseAdmin } from "../lib/supabaseClient";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export interface User {
   id: string;
   email: string;
   nombre: string;
+  avatar_url?: string;
   unidadesKg: boolean;
   notificaciones: boolean;
   rango?: string;
@@ -19,6 +20,13 @@ export interface User {
   totalSets?: string;
   racha?: number;
   pesoTotal?: string;
+  // Datos físicos
+  pesoKg?: number | null;
+  alturaCm?: number | null;
+  edad?: number | null;
+  genero?: 'masculino' | 'femenino' | 'otro' | null;
+  nivelActividad?: 'sedentario' | 'ligero' | 'moderado' | 'activo' | 'muy_activo' | null;
+  objetivo?: 'perder_peso' | 'ganar_musculo' | 'mantener' | 'mejorar_resistencia' | null;
 }
 
 interface AuthContextType {
@@ -47,6 +55,7 @@ function mapAuthUser(authUser: SupabaseUser): User {
       (authUser.user_metadata?.nombre_completo as string | undefined) ||
       (authUser.user_metadata?.nombre_usuario as string | undefined) ||
       "Atleta",
+    avatar_url: (authUser.user_metadata?.avatar_url as string | undefined) || undefined,
     unidadesKg: true,
     notificaciones: false,
     rango: "ATLETA",
@@ -118,6 +127,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       id: data.id,
       email: authUser.email || "",
       nombre: data.nombre_completo || data.nombre_usuario || "",
+      avatar_url: (data.avatar_url as string | undefined) || (prefs.avatar_url as string | undefined) || (authUser.user_metadata?.avatar_url as string | undefined) || undefined,
       unidadesKg: prefs.unidadesKg ?? true,
       notificaciones: prefs.notificaciones ?? false,
       rango: data.nivel_entrenamiento?.toUpperCase() || "ATLETA",
@@ -125,6 +135,13 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       totalSets: "0",
       racha: 0,
       pesoTotal: "0",
+      // Datos físicos desde preferencias
+      pesoKg: prefs.pesoKg ?? null,
+      alturaCm: prefs.alturaCm ?? null,
+      edad: prefs.edad ?? null,
+      genero: prefs.genero ?? null,
+      nivelActividad: prefs.nivelActividad ?? null,
+      objetivo: prefs.objetivo ?? null,
     };
   } catch (err) {
     console.error("Error in fetchProfile:", err);
@@ -290,7 +307,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // context/AuthContext.tsx (fragmento del método register)
   const register = async (email: string, password: string, nombre: string) => {
     // Generar nombre_usuario seguro
     const baseUsername = nombre
@@ -313,23 +329,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) throw new Error(error.message);
 
-    // Si el registro fue exitoso y tenemos un usuario, creamos el perfil manualmente
-    if (data.user) {
-      const { error: profileError } = await supabase.from("perfiles").insert({
-        id: data.user.id,
-        nombre_usuario: username,
-        nombre_completo: nombre,
-      });
+    if (!data.user) throw new Error("No se pudo crear el usuario");
 
-      if (profileError) {
-        console.error("Error al crear perfil:", profileError);
-        // Podríamos intentar limpiar el usuario auth si falla, pero es opcional
+    // Confirmar email automáticamente usando admin API (sin requerir confirmación por correo)
+    if (supabaseAdmin && !data.session) {
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
+          email_confirm: true,
+        });
+      } catch (adminErr) {
+        console.warn("No se pudo auto-confirmar email:", adminErr);
       }
     }
 
-    const requiresEmailConfirmation = !!data.user && !data.session;
+    // Crear perfil en la tabla perfiles
+    const { error: profileError } = await supabase.from("perfiles").insert({
+      id: data.user.id,
+      nombre_usuario: username,
+      nombre_completo: nombre,
+    });
 
-    if (data.user && data.session) {
+    if (profileError && profileError.code !== '23505') {
+      // 23505 = unique_violation (ya existe), lo ignoramos
+      console.error("Error al crear perfil:", profileError);
+    }
+
+    // Si tenemos admin, iniciar sesión directamente después del registro
+    if (supabaseAdmin && !data.session) {
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (!signInError && signInData.user) {
+          const profile = await withTimeout(fetchProfile(signInData.user));
+          setUser(profile ?? mapAuthUser(signInData.user));
+          return { requiresEmailConfirmation: false };
+        }
+      } catch (signInErr) {
+        console.warn("No se pudo iniciar sesión automáticamente:", signInErr);
+      }
+    }
+
+    const requiresEmailConfirmation = !data.session;
+
+    if (data.session) {
       const profile = await withTimeout(fetchProfile(data.user));
       setUser(profile ?? mapAuthUser(data.user));
     }
@@ -359,6 +403,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...currentPrefs,
       unidadesKg: data.unidadesKg ?? currentPrefs.unidadesKg,
       notificaciones: data.notificaciones ?? currentPrefs.notificaciones,
+      ...(data.avatar_url !== undefined && { avatar_url: data.avatar_url }),
+      // Datos físicos (solo actualizar si se pasan explícitamente)
+      ...(data.pesoKg !== undefined && { pesoKg: data.pesoKg }),
+      ...(data.alturaCm !== undefined && { alturaCm: data.alturaCm }),
+      ...(data.edad !== undefined && { edad: data.edad }),
+      ...(data.genero !== undefined && { genero: data.genero }),
+      ...(data.nivelActividad !== undefined && { nivelActividad: data.nivelActividad }),
+      ...(data.objetivo !== undefined && { objetivo: data.objetivo }),
     };
 
     const dbData: Record<string, unknown> = {
@@ -366,6 +418,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     if (data.nombre !== undefined) {
       dbData.nombre_completo = data.nombre;
+    }
+    if (data.avatar_url !== undefined) {
+      dbData.avatar_url = data.avatar_url;
     }
 
     const { error: updateError } = await supabase

@@ -171,12 +171,7 @@ export default function EjerciciosPage() {
             <select
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="w-full rounded-xl px-3 py-2 text-sm"
-              style={{
-                backgroundColor: 'var(--color-neutral-800)',
-                border: '1px solid var(--color-neutral-900)',
-                color: 'var(--color-white)',
-              }}
+              className="w-full"
             >
               <option value="all">{locale === 'es' ? 'Todos / General' : 'All / General'}</option>
               {categoriasConConteo.map(({ cat, count }) => (
@@ -195,12 +190,7 @@ export default function EjerciciosPage() {
               <select
                 value={filtroMusculo}
                 onChange={(e) => setFiltroMusculo(e.target.value)}
-                className="w-full rounded-xl px-3 py-2 text-sm capitalize"
-                style={{
-                  backgroundColor: 'var(--color-neutral-800)',
-                  border: '1px solid var(--color-neutral-900)',
-                  color: 'var(--color-white)',
-                }}
+                className="w-full capitalize"
               >
                 <option value="all">{locale === 'es' ? 'Todos' : 'All'}</option>
                 {musculos.map((m) => (
@@ -226,14 +216,14 @@ export default function EjerciciosPage() {
 
         {/* Grid de ejercicios */}
         {!cargando && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-5 items-stretch">
             {ejerciciosPaginados.length > 0 ? (
               ejerciciosPaginados.map((ejercicio) => (
-                <div key={ejercicio.id} className="relative group">
-                  <Link to={`/ejercicios/${ejercicio.id}`} className="block">
-                    <div className="card card-hover overflow-hidden">
-                      {/* Imagen */}
-                      <div className="w-full aspect-square overflow-hidden relative" style={{ backgroundColor: 'var(--color-neutral-700)' }}>
+                <div key={ejercicio.id} className="relative group h-full">
+                  <Link to={`/ejercicios/${ejercicio.id}`} className="block h-full">
+                    <div className="card card-hover overflow-hidden flex flex-col h-full">
+                      {/* Imagen — altura fija */}
+                      <div className="w-full aspect-square overflow-hidden relative flex-shrink-0" style={{ backgroundColor: 'var(--color-neutral-700)' }}>
                         {ejercicio.imagenInicio ? (
                           <img
                             src={ejercicio.imagenInicio}
@@ -259,19 +249,31 @@ export default function EjerciciosPage() {
                           {catLabel(ejercicio.categoriaEjercicio)}
                         </span>
                       </div>
-                      {/* Info */}
-                      <div className="p-3">
-                        <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-1" style={{ color: 'var(--color-white)' }}>
+                      {/* Info — amplia para que los títulos nunca se corten */}
+                      <div className="p-3.5 flex flex-col justify-between flex-1 min-h-[108px] gap-2">
+                        <h3
+                          className="font-bold text-xs sm:text-sm leading-snug line-clamp-2"
+                          style={{
+                            color: 'var(--color-white)',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                          title={ejercicio.nombre}
+                        >
                           {ejercicio.nombre}
                         </h3>
-                        <p className="text-xs capitalize" style={{ color: 'var(--color-neutral-2000)' }}>
-                          {ejercicio.grupo || ejercicio.musculosPrimarios[0] || '—'}
-                        </p>
-                        {ejercicio.equipamiento && (
-                          <p className="text-xs mt-0.5 capitalize" style={{ color: 'var(--color-neutral-1000)' }}>
-                            {ejercicio.equipamiento}
+                        <div className="pt-1 border-t border-neutral-800/60">
+                          <p className="text-xs capitalize" style={{ color: 'var(--color-neutral-2000)' }}>
+                            {ejercicio.grupo || ejercicio.musculosPrimarios[0] || '—'}
                           </p>
-                        )}
+                          {ejercicio.equipamiento && (
+                            <p className="text-xs capitalize truncate" style={{ color: 'var(--color-neutral-1000)' }}>
+                              {ejercicio.equipamiento}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>

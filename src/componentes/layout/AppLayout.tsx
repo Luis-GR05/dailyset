@@ -1,9 +1,19 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { Home, Dumbbell, User as UserIcon, Activity } from 'lucide-react';
+import { useI18n } from '../../context/I18nContext';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+interface AppLayoutProps {
+  children: React.ReactNode;
+  fullWidth?: boolean;
+}
+
+export default function AppLayout({ children, fullWidth = false }: AppLayoutProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const location = useLocation();
+  const { locale } = useI18n();
 
   return (
     <>
@@ -18,8 +28,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="flex min-h-dvh w-full relative"
         style={{ backgroundColor: 'var(--color-black)', color: 'var(--color-white)', overflowX: 'hidden' }}
       >
-        <div className="absolute top-0 right-0 w-125 h-125 bg-brand-primary/10 blur-[150px] -z-10" />
-        <div className="absolute bottom-0 left-0 w-75 h-75 bg-brand-accent/5 blur-[120px] -z-10" />
+        {/* Fondo limpio y uniforme */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.02] blur-[120px] pointer-events-none -z-10" />
 
         <Sidebar abierto={menuAbierto} onCerrar={() => setMenuAbierto(false)} />
 
@@ -28,13 +38,68 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <main
             id="main"
             role="main"
-            className="flex-1 p-4 md:p-8"
+            className="flex-1 p-4 md:p-6 lg:p-8 pb-24 md:pb-8"
           >
-            <div className="max-w-5xl mx-auto">
+            <div className={fullWidth ? "w-full" : "max-w-5xl mx-auto"}>
               {children}
             </div>
           </main>
         </div>
+
+        {/* Barra de navegación inferior flotante para móvil (idéntica a la referencia) */}
+        <nav
+          aria-label="Navegación móvil"
+          className="md:hidden fixed bottom-3 left-4 right-4 z-40 backdrop-blur-2xl bg-black/85 border border-white/10 rounded-full px-5 py-2.5 flex items-center justify-around shadow-2xl"
+        >
+          <Link to="/dashboard" className="flex flex-col items-center gap-1">
+            <Home
+              size={19}
+              style={{ color: location.pathname === '/dashboard' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            />
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: location.pathname === '/dashboard' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            >
+              {locale === 'es' ? 'Inicio' : 'Home'}
+            </span>
+          </Link>
+          <Link to="/mis-rutinas" className="flex flex-col items-center gap-1">
+            <Dumbbell
+              size={19}
+              style={{ color: location.pathname.startsWith('/mis-rutinas') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            />
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: location.pathname.startsWith('/mis-rutinas') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            >
+              {locale === 'es' ? 'Rutinas' : 'Workout'}
+            </span>
+          </Link>
+          <Link to="/estadisticas" className="flex flex-col items-center gap-1">
+            <Activity
+              size={19}
+              style={{ color: location.pathname === '/estadisticas' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            />
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: location.pathname === '/estadisticas' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            >
+              {locale === 'es' ? 'Progreso' : 'Activity'}
+            </span>
+          </Link>
+          <Link to="/perfil" className="flex flex-col items-center gap-1">
+            <UserIcon
+              size={19}
+              style={{ color: location.pathname === '/perfil' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            />
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: location.pathname === '/perfil' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            >
+              {locale === 'es' ? 'Perfil' : 'Profile'}
+            </span>
+          </Link>
+        </nav>
       </div>
     </>
   );

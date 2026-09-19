@@ -22,3 +22,4 @@ export { default as LandingHeader } from './Header';
 export { default as MesCalendario } from './ui/MesCalendario';
 export { default as MonthCard } from './ui/MonthCard';
 export { default as ResumenEstadisticas } from './ui/ResumenEstadisticas';
+export { default as NotificacionesDropdown } from './ui/NotificacionesDropdown';
