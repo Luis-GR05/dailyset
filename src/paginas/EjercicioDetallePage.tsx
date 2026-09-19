@@ -23,6 +23,42 @@ const CATEGORY_LABELS: Record<string, string> = {
   general:     'General',
 };
 
+const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+  abductors: { es: 'Abductores', en: 'Abductors' },
+  abs: { es: 'Abdominales', en: 'Abs' },
+  adductors: { es: 'Aductores', en: 'Adductors' },
+  biceps: { es: 'Bíceps', en: 'Biceps' },
+  calves: { es: 'Gemelos', en: 'Calves' },
+  cardio: { es: 'Cardio', en: 'Cardio' },
+  delts: { es: 'Deltoides (Hombros)', en: 'Deltoids' },
+  forearms: { es: 'Antebrazos', en: 'Forearms' },
+  glutes: { es: 'Glúteos', en: 'Glutes' },
+  hamstrings: { es: 'Isquiotibiales', en: 'Hamstrings' },
+  lats: { es: 'Dorsales', en: 'Lats' },
+  'levator-scapulae': { es: 'Elevador de la escápula', en: 'Levator Scapulae' },
+  pectorals: { es: 'Pectorales', en: 'Pectorals' },
+  quads: { es: 'Cuádriceps', en: 'Quads' },
+  'serratus-anterior': { es: 'Serrato anterior', en: 'Serratus Anterior' },
+  spine: { es: 'Espina / Lumbar', en: 'Spine / Lower Back' },
+  traps: { es: 'Trapecios', en: 'Traps' },
+  triceps: { es: 'Tríceps', en: 'Triceps' },
+  'upper-back': { es: 'Espalda superior', en: 'Upper Back' },
+};
+
+const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+  barbell: { es: 'Barra', en: 'Barbell' },
+  dumbbell: { es: 'Mancuerna', en: 'Dumbbell' },
+  cable: { es: 'Polea', en: 'Cable' },
+  machine: { es: 'Máquina', en: 'Machine' },
+  bodyweight: { es: 'Peso corporal', en: 'Bodyweight' },
+  band: { es: 'Banda elástica', en: 'Band' },
+  kettlebell: { es: 'Pesa rusa (Kettlebell)', en: 'Kettlebell' },
+  smith: { es: 'Máquina Smith', en: 'Smith' },
+  'ez-bar': { es: 'Barra Z', en: 'EZ Bar' },
+  lever: { es: 'Palanca', en: 'Lever' },
+  other: { es: 'Otro', en: 'Other' },
+};
+
 export default function EjercicioDetallePage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
@@ -63,6 +99,16 @@ export default function EjercicioDetallePage() {
   const levelColor = LEVEL_COLORS[ejercicio.dificultad] ?? 'var(--color-neutral-2000)';
   const catLabel = CATEGORY_LABELS[ejercicio.categoriaEjercicio] ?? ejercicio.categoriaEjercicio;
 
+  const getMuscleText = (m: string) => {
+    const item = MUSCLE_TRANSLATIONS[m.toLowerCase()];
+    return item ? (locale === 'es' ? item.es : item.en) : m;
+  };
+
+  const getEquipmentText = (eq: string) => {
+    const item = EQUIPMENT_TRANSLATIONS[eq.toLowerCase()];
+    return item ? (locale === 'es' ? item.es : item.en) : eq;
+  };
+
   const imagenes = [ejercicio.imagenInicio, ejercicio.imagenFinal].filter(Boolean) as string[];
 
   return (
@@ -99,10 +145,19 @@ export default function EjercicioDetallePage() {
           {/* Equipamiento */}
           {ejercicio.equipamiento && (
             <span
-              className="text-xs font-bold px-3 py-1 rounded-full capitalize"
+              className="text-xs font-bold px-3 py-1 rounded-full"
               style={{ background: 'rgba(67,97,238,0.15)', color: '#7B9EF9', border: '1px solid rgba(67,97,238,0.3)' }}
             >
-              {ejercicio.equipamiento}
+              {getEquipmentText(ejercicio.equipamiento)}
+            </span>
+          )}
+          {/* Grupo muscular */}
+          {ejercicio.grupo && (
+            <span
+              className="text-xs font-bold px-3 py-1 rounded-full"
+              style={{ background: 'rgba(219,240,89,0.1)', color: 'var(--color-primary)', border: '1px solid rgba(219,240,89,0.2)' }}
+            >
+              {ejercicio.grupo}
             </span>
           )}
         </div>
@@ -112,17 +167,23 @@ export default function EjercicioDetallePage() {
 
           {/* Columna izquierda: imágenes + músculos */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Visor de imagen */}
+            {/* Visor de imagen / GIF */}
             <Card className="overflow-hidden" hoverable={false}>
-              <div className="aspect-square w-full bg-neutral-900 relative overflow-hidden">
+              <div className="aspect-square w-full bg-neutral-900/80 relative overflow-hidden flex items-center justify-center">
                 {imagenes.length > 0 ? (
                   <>
                     <img
                       src={imagenes[imgActiva]}
-                      alt={`${ejercicio.nombre} — posición ${imgActiva === 0 ? 'inicial' : 'final'}`}
-                      className="w-full h-full object-cover transition-opacity duration-300"
+                      alt={ejercicio.nombre}
+                      className="w-full h-full object-contain transition-opacity duration-300"
                     />
-                    {/* Selector de imagen */}
+                    {/* Badge GIF animado */}
+                    {imagenes[imgActiva]?.endsWith('.gif') && (
+                      <span className="absolute top-3 right-3 text-[10px] font-black px-2 py-1 rounded tracking-widest uppercase bg-black/70 text-white backdrop-blur-md border border-white/20">
+                        GIF ANIMADO
+                      </span>
+                    )}
+                    {/* Selector de imagen si hay más de 1 imagen */}
                     {imagenes.length > 1 && (
                       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
                         {imagenes.map((_, i) => (
@@ -164,9 +225,9 @@ export default function EjercicioDetallePage() {
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosPrimarios.map(m => (
                       <span key={m}
-                        className="text-xs px-2 py-1 rounded-full capitalize font-bold"
+                        className="text-xs px-2.5 py-1 rounded-full font-bold"
                         style={{ background: 'rgba(219,240,89,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(219,240,89,0.2)' }}
-                      >{m}</span>
+                      >{getMuscleText(m)}</span>
                     ))}
                   </div>
                 </div>
@@ -179,9 +240,9 @@ export default function EjercicioDetallePage() {
                   <div className="flex flex-wrap gap-1.5">
                     {ejercicio.musculosSecundarios.map(m => (
                       <span key={m}
-                        className="text-xs px-2 py-1 rounded-full capitalize"
+                        className="text-xs px-2.5 py-1 rounded-full"
                         style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-3000)', border: '1px solid rgba(255,255,255,0.08)' }}
-                      >{m}</span>
+                      >{getMuscleText(m)}</span>
                     ))}
                   </div>
                 </div>
