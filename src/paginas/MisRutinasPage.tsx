@@ -387,15 +387,9 @@ export default function MisRutinasPage() {
                                             border: `1px solid rgba(255, 255, 255, 0.08)`,
                                         }}
                                     >
-                                        {/* Barra superior de acento con el color de la rutina */}
-                                        <div
-                                            className="absolute top-0 left-0 right-0 h-1"
-                                            style={{ background: plantilla.color }}
-                                        />
-
                                         <div className="space-y-3">
                                             {/* Insignias: Categoría, Nivel y Duración */}
-                                            <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                                            <div className="flex items-center justify-between gap-2 flex-wrap">
                                                 <div className="flex items-center gap-2">
                                                     <span
                                                         className="text-xs font-bold px-2.5 py-0.5 rounded-full"
