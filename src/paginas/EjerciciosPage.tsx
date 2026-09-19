@@ -35,7 +35,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   general: 'var(--color-neutral-2000)',
 };
 
-const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+export const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
   abductors: { es: 'Abductores', en: 'Abductors' },
   abs: { es: 'Abdominales', en: 'Abs' },
   adductors: { es: 'Aductores', en: 'Adductors' },
@@ -57,7 +57,7 @@ const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
   'upper-back': { es: 'Espalda superior', en: 'Upper Back' },
 };
 
-const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> = {
+export const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> = {
   barbell: { es: 'Barra', en: 'Barbell' },
   dumbbell: { es: 'Mancuerna', en: 'Dumbbell' },
   cable: { es: 'Polea', en: 'Cable' },

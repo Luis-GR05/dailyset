@@ -6,6 +6,7 @@ import { useI18n } from '../context/I18nContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
 import { ArrowLeft, Dumbbell, Target, Zap, BarChart2, TrendingUp } from 'lucide-react';
+import { MUSCLE_TRANSLATIONS, EQUIPMENT_TRANSLATIONS } from './EjerciciosPage';
 
 const LEVEL_COLORS: Record<string, string> = {
   principiante: '#34d399',
