@@ -332,14 +332,13 @@ export default function EjerciciosPage() {
                           </span>
                         )}
 
-                        {/* Badge categoría */}
+                        {/* Badge categoría con texto negro para máxima legibilidad */}
                         <span
-                          className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full"
+                          className="absolute top-2 left-2 text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-md uppercase tracking-wider"
                           style={{
-                            background: `${catColor(ejercicio.categoriaEjercicio)}22`,
-                            color: catColor(ejercicio.categoriaEjercicio),
-                            border: `1px solid ${catColor(ejercicio.categoriaEjercicio)}44`,
-                            backdropFilter: 'blur(4px)',
+                            background: catColor(ejercicio.categoriaEjercicio),
+                            color: '#000000',
+                            border: '1px solid rgba(0,0,0,0.15)',
                           }}
                         >
                           {catLabel(ejercicio.categoriaEjercicio)}

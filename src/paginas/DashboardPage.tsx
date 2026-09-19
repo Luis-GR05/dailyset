@@ -3,7 +3,6 @@ import { AppLayout } from "../componentes";
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
-import { useRutinas } from '../context/RutinasContext';
 import { useHistorial } from '../context/HistorialContext';
 import {
   ChevronRight,
@@ -14,22 +13,10 @@ import {
   Trophy,
   Flame as FireIcon
 } from 'lucide-react';
-import { RUTINAS_PREDEFINIDAS } from '../data/rutinasPredefinidas';
-
-// Imágenes atléticas de alta calidad para las tarjetas de planes
-const PLAN_IMAGES: Record<string, string> = {
-  'fuerza-full-body': '/exercises/Advanced_Kettlebell_Windmill/0.jpg',
-  'fuerza-push-empuje': '/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
-  'fuerza-pull-tiron': '/exercises/Bent_Over_Barbell_Row/0.jpg',
-  'fuerza-pierna-gluteo': '/exercises/Barbell_Squat/0.jpg',
-  'core-abdomen-acero': '/exercises/Plank/0.jpg',
-  'cardio-hiit-quema-grasa': '/exercises/Burpee/0.jpg',
-};
 
 export default function DashboardPage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const { user } = useAuth();
-  const { rutinas } = useRutinas();
   const { sesiones } = useHistorial();
 
   // Día de la semana seleccionado (0 = Lunes ... 6 = Domingo)
@@ -131,26 +118,6 @@ export default function DashboardPage() {
   // Nombre del usuario para el saludo
   const primerNombre = user?.nombre ? user.nombre.split(' ')[0] : 'Atleta';
 
-  // Planes destacados (combina rutinas del usuario con plantillas)
-  const planesDestacados = useMemo(() => {
-    if (rutinas.length > 0) {
-      const personalizadas = rutinas.slice(0, 2).map((r) => ({
-        id: `custom-${r.id}`,
-        rutinaId: r.id,
-        nombre: r.nombre,
-        nombreEn: r.nombre,
-        categoria: r.categoria,
-        duracion: r.duracion,
-        descripcion: locale === 'es' ? 'Tu rutina personalizada lista para entrenar' : 'Your custom workout routine',
-        descripcionEn: 'Your custom workout routine',
-        ejerciciosIds: r.ejerciciosIds,
-      }));
-      const plantillasRestantes = RUTINAS_PREDEFINIDAS.slice(0, 3 - personalizadas.length);
-      return [...personalizadas, ...plantillasRestantes];
-    }
-    return RUTINAS_PREDEFINIDAS.slice(0, 3);
-  }, [rutinas, locale]);
-
   return (
     <AppLayout fullWidth>
       <div className="space-y-6 pb-20 w-full">
@@ -186,7 +153,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Badge de Racha TikTok en cabecera */}
+          {/* Badge de Racha Diaria en cabecera */}
           <Link
             to="/perfil"
             title={locale === 'es' ? 'Ver tu nivel y racha en el perfil' : 'View your level and streak in profile'}
@@ -372,98 +339,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ─── 4. SECCIÓN: PLANES POPULARES (TRENDING PLANS) ─── */}
-        <section className="space-y-3.5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-extrabold text-white">
-              {locale === 'es' ? 'Planes Populares' : 'Trending Plans'}
-            </h2>
-            <Link
-              to="/mis-rutinas"
-              className="text-xs font-semibold text-neutral-400 hover:text-[var(--color-primary)] transition-colors flex items-center gap-0.5"
-            >
-              <span>{locale === 'es' ? 'Ver todos' : 'View all'}</span>
-              <ChevronRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
-            {planesDestacados.map((plan) => {
-              const bgImg = PLAN_IMAGES[plan.id] || '/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg';
-
-              return (
-                <div
-                  key={plan.id}
-                  className="card rounded-3xl relative overflow-hidden group shadow-xl transition-all duration-300"
-                  style={{
-                    height: '220px',
-                  }}
-                >
-                  {/* Foto de fondo con efecto zoom al hover */}
-                  <img
-                    src={bgImg}
-                    alt={plan.nombre}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-55"
-                  />
-
-                  {/* Gradiente oscuro para contraste perfecto del texto */}
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 45%, rgba(10,14,22,0.94) 100%)',
-                    }}
-                  />
-
-                  {/* Badge superior de categoría y duración con estilo glass-pill */}
-                  <div className="absolute top-3.5 left-4 right-4 flex items-center justify-between z-10">
-                    <span
-                      className="glass-pill text-[10px] font-extrabold uppercase px-3 py-1 text-white"
-                      style={{
-                        color: 'var(--color-primary)',
-                      }}
-                    >
-                      {plan.categoria}
-                    </span>
-
-                    <span
-                      className="glass-pill text-[10px] font-bold px-3 py-1 text-white flex items-center gap-1.5"
-                    >
-                      <Clock size={11} />
-                      {plan.duracion} {t.routines.min}
-                    </span>
-                  </div>
-
-                  {/* Información inferior y botón Join / Empezar */}
-                  <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-3">
-                    <div className="max-w-[70%]">
-                      <h3 className="font-extrabold text-white text-base sm:text-lg leading-tight mb-1">
-                        {locale === 'es' ? plan.nombre : plan.nombreEn}
-                      </h3>
-                      <p className="text-neutral-300 text-xs line-clamp-1">
-                        {locale === 'es' ? plan.descripcion : plan.descripcionEn}
-                      </p>
-                    </div>
-
-                    {/* Botón Empezar / Join en Neón Lima */}
-                    <Link
-                      to="/mis-rutinas/entrenamiento"
-                      state={{ nombre: plan.nombre, ejerciciosIds: plan.ejerciciosIds }}
-                      className="py-2 px-5 rounded-full font-black text-xs transition-all active:scale-95 shadow-lg flex items-center justify-center shrink-0 cursor-pointer"
-                      style={{
-                        background: 'var(--color-primary)',
-                        color: '#000000',
-                      }}
-                    >
-                      {locale === 'es' ? 'Empezar' : 'Join'}
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ─── 5. STATS RÁPIDAS DE RENDIMIENTO ─── */}
+        {/* ─── 4. STATS RÁPIDAS DE RENDIMIENTO ─── */}
         <section className="pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div className="card card-hover p-4 rounded-2xl text-center">

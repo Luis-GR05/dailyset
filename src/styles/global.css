@@ -233,7 +233,8 @@
 
     .btn-pill:hover, .btn-pill.active {
         background-color: var(--color-accent);
-        color: var(--color-white);
+        color: #000000;
+        font-weight: 800;
         border-color: var(--color-accent);
     }
 

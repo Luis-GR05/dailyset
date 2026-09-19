@@ -94,11 +94,11 @@ export default function NotificacionesDropdown() {
       });
     }
 
-    // 2. Notificación de racha TikTok
+    // 2. Notificación de racha diaria
     items.push({
       id: 'notif-racha',
       tipo: 'racha',
-      titulo: locale === 'es' ? '🔥 ¡Protege tu Racha TikTok!' : '🔥 Protect your TikTok Streak!',
+      titulo: locale === 'es' ? '¡Protege tu Racha Diaria!' : 'Protect your Daily Streak!',
       mensaje: locale === 'es'
         ? 'Completa tu sesión diaria para no perder el fuego de racha y sumar experiencia.'
         : 'Complete your daily session to keep your streak burning and gain XP.',
@@ -113,7 +113,7 @@ export default function NotificacionesDropdown() {
       items.push({
         id: 'notif-record',
         tipo: 'record',
-        titulo: locale === 'es' ? `🏆 ¡Nuevo Récord Personal (${maxKg} kg)!` : `🏆 New Personal PR (${maxKg} kg)!`,
+        titulo: locale === 'es' ? `¡Nuevo Récord Personal (${maxKg} kg)!` : `New Personal PR (${maxKg} kg)!`,
         mensaje: locale === 'es'
           ? `Has superado tu mejor marca histórica levantando ${maxKg} kg. ¡Sigue rompiendo límites!`
           : `You beat your historic record by lifting ${maxKg} kg. Keep crushing it!`,
@@ -128,7 +128,7 @@ export default function NotificacionesDropdown() {
     items.push({
       id: 'notif-bienvenida',
       tipo: 'sistema',
-      titulo: locale === 'es' ? '⚡ ¡Bienvenido a DailySet Elite!' : '⚡ Welcome to DailySet Elite!',
+      titulo: locale === 'es' ? '¡Bienvenido a DailySet Elite!' : 'Welcome to DailySet Elite!',
       mensaje: locale === 'es'
         ? 'Explora las rutinas predefinidas o crea las tuyas propias para comenzar a progresar.'
         : 'Explore pre-built routines or create your custom plans to start progressing.',

@@ -13,13 +13,11 @@ import {
   Award,
   Sparkles,
   Lock,
-  CheckCircle2,
   Target,
   Camera,
   TrendingUp,
   Calendar,
-  Layers,
-  FlameKindling,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface NivelConfig {
@@ -30,13 +28,13 @@ interface NivelConfig {
   rangoEn: string;
   minSesiones: number;
   maxSesiones: number;
-  flameIcon: string;
   descEs: string;
   descEn: string;
   beneficioEs: string;
   beneficioEn: string;
 }
 
+// Progresión de niveles basada exclusivamente en asistencia y días de entrenamiento cumplidos
 const NIVELES: NivelConfig[] = [
   {
     nivel: 1,
@@ -46,25 +44,23 @@ const NIVELES: NivelConfig[] = [
     rangoEn: 'ROOKIE',
     minSesiones: 0,
     maxSesiones: 3,
-    flameIcon: '🔥',
-    descEs: 'Encendiendo el fuego del hábito. Primeros pasos.',
-    descEn: 'Igniting the habit flame. First steps.',
+    descEs: 'Iniciando el hábito del entrenamiento diario.',
+    descEn: 'Starting the daily training habit.',
     beneficioEs: 'Seguimiento de racha activado',
     beneficioEn: 'Streak tracking activated',
   },
   {
     nivel: 2,
-    nombreEs: 'Fuego Constante',
-    nombreEn: 'Steady Flame',
+    nombreEs: 'Constancia Bronce',
+    nombreEn: 'Bronze Consistency',
     rangoEs: 'ATLETA BRONCE',
     rangoEn: 'BRONZE ATHLETE',
     minSesiones: 3,
     maxSesiones: 7,
-    flameIcon: '🔥',
-    descEs: 'La llama arde con disciplina y consistencia.',
-    descEn: 'The flame burns with discipline and consistency.',
-    beneficioEs: 'Insignia Bronce desbloqueada',
-    beneficioEn: 'Bronze badge unlocked',
+    descEs: 'Constancia demostrada asistiendo a cada sesión programada.',
+    descEn: 'Demonstrated consistency attending every scheduled workout.',
+    beneficioEs: 'Insignia Bronce de Disciplina',
+    beneficioEn: 'Bronze Discipline Badge',
   },
   {
     nivel: 3,
@@ -74,65 +70,60 @@ const NIVELES: NivelConfig[] = [
     rangoEn: 'SILVER ATHLETE',
     minSesiones: 7,
     maxSesiones: 15,
-    flameIcon: '⚡',
-    descEs: 'Disciplina forjada. Tu cuerpo y mente se adaptan.',
-    descEn: 'Forged discipline. Your body and mind adapt.',
-    beneficioEs: 'Multiplicador de consistencia',
-    beneficioEn: 'Consistency multiplier',
+    descEs: 'Disciplina forjada. Cumpliendo con cada día de rutina.',
+    descEn: 'Forged discipline. Fulfilling every routine day.',
+    beneficioEs: 'Multiplicador de consistencia semanal',
+    beneficioEn: 'Weekly consistency multiplier',
   },
   {
     nivel: 4,
-    nombreEs: 'Fuego Élite',
-    nombreEn: 'Elite Flame',
+    nombreEs: 'Constancia de Oro',
+    nombreEn: 'Gold Consistency',
     rangoEs: 'ATLETA ORO',
     rangoEn: 'GOLD ATHLETE',
     minSesiones: 15,
     maxSesiones: 30,
-    flameIcon: '⚡',
-    descEs: 'En el top del rendimiento. La constancia es tu sello.',
-    descEn: 'Top performance. Consistency is your signature.',
+    descEs: 'Dedicación total al entrenamiento. El hábito ya es parte de ti.',
+    descEn: 'Total commitment to training. The habit is second nature.',
     beneficioEs: 'Rango de Oro en estadísticas',
     beneficioEn: 'Gold rank on statistics',
   },
   {
     nivel: 5,
-    nombreEs: 'Fuego Titán',
-    nombreEn: 'Titan Flame',
+    nombreEs: 'Disciplina Platino',
+    nombreEn: 'Platinum Discipline',
     rangoEs: 'ÉLITE PLATINO',
     rangoEn: 'PLATINUM ELITE',
     minSesiones: 30,
     maxSesiones: 60,
-    flameIcon: '👑',
-    descEs: 'Nivel imparable. Formas parte del 5% más disciplinado.',
-    descEn: 'Unstoppable level. Part of the top 5% most disciplined.',
+    descEs: 'Asistencia impecable. Formas parte del 5% más disciplinado.',
+    descEn: 'Impeccable attendance. Part of the top 5% most disciplined.',
     beneficioEs: 'Insignia Platino exclusiva',
     beneficioEn: 'Exclusive Platinum badge',
   },
   {
     nivel: 6,
-    nombreEs: 'Diamante Puro',
-    nombreEn: 'Pure Diamond',
+    nombreEs: 'Diamante de la Constancia',
+    nombreEn: 'Diamond Habit',
     rangoEs: 'TITÁN DIAMANTE',
     rangoEn: 'DIAMOND TITAN',
     minSesiones: 60,
     maxSesiones: 100,
-    flameIcon: '💎',
-    descEs: 'Fuerza inquebrantable y dedicación intachable.',
-    descEn: 'Unbreakable strength and impeccable dedication.',
+    descEs: 'Disciplina inquebrantable y dedicación intachable.',
+    descEn: 'Unbreakable discipline and impeccable dedication.',
     beneficioEs: 'Aura de Diamante en perfil',
     beneficioEn: 'Diamond aura on profile',
   },
   {
     nivel: 7,
-    nombreEs: 'Corona Legendaria',
-    nombreEn: 'Legendary Crown',
+    nombreEs: 'Corona de la Disciplina',
+    nombreEn: 'Crown of Discipline',
     rangoEs: 'LEYENDA DAILYSET',
     rangoEn: 'DAILYSET LEGEND',
     minSesiones: 100,
     maxSesiones: 100,
-    flameIcon: '👑',
-    descEs: 'Maestría total del hierro y hábito inquebrantable.',
-    descEn: 'Total mastery of iron and unbreakable habit.',
+    descEs: 'Maestría total del hábito y constancia absoluta.',
+    descEn: 'Total habit mastery and absolute consistency.',
     beneficioEs: 'Rango Máximo Honorífico',
     beneficioEn: 'Honorary Maximum Rank',
   },
@@ -142,11 +133,18 @@ export default function PerfilPage() {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
   const { locale, t } = useI18n();
-  const { sesiones } = useHistorial();
+  const { sesiones, metricas } = useHistorial();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [seccionGamificacion, setSeccionGamificacion] = useState<'racha' | 'camino' | 'insignias'>('racha');
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+
+  // Avatar local para cambio instantáneo
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string>(() => {
+    return localStorage.getItem('dailyset_avatar') || '';
+  });
+
+  const displayAvatar = localAvatarUrl || user?.avatar_url;
 
   // Iniciales del nombre
   const iniciales = (user?.nombre ?? 'U')
@@ -155,23 +153,10 @@ export default function PerfilPage() {
     .slice(0, 2)
     .join('');
 
-  // Estadísticas globales calculadas
+  // Estadísticas globales calculadas (basadas en asistencia y sesiones)
   const totalSesiones = sesiones.length;
-  const totalSeries = useMemo(() =>
-    sesiones.reduce((t, s) => t + s.ejercicios.reduce((tt, ej) => tt + ej.series.length, 0), 0)
-  , [sesiones]);
 
-  const totalPesoKg = useMemo(() =>
-    Math.round(
-      sesiones.reduce((t, s) =>
-        t + s.ejercicios.reduce((tt, ej) =>
-          tt + ej.series.reduce((x, serie) => x + (serie.kg * serie.reps), 0)
-        , 0)
-      , 0)
-    )
-  , [sesiones]);
-
-  // Cálculo preciso de racha estilo TikTok
+  // Cálculo preciso de racha de asistencia y días de entrenamiento
   const streakData = useMemo(() => {
     const parseLocalDate = (d: Date) => {
       const y = d.getFullYear();
@@ -191,7 +176,7 @@ export default function PerfilPage() {
     const trainedToday = uniqueDates.includes(todayStr);
     const trainedYesterday = uniqueDates.includes(yesterdayStr);
 
-    // Racha histórica máxima
+    // Racha histórica máxima de asistencia
     let bestStreak = 0;
     let currentRun = 0;
     for (let i = 0; i < uniqueDates.length; i++) {
@@ -259,7 +244,7 @@ export default function PerfilPage() {
       if (i === NIVELES.length - 1) return true;
       return totalSesiones >= n.minSesiones && totalSesiones < n.maxSesiones;
     });
-    return idx >= 0 ? idx : 0;
+    return idx === -1 ? 0 : idx;
   }, [totalSesiones]);
 
   const nivelActual = NIVELES[nivelActualIndex];
@@ -276,13 +261,13 @@ export default function PerfilPage() {
     return { progresoNivel: pct, entrenamientosFaltantes: faltan };
   }, [totalSesiones, nivelActual, siguienteNivel]);
 
-  // Insignias y logros desbloqueables
+  // Insignias y logros desbloqueables: enfocadas 100% en constancia y asistencia a rutinas
   const badges = useMemo(() => [
     {
       id: 'first_workout',
       icon: <Flame size={20} className="text-amber-400" />,
-      titulo: locale === 'es' ? 'Primer Fuego' : 'First Spark',
-      desc: locale === 'es' ? 'Completa tu primer entrenamiento' : 'Complete your first workout',
+      titulo: locale === 'es' ? 'Primer Entrenamiento' : 'First Workout',
+      desc: locale === 'es' ? 'Completa tu primer día de rutina' : 'Complete your first workout day',
       unlocked: totalSesiones >= 1,
       progresoActual: Math.min(totalSesiones, 1),
       progresoMeta: 1,
@@ -292,7 +277,7 @@ export default function PerfilPage() {
       id: 'streak_3',
       icon: <Zap size={20} className="text-[var(--color-primary)]" />,
       titulo: locale === 'es' ? 'Racha 3 Días' : '3-Day Streak',
-      desc: locale === 'es' ? '3 días seguidos entrenando con racha activa' : '3 consecutive days with active streak',
+      desc: locale === 'es' ? '3 días seguidos asistiendo a entrenar' : '3 consecutive days attending training',
       unlocked: streakData.bestStreak >= 3,
       progresoActual: Math.min(streakData.bestStreak, 3),
       progresoMeta: 3,
@@ -301,83 +286,88 @@ export default function PerfilPage() {
     {
       id: 'streak_7',
       icon: <ShieldCheck size={20} className="text-amber-400" />,
-      titulo: locale === 'es' ? 'Semana de Hierro' : 'Iron Week',
-      desc: locale === 'es' ? 'Racha de 7 días consecutivos sin descanso' : '7 consecutive days streak without missing',
+      titulo: locale === 'es' ? 'Semana Imparable' : 'Unstoppable Week',
+      desc: locale === 'es' ? '7 días consecutivos de asistencia a tus rutinas' : '7 consecutive days attending your routines',
       unlocked: streakData.bestStreak >= 7,
       progresoActual: Math.min(streakData.bestStreak, 7),
       progresoMeta: 7,
       unidad: locale === 'es' ? 'días' : 'days',
     },
     {
+      id: 'streak_14',
+      icon: <Sparkles size={20} className="text-sky-400" />,
+      titulo: locale === 'es' ? 'Quincena Perfecta' : 'Perfect Fortnight',
+      desc: locale === 'es' ? '14 días manteniendo tu racha diaria activa' : '14 days keeping your daily streak active',
+      unlocked: streakData.bestStreak >= 14,
+      progresoActual: Math.min(streakData.bestStreak, 14),
+      progresoMeta: 14,
+      unidad: locale === 'es' ? 'días' : 'days',
+    },
+    {
       id: 'streak_30',
       icon: <Crown size={20} className="text-amber-400" />,
-      titulo: locale === 'es' ? 'Mes Legendario' : 'Legendary Month',
-      desc: locale === 'es' ? '30 días de racha de fuego inquebrantable' : '30 days of unbreakable fire streak',
+      titulo: locale === 'es' ? 'Mes de Disciplina' : 'Discipline Month',
+      desc: locale === 'es' ? '30 días de racha de asistencia inquebrantable' : '30 days of unbreakable attendance streak',
       unlocked: streakData.bestStreak >= 30,
       progresoActual: Math.min(streakData.bestStreak, 30),
       progresoMeta: 30,
       unidad: locale === 'es' ? 'días' : 'days',
     },
     {
-      id: 'weight_1000',
-      icon: <Target size={20} className="text-[var(--color-primary)]" />,
-      titulo: locale === 'es' ? 'Club 1.000 kg' : '1,000 kg Club',
-      desc: locale === 'es' ? 'Mueve más de 1.000 kg de volumen total' : 'Move over 1,000 kg total volume',
-      unlocked: totalPesoKg >= 1000,
-      progresoActual: Math.min(totalPesoKg, 1000),
-      progresoMeta: 1000,
-      unidad: 'kg',
-    },
-    {
-      id: 'weight_10000',
-      icon: <Sparkles size={20} className="text-sky-400" />,
-      titulo: locale === 'es' ? 'Titán 10 Tn' : '10-Ton Titan',
-      desc: locale === 'es' ? 'Supera los 10.000 kg acumulados levantados' : 'Exceed 10,000 kg accumulated lifted',
-      unlocked: totalPesoKg >= 10000,
-      progresoActual: Math.min(totalPesoKg, 10000),
-      progresoMeta: 10000,
-      unidad: 'kg',
-    },
-    {
-      id: 'sets_50',
-      icon: <Layers size={20} className="text-[var(--color-primary)]" />,
-      titulo: locale === 'es' ? 'Centurión 50' : '50 Sets Club',
-      desc: locale === 'es' ? 'Completa 50 series de alta intensidad' : 'Complete 50 high-intensity sets',
-      unlocked: totalSeries >= 50,
-      progresoActual: Math.min(totalSeries, 50),
-      progresoMeta: 50,
-      unidad: 'sets',
-    },
-    {
-      id: 'sessions_20',
-      icon: <Trophy size={20} className="text-amber-400" />,
-      titulo: locale === 'es' ? 'Veterano 20' : 'Veteran 20',
-      desc: locale === 'es' ? 'Completa 20 sesiones completas de gym' : 'Complete 20 full gym workout sessions',
-      unlocked: totalSesiones >= 20,
-      progresoActual: Math.min(totalSesiones, 20),
-      progresoMeta: 20,
+      id: 'sessions_10',
+      icon: <CheckCircle2 size={20} className="text-[var(--color-primary)]" />,
+      titulo: locale === 'es' ? 'Hábito Creado' : 'Habit Formed',
+      desc: locale === 'es' ? '10 entrenamientos completados en tus rutinas' : '10 workouts completed in your routines',
+      unlocked: totalSesiones >= 10,
+      progresoActual: Math.min(totalSesiones, 10),
+      progresoMeta: 10,
       unidad: locale === 'es' ? 'entrenos' : 'sessions',
     },
-  ], [totalSesiones, totalSeries, totalPesoKg, streakData.bestStreak, locale]);
+    {
+      id: 'sessions_25',
+      icon: <Trophy size={20} className="text-amber-400" />,
+      titulo: locale === 'es' ? 'Atleta Constante' : 'Consistent Athlete',
+      desc: locale === 'es' ? '25 entrenamientos completados con éxito' : '25 workouts completed successfully',
+      unlocked: totalSesiones >= 25,
+      progresoActual: Math.min(totalSesiones, 25),
+      progresoMeta: 25,
+      unidad: locale === 'es' ? 'entrenos' : 'sessions',
+    },
+    {
+      id: 'sessions_50',
+      icon: <Award size={20} className="text-emerald-400" />,
+      titulo: locale === 'es' ? 'Maestro de la Rutina' : 'Routine Master',
+      desc: locale === 'es' ? '50 entrenamientos registrados en el sistema' : '50 workouts recorded in the system',
+      unlocked: totalSesiones >= 50,
+      progresoActual: Math.min(totalSesiones, 50),
+      progresoMeta: 50,
+      unidad: locale === 'es' ? 'entrenos' : 'sessions',
+    },
+  ], [totalSesiones, streakData.bestStreak, locale]);
 
-  // Stats para la tarjeta superior
+  // Stats para la tarjeta superior (enfocadas en asistencia y disciplina, sin métricas de fuerza)
   const stats = useMemo(() => [
     {
       etiqueta: locale === 'es' ? 'ENTRENAMIENTOS' : 'WORKOUTS',
       valor: totalSesiones ? String(totalSesiones) : '0',
+      icono: <Calendar size={15} className="text-neutral-400" />,
+      destacado: false,
     },
     {
-      etiqueta: locale === 'es' ? 'RACHA TIKTOK' : 'TIKTOK STREAK',
-      valor: streakData.rachaActual ? `🔥 ${streakData.rachaActual} ${locale === 'es' ? 'DÍAS' : 'DAYS'}` : '0 DÍAS',
+      etiqueta: locale === 'es' ? 'RACHA DE CONSTANCIA' : 'CONSISTENCY STREAK',
+      valor: streakData.rachaActual ? `${streakData.rachaActual} ${locale === 'es' ? 'DÍAS' : 'DAYS'}` : '0 DÍAS',
+      icono: <Flame size={15} className="text-amber-400 animate-pulse" />,
       destacado: streakData.rachaActual > 0,
     },
     {
-      etiqueta: locale === 'es' ? 'PESO TOTAL' : 'TOTAL WEIGHT',
-      valor: totalPesoKg ? `${totalPesoKg.toLocaleString()} kg` : '0 kg',
+      etiqueta: locale === 'es' ? 'DISCIPLINA' : 'DISCIPLINE',
+      valor: `${metricas.disciplinaPct}%`,
+      icono: <Target size={15} className="text-[var(--color-primary)]" />,
+      destacado: metricas.disciplinaPct >= 50,
     },
-  ], [totalSesiones, streakData.rachaActual, totalPesoKg, locale]);
+  ], [totalSesiones, streakData.rachaActual, metricas.disciplinaPct, locale]);
 
-  // Manejador de subida de foto de perfil
+  // Manejador de subida y cambio de foto de perfil
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -393,6 +383,8 @@ export default function PerfilPage() {
     reader.onload = async () => {
       try {
         const base64 = reader.result as string;
+        setLocalAvatarUrl(base64);
+        localStorage.setItem('dailyset_avatar', base64);
         await updateUser({ avatar_url: base64 });
       } catch (err) {
         console.error('Error al guardar foto:', err);
@@ -439,7 +431,7 @@ export default function PerfilPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+      <div className="space-y-6 pb-12 max-w-4xl mx-auto w-full">
 
         {/* Input invisible para subida de foto de perfil */}
         <input
@@ -454,13 +446,17 @@ export default function PerfilPage() {
         <div className="relative overflow-hidden card p-6 md:p-8 backdrop-blur-2xl">
           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
 
-            {/* Avatar con foto o iniciales y selector de imagen */}
-            <div className="relative group">
-              <div className="w-28 h-28 rounded-full border-2 border-white/10 p-1 bg-black/40 shadow-xl overflow-hidden flex items-center justify-center">
-                {user?.avatar_url ? (
+            {/* Avatar interactivo: Clic en cualquier parte del círculo para cambiar foto */}
+            <div className="relative group/avatar">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                title={locale === 'es' ? 'Haz clic para cambiar tu foto de perfil' : 'Click to change profile photo'}
+                className="w-28 h-28 rounded-full border-2 border-white/15 p-1 bg-black/40 shadow-xl overflow-hidden flex items-center justify-center cursor-pointer relative group transition-all duration-300 hover:border-[var(--color-primary)] active:scale-95"
+              >
+                {displayAvatar ? (
                   <img
-                    src={user.avatar_url}
-                    alt={user.nombre}
+                    src={displayAvatar}
+                    alt={user?.nombre ?? 'Avatar'}
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
@@ -473,14 +469,26 @@ export default function PerfilPage() {
                     </span>
                   </div>
                 )}
+
+                {/* Overlay hover completo en el círculo con cámara y texto */}
+                <div className="absolute inset-0 bg-black/65 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Camera size={22} className="text-white drop-shadow-md" />
+                  <span className="text-[9px] font-black uppercase text-white mt-1 tracking-wider text-center px-2">
+                    {locale === 'es' ? 'Cambiar Foto' : 'Change Photo'}
+                  </span>
+                </div>
               </div>
 
-              {/* Botón flotante para cambiar/añadir foto */}
+              {/* Botón flotante accesible */}
               <button
-                onClick={() => fileInputRef.current?.click()}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
                 disabled={subiendoFoto}
                 title={locale === 'es' ? 'Cambiar foto de perfil' : 'Change profile photo'}
-                className="absolute bottom-1 right-1 p-2 rounded-full bg-neutral-900 border border-white/20 text-white hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all shadow-lg group-hover:scale-105 active:scale-95"
+                className="absolute bottom-1 right-1 p-2 rounded-full bg-neutral-900 border border-white/20 text-white hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer z-10"
               >
                 <Camera size={14} />
               </button>
@@ -522,26 +530,30 @@ export default function PerfilPage() {
                     }}
                   />
                 </div>
-                <p className="text-neutral-400 text-[10px] tracking-wide mt-1.5 flex items-center gap-1">
+                <p className="text-[11px] text-neutral-400 mt-1.5 font-medium flex items-center gap-1">
                   {siguienteNivel ? (
                     locale === 'es'
-                      ? `Te faltan ${entrenamientosFaltantes} ${entrenamientosFaltantes === 1 ? 'entrenamiento' : 'entrenamientos'} para Nivel ${siguienteNivel.nivel} (${siguienteNivel.nombreEs})`
-                      : `${entrenamientosFaltantes} more ${entrenamientosFaltantes === 1 ? 'workout' : 'workouts'} needed for Level ${siguienteNivel.nivel} (${siguienteNivel.nombreEn})`
+                      ? `Entrena ${entrenamientosFaltantes} ${entrenamientosFaltantes === 1 ? 'día más' : 'días más'} para alcanzar Nivel ${siguienteNivel.nivel}`
+                      : `Train ${entrenamientosFaltantes} more ${entrenamientosFaltantes === 1 ? 'day' : 'days'} to reach Level ${siguienteNivel.nivel}`
                   ) : (
-                    locale === 'es' ? '👑 ¡Has alcanzado el Nivel Máximo de Leyenda!' : '👑 You reached the Maximum Legend Level!'
+                    <span className="flex items-center gap-1 text-amber-400 font-bold">
+                      <Crown size={13} />
+                      {locale === 'es' ? '¡Has alcanzado el Nivel Máximo de Leyenda!' : 'You reached the Maximum Legend Level!'}
+                    </span>
                   )}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Stats resumidos */}
+          {/* Stats resumidos de perfil */}
           <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-white/10">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center border-r border-white/5 last:border-r-0">
-                <p className={`font-black text-lg md:text-xl italic leading-none ${stat.destacado ? 'text-[var(--color-primary)]' : 'text-white'}`}>
-                  {stat.valor}
-                </p>
+              <div key={i} className="text-center border-r border-white/5 last:border-r-0 px-2">
+                <div className={`font-black text-base sm:text-lg md:text-xl italic leading-none flex items-center justify-center gap-1.5 ${stat.destacado ? 'text-[var(--color-primary)]' : 'text-white'}`}>
+                  {stat.icono}
+                  <span>{stat.valor}</span>
+                </div>
                 <p className="text-neutral-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em] mt-2 italic">
                   {stat.etiqueta}
                 </p>
@@ -550,7 +562,7 @@ export default function PerfilPage() {
           </div>
         </div>
 
-        {/* ── APARTADO DE GAMIFICACIÓN: SISTEMA DE RACHA & SUBIDA DE NIVEL TIKTOK ── */}
+        {/* ── APARTADO DE GAMIFICACIÓN: SISTEMA DE RACHA & SUBIDA DE NIVEL ── */}
         <div className="space-y-4">
           
           {/* Cabecera de la sección con tabs de navegación */}
@@ -561,13 +573,13 @@ export default function PerfilPage() {
                   <Flame size={16} />
                 </span>
                 <h2 className="text-lg font-black text-white uppercase italic tracking-wide">
-                  {locale === 'es' ? 'Gamificación & Racha TikTok' : 'Gamification & TikTok Streak'}
+                  {locale === 'es' ? 'Gamificación & Racha de Constancia' : 'Gamification & Consistency Streak'}
                 </h2>
               </div>
               <p className="text-neutral-400 text-xs mt-0.5">
                 {locale === 'es'
-                  ? 'Sube de nivel según entrenas y mantén encendida tu llama diaria.'
-                  : 'Level up as you train and keep your daily flame burning.'}
+                  ? 'Sube de nivel cumpliendo con los días programados en tus rutinas.'
+                  : 'Level up by sticking to your scheduled routine days.'}
               </p>
             </div>
 
@@ -575,7 +587,7 @@ export default function PerfilPage() {
             <div className="flex p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold self-start sm:self-auto">
               <button
                 onClick={() => setSeccionGamificacion('racha')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   seccionGamificacion === 'racha'
                     ? 'bg-white/10 text-white shadow-sm'
                     : 'text-neutral-400 hover:text-white'
@@ -586,7 +598,7 @@ export default function PerfilPage() {
               </button>
               <button
                 onClick={() => setSeccionGamificacion('camino')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   seccionGamificacion === 'camino'
                     ? 'bg-white/10 text-white shadow-sm'
                     : 'text-neutral-400 hover:text-white'
@@ -597,7 +609,7 @@ export default function PerfilPage() {
               </button>
               <button
                 onClick={() => setSeccionGamificacion('insignias')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   seccionGamificacion === 'insignias'
                     ? 'bg-white/10 text-white shadow-sm'
                     : 'text-neutral-400 hover:text-white'
@@ -609,18 +621,17 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* 1. PESTAÑA RACHA (Estilo TikTok Streaks) */}
+          {/* 1. PESTAÑA RACHA */}
           {seccionGamificacion === 'racha' && (
             <div className="space-y-4">
               
-              {/* Tarjeta Hero de Racha TikTok */}
+              {/* Tarjeta Hero de Racha */}
               <div className="card p-6 md:p-8 backdrop-blur-xl relative overflow-hidden">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   
-                  {/* Llama TikTok con contador */}
+                  {/* Fuego con contador */}
                   <div className="flex items-center gap-5 text-center md:text-left">
                     <div className="relative">
-                      {/* Círculo con fuego brillante animado */}
                       <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all ${
                         streakData.rachaActual > 0
                           ? 'bg-amber-500/10 border-2 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)]'
@@ -649,7 +660,7 @@ export default function PerfilPage() {
                         </span>
                       </div>
                       <p className="text-xs uppercase font-bold tracking-widest text-neutral-400 mt-0.5">
-                        {locale === 'es' ? 'Racha de Fuego Activa' : 'Active Fire Streak'}
+                        {locale === 'es' ? 'Racha de Asistencia Activa' : 'Active Attendance Streak'}
                       </p>
                     </div>
                   </div>
@@ -658,46 +669,37 @@ export default function PerfilPage() {
                   <div className="w-full md:w-auto md:max-w-xs text-center md:text-right">
                     {streakData.trainedToday ? (
                       <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-[var(--color-primary)] text-xs font-bold">
-                        <CheckCircle2 size={16} />
-                        <span>{locale === 'es' ? '¡Racha protegida hoy!' : 'Streak secured today!'}</span>
-                      </div>
-                    ) : streakData.trainedYesterday ? (
-                      <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-                          <Zap size={16} />
-                          <span>{locale === 'es' ? '¡Entrena hoy para no perderla!' : 'Train today to keep it!'}</span>
-                        </div>
-                        <p className="text-[11px] text-neutral-400">
-                          {locale === 'es'
-                            ? 'Tienes hasta medianoche para registrar una sesión.'
-                            : 'You have until midnight to log a workout.'}
-                        </p>
+                        <CheckCircle2 size={14} />
+                        <span>{locale === 'es' ? '¡Racha protegida hoy!' : 'Streak protected today!'}</span>
                       </div>
                     ) : (
-                      <div className="space-y-1.5">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs font-bold">
-                          <FlameKindling size={16} />
-                          <span>{locale === 'es' ? 'Sin racha activa' : 'No active streak'}</span>
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                          <Flame size={14} />
+                          <span>{locale === 'es' ? 'Entrena hoy para mantenerla' : 'Train today to keep it'}</span>
                         </div>
-                        <p className="text-[11px] text-neutral-400">
-                          {locale === 'es'
-                            ? 'Completa un entreno hoy para encender la llama.'
-                            : 'Complete a workout today to ignite your flame.'}
-                        </p>
+                        <div>
+                          <button
+                            onClick={() => navigate('/mis-rutinas')}
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 transition-all cursor-pointer shadow-md"
+                          >
+                            {locale === 'es' ? 'Iniciar Entrenamiento' : 'Start Workout'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Tracker de los últimos 7 días como en TikTok / Duolingo */}
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-3 text-xs">
-                    <span className="text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
-                      {locale === 'es' ? 'Actividad Semanal' : 'Weekly Activity'}
+                {/* Tracker de los últimos 7 días */}
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      {locale === 'es' ? 'Últimos 7 días' : 'Last 7 days'}
                     </span>
-                    <span className="text-neutral-400 text-[11px]">
+                    <span className="text-xs text-neutral-400 font-mono">
                       {locale === 'es'
-                        ? `Récord histórico: ${streakData.bestStreak} días`
+                        ? `Récord de racha: ${streakData.bestStreak} días`
                         : `Best streak: ${streakData.bestStreak} days`}
                     </span>
                   </div>
@@ -717,9 +719,9 @@ export default function PerfilPage() {
                         <span className="text-[10px] font-bold text-neutral-400 mb-1">
                           {item.dayName}
                         </span>
-                        <div className="my-1">
+                        <div className="my-1 flex items-center justify-center h-5">
                           {item.hasTrained ? (
-                            <span className="text-base leading-none">🔥</span>
+                            <Flame size={16} className="text-amber-400" />
                           ) : (
                             <div className={`w-2 h-2 rounded-full ${item.isToday ? 'bg-amber-400 animate-ping' : 'bg-neutral-700'}`} />
                           )}
@@ -732,7 +734,7 @@ export default function PerfilPage() {
                   </div>
                 </div>
 
-                {/* Métricas clave de gamificación */}
+                {/* Métricas clave de asistencia */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
                   <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
                     <div className="flex items-center gap-2 text-neutral-400 text-xs mb-1">
@@ -769,7 +771,7 @@ export default function PerfilPage() {
             </div>
           )}
 
-          {/* 2. PESTAÑA NIVELES (Camino de progresión estilo TikTok) */}
+          {/* 2. PESTAÑA NIVELES (Camino de progresión por asistencia) */}
           {seccionGamificacion === 'camino' && (
             <div className="space-y-4">
               
@@ -889,7 +891,7 @@ export default function PerfilPage() {
             </div>
           )}
 
-          {/* 3. PESTAÑA INSIGNIAS Y LOGROS */}
+          {/* 3. PESTAÑA INSIGNIAS */}
           {seccionGamificacion === 'insignias' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {badges.map((b) => {
@@ -898,45 +900,44 @@ export default function PerfilPage() {
                 return (
                   <div
                     key={b.id}
-                    className={`card p-4.5 backdrop-blur-xl transition-all relative overflow-hidden ${
+                    className={`card p-4.5 backdrop-blur-xl transition-all flex flex-col justify-between gap-3 ${
                       b.unlocked
-                        ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/[0.03]'
+                        ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/[0.02]'
                         : 'opacity-70 bg-white/[0.02]'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center border ${
-                          b.unlocked
-                            ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/40 shadow-[0_0_15px_rgba(212,251,52,0.15)]'
-                            : 'bg-white/5 border-white/10'
-                        }`}>
-                          {b.icon}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-white italic tracking-tight uppercase text-sm">
-                            {b.titulo}
-                          </h4>
-                          <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1">
-                            {b.desc}
-                          </p>
-                        </div>
+                    <div className="flex items-start gap-3.5">
+                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                        b.unlocked
+                          ? 'bg-[var(--color-primary)]/15 border border-[var(--color-primary)]/40 shadow-sm'
+                          : 'bg-white/5 border-white/10 text-neutral-600'
+                      }`}>
+                        {b.icon}
                       </div>
 
-                      {b.unlocked ? (
-                        <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 px-2 py-0.5 rounded-full">
-                          {locale === 'es' ? 'DESBLOQUEADO' : 'UNLOCKED'}
-                        </span>
-                      ) : (
-                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Lock size={10} />
-                          {pct}%
-                        </span>
-                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-white text-sm truncate">
+                            {b.titulo}
+                          </h4>
+                          {b.unlocked ? (
+                            <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 px-2 py-0.5 rounded-full">
+                              {locale === 'es' ? 'Conseguida' : 'Unlocked'}
+                            </span>
+                          ) : (
+                            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Lock size={9} /> {pct}%
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-400 mt-1">
+                          {b.desc}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Barra de progreso de la insignia */}
-                    <div className="space-y-1.5 pt-1">
+                    <div className="space-y-1 pt-1">
                       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
                         <div
                           className="h-full rounded-full transition-all duration-500"
