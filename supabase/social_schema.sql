@@ -22,6 +22,10 @@ ALTER TABLE public.perfiles
 COMMENT ON COLUMN public.perfiles.bio IS 'Biografía corta o descripción del usuario para su perfil social.';
 COMMENT ON COLUMN public.perfiles.es_publico IS 'Indica si el perfil del usuario es visible en el buscador y feed social.';
 
+-- Asegurar que nombre_usuario sea único e insensible a mayúsculas en perfiles
+CREATE UNIQUE INDEX IF NOT EXISTS idx_perfiles_nombre_usuario_unique 
+  ON public.perfiles (LOWER(nombre_usuario));
+
 -- ------------------------------------------------------------------------------
 -- 2. EXTENSIÓN DE TABLA 'rutinas'
 -- ------------------------------------------------------------------------------

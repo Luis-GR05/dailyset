@@ -14,6 +14,7 @@ import {
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
 import { supabase } from "../lib/supabaseClient";
+import { esNombreUsuarioDisponible } from "../lib/socialService";
 
 type Tab = 'cuenta' | 'datos';
 
@@ -39,6 +40,11 @@ export default function PerfilConfigPage() {
   // ── Cuenta ──────────────────────────────────────────────────────────────────
   const [nombre, setNombre] = useState(user?.nombre ?? '');
   const [editando, setEditando] = useState(false);
+  const [nombreUsuario, setNombreUsuario] = useState(user?.nombre_usuario ?? '');
+  const [editandoUsuario, setEditandoUsuario] = useState(false);
+  const [savingUsuario, setSavingUsuario] = useState(false);
+  const [errorUsuario, setErrorUsuario] = useState('');
+  const [successUsuario, setSuccessUsuario] = useState(false);
   const [unidadesKg, setUnidadesKg] = useState(user?.unidadesKg ?? true);
   const [notificaciones, setNotificaciones] = useState(user?.notificaciones ?? false);
   const [notificacionesEmail, setNotificacionesEmail] = useState(user?.notificacionesEmail ?? false);
@@ -84,6 +90,7 @@ export default function PerfilConfigPage() {
   useEffect(() => {
     if (user) {
       setNombre(user.nombre ?? '');
+      setNombreUsuario(user.nombre_usuario ?? '');
       setUnidadesKg(user.unidadesKg ?? true);
       setNotificaciones(user.notificaciones ?? false);
       setNotificacionesEmail(user.notificacionesEmail ?? false);
@@ -110,6 +117,41 @@ export default function PerfilConfigPage() {
       setErrorNombre(locale === 'es' ? 'Error al guardar el nombre' : 'Error saving name');
     } finally {
       setSavingNombre(false);
+    }
+  };
+
+  const handleGuardarNombreUsuario = async () => {
+    const clean = nombreUsuario.trim().toLowerCase().replace(/^@/, '');
+    if (!clean) {
+      setErrorUsuario(locale === 'es' ? 'El nombre de usuario es obligatorio' : 'Username is required');
+      return;
+    }
+    if (clean.length < 3) {
+      setErrorUsuario(locale === 'es' ? 'Mínimo 3 caracteres' : 'Minimum 3 characters');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(clean)) {
+      setErrorUsuario(locale === 'es' ? 'Solo letras, números y guión bajo' : 'Letters, numbers and underscore only');
+      return;
+    }
+
+    setSavingUsuario(true);
+    setErrorUsuario('');
+    try {
+      const disponible = await esNombreUsuarioDisponible(clean, user?.id);
+      if (!disponible) {
+        setErrorUsuario(locale === 'es' ? 'Este nombre de usuario ya está ocupado' : 'Username already taken');
+        setSavingUsuario(false);
+        return;
+      }
+      await updateUser({ nombre_usuario: clean });
+      setEditandoUsuario(false);
+      setSuccessUsuario(true);
+      setTimeout(() => setSuccessUsuario(false), 2000);
+    } catch {
+      setErrorUsuario(locale === 'es' ? 'Error al guardar el usuario' : 'Error saving username');
+    } finally {
+      setSavingUsuario(false);
     }
   };
 
@@ -351,6 +393,44 @@ export default function PerfilConfigPage() {
                     style={{ color: 'var(--color-primary)' }}
                   >
                     {savingNombre ? '...' : editando ? t.profile.save.toUpperCase() : t.profile.edit.toUpperCase()}
+                  </button>
+                </div>
+
+                {/* Nombre de Usuario (@) para la Comunidad Social */}
+                <div className="flex items-center justify-between px-6 py-5 rounded-xl hover:bg-white/5 transition-all border-t border-white/5">
+                  <div className="flex-1 mr-4">
+                    <SectionLabel>{locale === 'es' ? 'Nombre de Usuario (Comunidad)' : 'Username (Community)'}</SectionLabel>
+                    {editandoUsuario ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-neutral-500 font-mono text-sm">@</span>
+                        <input
+                          type="text"
+                          value={nombreUsuario}
+                          onChange={(e) => setNombreUsuario(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                          onKeyDown={(e) => e.key === 'Enter' && handleGuardarNombreUsuario()}
+                          className="bg-white/10 text-white font-mono font-bold outline-none w-full py-1 px-1"
+                          style={{ borderBottom: '1px solid var(--color-accent)' }}
+                          autoFocus
+                          disabled={savingUsuario}
+                          placeholder="tu_usuario"
+                          maxLength={20}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-white font-mono font-bold flex items-center gap-2">
+                        @{user?.nombre_usuario || nombreUsuario || 'atleta'}
+                        {successUsuario && <span className="text-green-400 text-[10px] font-bold normal-case font-sans">✓ {locale === 'es' ? 'guardado' : 'saved'}</span>}
+                      </p>
+                    )}
+                    {errorUsuario && <p className="text-red-400 text-[9px] mt-1 font-bold">{errorUsuario}</p>}
+                  </div>
+                  <button
+                    onClick={() => editandoUsuario ? handleGuardarNombreUsuario() : setEditandoUsuario(true)}
+                    disabled={savingUsuario}
+                    className="text-[10px] font-black uppercase tracking-widest hover:scale-110 transition-all disabled:opacity-50 min-w-[60px] text-right"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    {savingUsuario ? '...' : editandoUsuario ? t.profile.save.toUpperCase() : t.profile.edit.toUpperCase()}
                   </button>
                 </div>
 

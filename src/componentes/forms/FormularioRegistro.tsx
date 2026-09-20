@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../';
 import { supabase } from '../../lib/supabaseClient';
+import { esNombreUsuarioDisponible } from '../../lib/socialService';
 
 interface FormErrors {
     nombre_usuario?: string;
@@ -62,9 +63,19 @@ export default function FormularioRegistro() {
         }
     };
 
-    const handleBlur = (campo: string) => {
+    const handleBlur = async (campo: string) => {
         const error = validarCampo(campo, form[campo as keyof typeof form], form.password);
         setErrors(prev => ({ ...prev, [campo]: error }));
+
+        if (campo === 'nombre_usuario' && !error && form.nombre_usuario.trim().length >= 3) {
+            const disponible = await esNombreUsuarioDisponible(form.nombre_usuario);
+            if (!disponible) {
+                setErrors(prev => ({
+                    ...prev,
+                    nombre_usuario: 'Este nombre de usuario ya está ocupado',
+                }));
+            }
+        }
     };
 
     const validarTodo = (): boolean => {
@@ -86,6 +97,17 @@ export default function FormularioRegistro() {
 
         setLoading(true);
         try {
+            // Verificar primero si el nombre de usuario ya está en uso
+            const usernameDisponible = await esNombreUsuarioDisponible(form.nombre_usuario);
+            if (!usernameDisponible) {
+                setErrors(prev => ({
+                    ...prev,
+                    nombre_usuario: 'Este nombre de usuario ya está en uso. Por favor, elige otro.',
+                }));
+                setLoading(false);
+                return;
+            }
+
             const { data, error } = await supabase.auth.signUp({
                 email: form.email,
                 password: form.password,
@@ -93,7 +115,7 @@ export default function FormularioRegistro() {
                     data: {
                         // El trigger leerá esto desde raw_user_meta_data
                         nombre_completo: form.nombre_completo.trim() || null,
-                        nombre_usuario: form.nombre_usuario,
+                        nombre_usuario: form.nombre_usuario.toLowerCase().trim(),
                     }
                 }
             });

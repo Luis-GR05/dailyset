@@ -12,6 +12,7 @@ export interface User {
   id: string;
   email: string;
   nombre: string;
+  nombre_usuario?: string;
   avatar_url?: string;
   unidadesKg: boolean;
   notificaciones: boolean;
@@ -49,13 +50,15 @@ const AUTH_STORAGE_KEY = "dailyset-auth-token";
 const PROFILE_REFRESH_MS = 5 * 60 * 1000;
 
 function mapAuthUser(authUser: SupabaseUser): User {
+  const metaUsername = authUser.user_metadata?.nombre_usuario as string | undefined;
   return {
     id: authUser.id,
     email: authUser.email || "",
     nombre:
       (authUser.user_metadata?.nombre_completo as string | undefined) ||
-      (authUser.user_metadata?.nombre_usuario as string | undefined) ||
+      metaUsername ||
       "Atleta",
+    nombre_usuario: metaUsername || authUser.email?.split("@")[0] || "atleta",
     avatar_url: (authUser.user_metadata?.avatar_url as string | undefined) || undefined,
     unidadesKg: true,
     notificaciones: false,
@@ -129,6 +132,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       id: data.id,
       email: authUser.email || "",
       nombre: data.nombre_completo || data.nombre_usuario || "",
+      nombre_usuario: data.nombre_usuario || (authUser.user_metadata?.nombre_usuario as string | undefined) || "",
       avatar_url: (data.avatar_url as string | undefined) || (prefs.avatar_url as string | undefined) || (authUser.user_metadata?.avatar_url as string | undefined) || undefined,
       unidadesKg: prefs.unidadesKg ?? true,
       notificaciones: prefs.notificaciones ?? false,
@@ -422,6 +426,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     if (data.nombre !== undefined) {
       dbData.nombre_completo = data.nombre;
+    }
+    if (data.nombre_usuario !== undefined) {
+      dbData.nombre_usuario = data.nombre_usuario.toLowerCase().trim();
     }
     if (data.avatar_url !== undefined) {
       dbData.avatar_url = data.avatar_url;

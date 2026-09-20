@@ -245,10 +245,44 @@ async function getPerfilesMap(userIds: string[]): Promise<Record<string, PerfilP
 }
 
 /**
+ * Comprueba si un nombre de usuario está disponible (no existe en la base de datos).
+ * Insensible a mayúsculas/minúsculas.
+ */
+export async function esNombreUsuarioDisponible(
+  nombreUsuario: string,
+  userIdActual?: string
+): Promise<boolean> {
+  const usernameLimpio = nombreUsuario.trim().toLowerCase().replace(/^@/, '');
+  if (!usernameLimpio || usernameLimpio.length < 3) return false;
+
+  try {
+    let query = supabase
+      .from('perfiles')
+      .select('id')
+      .ilike('nombre_usuario', usernameLimpio);
+
+    if (userIdActual) {
+      query = query.neq('id', userIdActual);
+    }
+
+    const { data, error } = await query.limit(1);
+    if (error) {
+      console.warn('Error comprobando disponibilidad de nombre_usuario:', error.message);
+      return true;
+    }
+
+    return !data || data.length === 0;
+  } catch (err) {
+    console.error('Error comprobando username:', err);
+    return true;
+  }
+}
+
+/**
  * Busca perfiles públicos por nombre o nombre de usuario en Supabase
  */
 export async function buscarUsuarios(termino: string, currentUserId?: string): Promise<PerfilPublico[]> {
-  const cleanTerm = termino.trim();
+  const cleanTerm = termino.trim().replace(/^@/, '');
   if (!cleanTerm) return [];
 
   try {

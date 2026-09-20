@@ -414,7 +414,7 @@ export default function SocialPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-white text-base">{user?.nombre}</h3>
-                  <p className="text-xs text-neutral-400">{user?.email}</p>
+                  <p className="text-xs text-neutral-400 font-mono">@{user?.nombre_usuario || 'atleta'}</p>
                 </div>
               </div>
 
