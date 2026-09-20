@@ -15,6 +15,7 @@ export interface User {
   avatar_url?: string;
   unidadesKg: boolean;
   notificaciones: boolean;
+  notificacionesEmail?: boolean;
   rango?: string;
   progreso?: number;
   totalSets?: string;
@@ -107,6 +108,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
             nombre: created.nombre_completo || created.nombre_usuario || "",
             unidadesKg: prefs.unidadesKg ?? true,
             notificaciones: prefs.notificaciones ?? false,
+            notificacionesEmail: prefs.notificacionesEmail ?? false,
             rango: created.nivel_entrenamiento?.toUpperCase() || "ATLETA",
             progreso: 0,
             totalSets: "0",
@@ -130,6 +132,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       avatar_url: (data.avatar_url as string | undefined) || (prefs.avatar_url as string | undefined) || (authUser.user_metadata?.avatar_url as string | undefined) || undefined,
       unidadesKg: prefs.unidadesKg ?? true,
       notificaciones: prefs.notificaciones ?? false,
+      notificacionesEmail: prefs.notificacionesEmail ?? false,
       rango: data.nivel_entrenamiento?.toUpperCase() || "ATLETA",
       progreso: 0,
       totalSets: "0",
@@ -403,6 +406,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...currentPrefs,
       unidadesKg: data.unidadesKg ?? currentPrefs.unidadesKg,
       notificaciones: data.notificaciones ?? currentPrefs.notificaciones,
+      ...(data.notificacionesEmail !== undefined && { notificacionesEmail: data.notificacionesEmail }),
       ...(data.avatar_url !== undefined && { avatar_url: data.avatar_url }),
       // Datos físicos (solo actualizar si se pasan explícitamente)
       ...(data.pesoKg !== undefined && { pesoKg: data.pesoKg }),

@@ -8,7 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   Sun, Moon, Globe, Activity, Scale, Ruler, Calendar,
-  Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff,
+  Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail, Bell,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
@@ -40,10 +40,12 @@ export default function PerfilConfigPage() {
   const [editando, setEditando] = useState(false);
   const [unidadesKg, setUnidadesKg] = useState(user?.unidadesKg ?? true);
   const [notificaciones, setNotificaciones] = useState(user?.notificaciones ?? false);
+  const [notificacionesEmail, setNotificacionesEmail] = useState(user?.notificacionesEmail ?? false);
 
   const [savingNombre, setSavingNombre] = useState(false);
   const [savingUnidades, setSavingUnidades] = useState(false);
   const [savingNotif, setSavingNotif] = useState(false);
+  const [savingNotifEmail, setSavingNotifEmail] = useState(false);
   const [errorNombre, setErrorNombre] = useState('');
   const [successNombre, setSuccessNombre] = useState(false);
 
@@ -73,6 +75,7 @@ export default function PerfilConfigPage() {
       setNombre(user.nombre ?? '');
       setUnidadesKg(user.unidadesKg ?? true);
       setNotificaciones(user.notificaciones ?? false);
+      setNotificacionesEmail(user.notificacionesEmail ?? false);
       setPesoKg(user.pesoKg?.toString() ?? '');
       setAlturaCm(user.alturaCm?.toString() ?? '');
       setEdad(user.edad?.toString() ?? '');
@@ -115,6 +118,15 @@ export default function PerfilConfigPage() {
     try { await updateUser({ notificaciones: nuevo }); }
     catch { setNotificaciones(!nuevo); }
     finally { setSavingNotif(false); }
+  };
+
+  const handleToggleNotificacionesEmail = async () => {
+    const nuevo = !notificacionesEmail;
+    setNotificacionesEmail(nuevo);
+    setSavingNotifEmail(true);
+    try { await updateUser({ notificacionesEmail: nuevo }); }
+    catch { setNotificacionesEmail(!nuevo); }
+    finally { setSavingNotifEmail(false); }
   };
 
   const handleCambiarPassword = async () => {
@@ -403,6 +415,31 @@ export default function PerfilConfigPage() {
                     {savingNotif && <p className="text-neutral-500 text-[9px] mt-0.5">{locale === 'es' ? 'Guardando...' : 'Saving...'}</p>}
                   </div>
                   <Toggle on={notificaciones} onToggle={handleToggleNotificaciones} saving={savingNotif} />
+                </div>
+
+                {/* Notificaciones por email */}
+                <div
+                  className="flex items-center justify-between px-6 py-5 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+                  onClick={!savingNotifEmail ? handleToggleNotificacionesEmail : undefined}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      style={{ background: notificacionesEmail ? 'rgba(219,240,89,0.12)' : 'rgba(255,255,255,0.04)' }}>
+                      <Mail size={14} style={{ color: notificacionesEmail ? 'var(--color-primary)' : 'var(--color-neutral-2000)' }} />
+                    </div>
+                    <div>
+                      <span className="text-zinc-300 font-black text-[11px] italic tracking-widest uppercase">
+                        {locale === 'es' ? 'Notificaciones por email' : 'Email notifications'}
+                      </span>
+                      <p className="text-neutral-500 text-[9px] mt-0.5">
+                        {locale === 'es'
+                          ? 'Resumen semanal, subida de nivel, rachas'
+                          : 'Weekly summary, level-up alerts, streaks'}
+                      </p>
+                      {savingNotifEmail && <p className="text-neutral-500 text-[9px] mt-0.5">{locale === 'es' ? 'Guardando...' : 'Saving...'}</p>}
+                    </div>
+                  </div>
+                  <Toggle on={notificacionesEmail} onToggle={handleToggleNotificacionesEmail} saving={savingNotifEmail} />
                 </div>
               </div>
             </div>
