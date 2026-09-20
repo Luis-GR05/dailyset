@@ -233,26 +233,27 @@ export default function EntrenamientoPage() {
         <AppLayout>
             <div className="space-y-6">
                 {/* Cabecera Superior */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                            <span className="text-white font-mono font-bold text-sm md:text-base">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="h-9 px-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 flex items-center gap-2">
+                            <span className="text-white font-mono font-bold text-xs sm:text-sm">
                                 {formatHHMMSS(elapsedSeconds)}
                             </span>
-                        </Card>
-                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                            <span className="text-white font-bold text-sm md:text-base">{nombreRutina}</span>
-                        </Card>
-                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                            <span className="text-white font-bold text-sm md:text-base">
-                                {t.history.totalVolume}: {Math.round(volumenTotal)} {t.history.kg}
+                        </div>
+                        <div className="h-9 px-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 flex items-center gap-2">
+                            <span className="text-white font-bold text-xs sm:text-sm">{nombreRutina}</span>
+                        </div>
+                        <div className="h-9 px-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 flex items-center gap-2">
+                            <span className="text-neutral-400 text-xs">{t.history.totalVolume}:</span>
+                            <span className="text-white font-bold text-xs sm:text-sm">
+                                {Math.round(volumenTotal)} {t.history.kg}
                             </span>
-                        </Card>
+                        </div>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    <div className="flex items-center gap-2 w-full md:w-auto">
                         {!empezado ? (
                             <button
-                                className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-all"
+                                className="flex-1 md:flex-initial h-9 px-5 rounded-xl font-bold text-xs uppercase tracking-wider bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-sm active:scale-95 flex items-center justify-center cursor-pointer"
                                 onClick={() => {
                                     if (ejerciciosUI.length === 0) {
                                         setErrorGuardar(locale === 'es'
@@ -270,18 +271,17 @@ export default function EntrenamientoPage() {
                             </button>
                         ) : (
                             <button
-                                className="w-full md:w-auto bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="flex-1 md:flex-initial h-9 px-5 rounded-xl font-bold text-xs uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white transition-all shadow-sm active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
                                 onClick={finish}
                                 disabled={guardando}
                             >
                                 {(guardando ? (locale === 'es' ? 'GUARDANDO...' : 'SAVING...') : t.training.finishTraining.toUpperCase())}
                             </button>
                         )}
-                        <Card className="px-4 py-2 md:px-6 md:py-3" hoverable={false}>
-                            <span className="text-neutral-300 text-sm md:text-base">
-                                {locale === 'es' ? 'Series hechas' : 'Sets done'}: <span className="text-white font-bold">{seriesRealizadas}</span>
-                            </span>
-                        </Card>
+                        <div className="h-9 px-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 flex items-center gap-2 text-xs text-neutral-300 shrink-0">
+                            <span className="text-neutral-400">{locale === 'es' ? 'Series hechas:' : 'Sets done:'}</span>
+                            <span className="text-white font-bold text-xs sm:text-sm">{seriesRealizadas}</span>
+                        </div>
                     </div>
                 </div>
 
