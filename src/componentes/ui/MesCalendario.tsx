@@ -1,12 +1,21 @@
 interface MesCalendarioProps {
     mes: number;
     anio: number;
-    entrenamientos: number[];
+    entrenamientos?: number[];
+    diasEntrenados?: number[];
     onDiaClick?: (dia: number) => void;
     diaSeleccionado?: number | null;
 }
 
-export default function MesCalendario({ mes, anio, entrenamientos, onDiaClick, diaSeleccionado }: MesCalendarioProps) {
+export default function MesCalendario({
+    mes,
+    anio,
+    entrenamientos,
+    diasEntrenados,
+    onDiaClick,
+    diaSeleccionado,
+}: MesCalendarioProps) {
+    const listaEntrenados = diasEntrenados ?? entrenamientos ?? [];
     const primerDiaSemana = new Date(anio, mes, 1).getDay();
     const primerDiaAjustado = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
     const diasEnMes = new Date(anio, mes + 1, 0).getDate();
@@ -28,7 +37,7 @@ export default function MesCalendario({ mes, anio, entrenamientos, onDiaClick, d
             <div className="grid grid-cols-7 gap-y-2 gap-x-1">
                 {diasVacios.map((_, i) => <div key={`e-${i}`} className="h-9" />)}
                 {diasArray.map((dia) => {
-                    const entrenado = entrenamientos.includes(dia);
+                    const entrenado = listaEntrenados.includes(dia);
                     const seleccionado = diaSeleccionado === dia;
                     const esHoy = dia === diaHoy;
 

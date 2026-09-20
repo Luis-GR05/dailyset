@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout, TituloPagina, MonthCard, ResumenEstadisticas, Card, BotonPrimario } from "../componentes";
+import { AppLayout, TituloPagina, ResumenEstadisticas, Card, BotonPrimario } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from '../context/I18nContext';
 import MesCalendario from '../componentes/ui/MesCalendario';
@@ -13,9 +13,9 @@ import {
   Dumbbell,
   Search,
   ArrowRight,
-  Filter,
   Activity,
   X,
+  Sparkles,
 } from 'lucide-react';
 
 export default function HistorialPage() {
@@ -23,27 +23,28 @@ export default function HistorialPage() {
   const { locale } = useI18n();
   const navigate = useNavigate();
 
-  // Modo de vista: 'mes_actual' | 'todo'
-  const [vista, setVista] = useState<'mes_actual' | 'todo'>('mes_actual');
+  // Modo de vista: 'mes' (por defecto muestra sólo el mes actual) | 'anio' (vista del año entero)
+  const [vista, setVista] = useState<'mes' | 'anio'>('mes');
 
-  // Mes y año actualmente inspeccionados (por defecto el actual)
-  const ahora = new Date();
+  // Mes y año actualmente inspeccionados (por defecto el mes actual)
+  const ahora = useMemo(() => new Date(), []);
   const [mesActual, setMesActual] = useState(ahora.getMonth());
   const [anioActual, setAnioActual] = useState(ahora.getFullYear());
 
-  // Búsqueda en historial completo
-  const [busqueda, setBusqueda] = useState('');
-  const [filtroAnio, setFiltroAnio] = useState<number | 'todos'>('todos');
+  // Año inspeccionado en la vista anual
+  const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
 
-  // Configuración de alcance temporal y selección de fecha específica
-  const [anioLimite, setAnioLimite] = useState<number>(2020);
-  const [fechaIr, setFechaIr] = useState<string>('');
-  const [fechaDesde, setFechaDesde] = useState<string>('');
-  const [fechaHasta, setFechaHasta] = useState<string>('');
+  // Búsqueda en la vista anual
+  const [busquedaAnio, setBusquedaAnio] = useState('');
 
-  // Nombre formateado del mes
+  // Día seleccionado en el calendario interactivo del mes
+  const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
+
+  // Nombre formateado del mes seleccionado
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
-  const nombreMesSeleccionado = new Date(anioActual, mesActual).toLocaleString(localeStr, { month: 'long' });
+  const nombreMesSeleccionado = useMemo(() => {
+    return new Date(anioActual, mesActual).toLocaleString(localeStr, { month: 'long' });
+  }, [anioActual, mesActual, localeStr]);
 
   // Días entrenados en el mes seleccionado
   const diasEntrenadosMes = useMemo(() => {
@@ -79,6 +80,7 @@ export default function HistorialPage() {
     } else {
       setMesActual(m => m - 1);
     }
+    setDiaSeleccionado(null);
   };
 
   const irMesSiguiente = () => {
@@ -88,96 +90,88 @@ export default function HistorialPage() {
     } else {
       setMesActual(m => m + 1);
     }
+    setDiaSeleccionado(null);
   };
 
   const irAMesHoy = () => {
-    const hoy = new Date();
-    setMesActual(hoy.getMonth());
-    setAnioActual(hoy.getFullYear());
+    setMesActual(ahora.getMonth());
+    setAnioActual(ahora.getFullYear());
+    setDiaSeleccionado(null);
   };
 
   const esMesDeHoy = mesActual === ahora.getMonth() && anioActual === ahora.getFullYear();
 
-  // Años disponibles en el historial: desde año actual hasta anioLimite o año de sesión más antigua
+  // Navegar entre años en la vista anual
+  const irAnioAnterior = () => setAnioSeleccionado(a => a - 1);
+  const irAnioSiguiente = () => setAnioSeleccionado(a => a + 1);
+
+  // Años disponibles en el historial
   const aniosDisponibles = useMemo(() => {
     const years = new Set<number>();
-    const anioMax = ahora.getFullYear();
-    const anioMinSesiones = sesiones.length > 0
-      ? Math.min(...sesiones.map(s => parseInt(s.fecha.split('-')[0], 10) || anioMax))
-      : anioMax;
-    const anioMin = Math.min(anioLimite, anioMinSesiones);
-
-    for (let y = anioMax; y >= anioMin; y--) {
-      years.add(y);
-    }
+    years.add(ahora.getFullYear());
+    sesiones.forEach(s => {
+      const y = parseInt(s.fecha.split('-')[0], 10);
+      if (!isNaN(y)) years.add(y);
+    });
     return Array.from(years).sort((a, b) => b - a);
-  }, [sesiones, ahora, anioLimite]);
+  }, [sesiones, ahora]);
 
-  // Lista dinámica de meses generados
-  const todosLosMeses = useMemo(() => {
-    const meses: { mes: number; anio: number }[] = [];
-    const anioMax = ahora.getFullYear();
-    const anioMinSesiones = sesiones.length > 0
-      ? Math.min(...sesiones.map(s => parseInt(s.fecha.split('-')[0], 10) || anioMax))
-      : anioMax;
-    const anioMin = Math.min(anioLimite, anioMinSesiones);
-
-    for (let y = anioMax; y >= anioMin; y--) {
-      const mesMax = y === anioMax ? ahora.getMonth() : 11;
-      for (let m = mesMax; m >= 0; m--) {
-        if (fechaDesde || fechaHasta) {
-          const primerDiaMes = new Date(y, m, 1);
-          const ultimoDiaMes = new Date(y, m + 1, 0);
-          if (fechaDesde && ultimoDiaMes < new Date(fechaDesde)) continue;
-          if (fechaHasta && primerDiaMes > new Date(fechaHasta)) continue;
-        }
-        meses.push({ mes: m, anio: y });
-      }
-    }
-    return meses;
-  }, [ahora, anioLimite, sesiones, fechaDesde, fechaHasta]);
-
-  // Sesiones filtradas para la vista completa
-  const sesionesFiltradasTodo = useMemo(() => {
+  // Sesiones de todo el año seleccionado
+  const sesionesDelAnio = useMemo(() => {
     return sesiones.filter(s => {
-      const matchBusqueda = !busqueda.trim() ||
-        s.rutina.toLowerCase().includes(busqueda.toLowerCase()) ||
-        s.ejercicios.some(e => e.nombre.toLowerCase().includes(busqueda.toLowerCase()));
-
-      const anio = parseInt(s.fecha.split('-')[0], 10);
-      const matchAnio = filtroAnio === 'todos' || anio === filtroAnio;
-
-      const matchDesde = !fechaDesde || s.fecha >= fechaDesde;
-      const matchHasta = !fechaHasta || s.fecha <= fechaHasta;
-
-      return matchBusqueda && matchAnio && matchDesde && matchHasta;
+      const y = parseInt(s.fecha.split('-')[0], 10);
+      return y === anioSeleccionado;
     }).sort((a, b) => b.fecha.localeCompare(a.fecha));
-  }, [sesiones, busqueda, filtroAnio, fechaDesde, fechaHasta]);
+  }, [sesiones, anioSeleccionado]);
 
-  // Saltar a cualquier fecha seleccionada
-  const handleIrAFecha = (fechaDestino: string) => {
-    if (!fechaDestino) return;
-    const parts = fechaDestino.split('-').map(Number);
-    if (parts.length < 3 || isNaN(parts[0])) return;
-    const [y, m] = parts;
+  // Métricas del año seleccionado
+  const metricasAnio = useMemo(() => {
+    const totalSesiones = sesionesDelAnio.length;
+    const volumenTotalKg = sesionesDelAnio.reduce((tot, s) => {
+      return tot + s.ejercicios.reduce((sTot, e) => {
+        return sTot + e.series.reduce((sub, ser) => sub + (ser.kg || 0) * (ser.reps || 0), 0);
+      }, 0);
+    }, 0);
+    const minutosTotales = sesionesDelAnio.reduce((tot, s) => tot + (s.duracionMin || 0), 0);
+    const mesesActivos = new Set(sesionesDelAnio.map(s => s.fecha.split('-')[1])).size;
 
-    // Si hay una sesión ese día, navegar a su detalle
-    const sesionesEseDia = getSesionesPorFecha(fechaDestino);
-    if (sesionesEseDia && sesionesEseDia.length > 0) {
-      navigate(`/historial/${fechaDestino}`);
-      return;
-    }
+    return { totalSesiones, volumenTotalKg, minutosTotales, mesesActivos };
+  }, [sesionesDelAnio]);
 
-    // Si no hay sesión o para consultar ese mes en el calendario
-    setAnioActual(y);
-    setMesActual(m - 1);
-    setVista('mes_actual');
-  };
+  // Desglose de los 12 meses del año seleccionado
+  const mesesDelAnio = useMemo(() => {
+    return Array.from({ length: 12 }, (_, m) => {
+      const sesionesMes = sesionesDelAnio.filter(s => {
+        const mesIndex = parseInt(s.fecha.split('-')[1], 10) - 1;
+        return mesIndex === m;
+      });
+      const volumenMes = sesionesMes.reduce((tot, s) => {
+        return tot + s.ejercicios.reduce((sTot, e) => {
+          return sTot + e.series.reduce((sub, ser) => sub + (ser.kg || 0) * (ser.reps || 0), 0);
+        }, 0);
+      }, 0);
+      const nombre = new Date(anioSeleccionado, m).toLocaleString(localeStr, { month: 'long' });
+      return {
+        mes: m,
+        nombre,
+        totalSesiones: sesionesMes.length,
+        volumenKg: volumenMes,
+        sesiones: sesionesMes,
+      };
+    });
+  }, [sesionesDelAnio, anioSeleccionado, localeStr]);
 
-  // Día seleccionado en el calendario interactivo
-  const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
+  // Sesiones filtradas por búsqueda en el año
+  const sesionesAnioFiltradas = useMemo(() => {
+    if (!busquedaAnio.trim()) return [];
+    const q = busquedaAnio.toLowerCase();
+    return sesionesDelAnio.filter(s =>
+      s.rutina.toLowerCase().includes(q) ||
+      s.ejercicios.some(e => e.nombre.toLowerCase().includes(q))
+    );
+  }, [sesionesDelAnio, busquedaAnio]);
 
-  // Manejar clic en un día del calendario
+  // Clic en un día del calendario del mes
   const handleDiaClick = (dia: number) => {
     setDiaSeleccionado(prev => prev === dia ? null : dia);
   };
@@ -202,6 +196,14 @@ export default function HistorialPage() {
     });
   };
 
+  // Abrir mes desde la vista anual
+  const abrirMesDesdeAnio = (mesIndex: number) => {
+    setMesActual(mesIndex);
+    setAnioActual(anioSeleccionado);
+    setVista('mes');
+    setDiaSeleccionado(null);
+  };
+
   return (
     <AppLayout fullWidth>
       <div className="space-y-6 pb-16 max-w-7xl mx-auto w-full">
@@ -212,70 +214,72 @@ export default function HistorialPage() {
             <TituloPagina titulo={locale === 'es' ? "Historial de Entrenamientos" : "Workout History"} />
             <p className="text-neutral-400 text-xs sm:text-sm mt-1">
               {locale === 'es'
-                ? "Consulta tus sesiones realizadas, volumen acumulado y constancia mensual."
+                ? "Consulta tus sesiones realizadas, volumen acumulado y constancia."
                 : "Review your completed sessions, accumulated volume, and monthly discipline."}
             </p>
           </div>
 
-          {/* Toggle de Modo: Mes actual vs Historial de todo */}
-          <div className="flex p-1 rounded-2xl bg-white/[0.04] border border-white/10 self-start md:self-auto shrink-0">
+          {/* Selector de Modo: Mes actual (por defecto) vs Año entero */}
+          <div className="flex p-1 rounded-2xl bg-white/[0.04] border border-white/10 self-start md:self-auto shrink-0 shadow-sm">
             <button
-              onClick={() => setVista('mes_actual')}
+              onClick={() => setVista('mes')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                vista === 'mes_actual'
+                vista === 'mes'
                   ? 'bg-[var(--color-primary)] text-black font-black shadow-md'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
               <Calendar size={14} />
-              <span>{locale === 'es' ? 'Meses Actuales' : 'Current Months'}</span>
+              <span>{locale === 'es' ? 'Mes actual' : 'Current month'}</span>
             </button>
 
             <button
-              onClick={() => setVista('todo')}
+              onClick={() => setVista('anio')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                vista === 'todo'
+                vista === 'anio'
                   ? 'bg-[var(--color-primary)] text-black font-black shadow-md'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
               <Layers size={14} />
-              <span>{locale === 'es' ? 'Historial de Todo' : 'All-Time History'}</span>
+              <span>{locale === 'es' ? 'Año entero' : 'Full year'}</span>
             </button>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════ */}
-        {/* VISTA 1: MESES ACTUALES (POR DEFECTO)                        */}
+        {/* VISTA 1: MES ACTUAL (POR DEFECTO AL ENTRAR AL HISTORIAL)      */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        {vista === 'mes_actual' && (
-          <div className="space-y-6">
+        {vista === 'mes' && (
+          <div className="space-y-6 animate-fadeIn">
 
-            {/* Barra de control del mes seleccionado */}
+            {/* Barra de control del mes con navegación directa */}
             <div className="card p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
                   <button
                     onClick={irMesAnterior}
-                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                     title={locale === 'es' ? 'Mes anterior' : 'Previous month'}
                   >
                     <ChevronLeft size={16} />
                   </button>
                   <button
                     onClick={irMesSiguiente}
-                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                     title={locale === 'es' ? 'Mes siguiente' : 'Next month'}
                   >
                     <ChevronRight size={16} />
                   </button>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
                       {nombreMesSeleccionado} <span className="text-neutral-400 font-mono text-base font-normal">{anioActual}</span>
                     </h2>
+
+                    {/* Selector interactivo para saltar directamente a cualquier mes */}
                     <input
                       type="month"
                       value={`${anioActual}-${String(mesActual + 1).padStart(2, '0')}`}
@@ -284,13 +288,14 @@ export default function HistorialPage() {
                         const [y, m] = e.target.value.split('-').map(Number);
                         setAnioActual(y);
                         setMesActual(m - 1);
+                        setDiaSeleccionado(null);
                       }}
-                      title={locale === 'es' ? 'Seleccionar mes y año' : 'Select month and year'}
+                      title={locale === 'es' ? 'Elegir otro mes' : 'Select another month'}
                       className="bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs rounded-xl px-2.5 py-1 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
                     />
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
-                    {sesionesDelMes.length} {locale === 'es' ? 'sesiones registradas este mes' : 'sessions recorded this month'}
+                    {sesionesDelMes.length} {locale === 'es' ? 'sesiones registradas' : 'sessions recorded'}
                   </p>
                 </div>
               </div>
@@ -298,14 +303,14 @@ export default function HistorialPage() {
               {!esMesDeHoy && (
                 <button
                   onClick={irAMesHoy}
-                  className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer self-start sm:self-auto shrink-0"
                 >
-                  {locale === 'es' ? 'Ir al mes actual' : 'Jump to current month'}
+                  {locale === 'es' ? '← Volver al mes actual' : '← Back to current month'}
                 </button>
               )}
             </div>
 
-            {/* Tarjetas de Métricas Rápidas del Mes */}
+            {/* Tarjetas de Métricas del Mes */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
               <div className="card p-4 rounded-2xl">
                 <div className="flex items-center gap-2 text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
@@ -362,91 +367,80 @@ export default function HistorialPage() {
               </div>
             </div>
 
-            {/* Layout Principal del Mes: Calendario Interactivo a la Izquierda + Feed de Sesiones a la Derecha */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Layout Principal: Calendario Interactivo a la Izquierda + Feed de Sesiones a la Derecha */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
               {/* Columna Izquierda: Calendario del Mes */}
               <div className="lg:col-span-5 space-y-4">
                 <Card className="p-5 sm:p-6" hoverable={false}>
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
-                    <span className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <Calendar size={15} className="text-[var(--color-primary)]" />
-                      {locale === 'es' ? 'Días del Mes' : 'Month Days'}
-                    </span>
-                    <span className="text-xs text-neutral-400 font-medium">
-                      {locale === 'es' ? 'Pulsa un día para ver detalle' : 'Click a day to view details'}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                      <Calendar size={16} className="text-[var(--color-primary)]" />
+                      <span>{locale === 'es' ? 'Días del Mes' : 'Days of the Month'}</span>
+                    </h3>
+                    <span className="text-[11px] text-neutral-400 font-medium">
+                      {locale === 'es' ? 'Pulsa un día para ver detalle' : 'Click day for details'}
                     </span>
                   </div>
 
                   <MesCalendario
                     mes={mesActual}
                     anio={anioActual}
-                    entrenamientos={diasEntrenadosMes}
-                    onDiaClick={handleDiaClick}
+                    diasEntrenados={diasEntrenadosMes}
                     diaSeleccionado={diaSeleccionado}
+                    onDiaClick={handleDiaClick}
                   />
 
-                  <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
+                  {/* Leyenda del calendario */}
+                  <div className="mt-5 pt-3 border-t border-neutral-800 flex items-center justify-around text-xs text-neutral-400">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />
-                      <span>{locale === 'es' ? 'Día con entrenamiento' : 'Trained day'}</span>
+                      <span className="w-3 h-3 rounded-full bg-[var(--color-primary)] shadow-sm"></span>
+                      <span>{locale === 'es' ? 'Día entrenado' : 'Workout day'}</span>
                     </div>
-                    <span className="font-mono text-white font-bold">{diasEntrenadosMes.length} {locale === 'es' ? 'días' : 'days'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-white/10 border border-white/20"></span>
+                      <span>{locale === 'es' ? 'Descanso' : 'Rest day'}</span>
+                    </div>
                   </div>
                 </Card>
 
-                {/* Detalle interactivo del día seleccionado */}
+                {/* Desglose interactivo del día seleccionado */}
                 {diaSeleccionado !== null && (
-                  <div className="card p-5 rounded-2xl border border-[var(--color-primary)]/40 bg-neutral-900/90 shadow-2xl space-y-4 animate-fadeIn">
+                  <div className="card p-5 rounded-2xl border border-[var(--color-primary)]/40 bg-neutral-900/90 animate-fadeIn">
                     <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-                      <div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] block">
-                          {locale === 'es' ? 'Detalle del día seleccionado' : 'Selected Day Detail'}
-                        </span>
-                        <h4 className="text-sm sm:text-base font-black text-white capitalize mt-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
+                        <h4 className="text-sm font-extrabold text-white capitalize">
                           {fechaSeleccionadaStr && formatearFechaLarga(fechaSeleccionadaStr)}
                         </h4>
                       </div>
                       <button
-                        type="button"
                         onClick={() => setDiaSeleccionado(null)}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer"
+                        className="p-1 text-neutral-400 hover:text-white rounded-lg transition-colors cursor-pointer"
                         title={locale === 'es' ? 'Cerrar detalle' : 'Close detail'}
                       >
-                        <X size={15} />
+                        <X size={14} />
                       </button>
                     </div>
 
                     {sesionesDiaSeleccionado.length > 0 ? (
-                      <div className="space-y-3">
-                        {sesionesDiaSeleccionado.map((sesion, sIdx) => {
-                          const volSesion = sesion.ejercicios.reduce((tot, ej) =>
-                            tot + ej.series.reduce((sTot, s) => sTot + (s.kg || 0) * (s.reps || 0), 0), 0);
+                      <div className="mt-3 space-y-3">
+                        {sesionesDiaSeleccionado.map((sesion) => {
+                          const volTotalSesion = sesion.ejercicios.reduce((acc, ej) => {
+                            return acc + ej.series.reduce((sAcc, s) => sAcc + (s.kg || 0) * (s.reps || 0), 0);
+                          }, 0);
 
                           return (
-                            <div key={sesion.id || sIdx} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2.5">
-                              <div className="flex items-center justify-between">
-                                <h5 className="text-sm font-black text-white flex items-center gap-2">
-                                  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
-                                  {sesion.rutina}
-                                </h5>
-                                <span className="text-xs text-neutral-400 font-mono flex items-center gap-1">
-                                  <Clock size={12} /> {sesion.duracionMin} min
-                                </span>
+                            <div key={sesion.id} className="p-3.5 rounded-xl bg-neutral-800/60 border border-neutral-700/60 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <h5 className="font-bold text-white text-sm">{sesion.rutina}</h5>
+                                <span className="text-xs text-neutral-400 font-mono">{sesion.duracionMin} min</span>
                               </div>
 
-                              <div className="flex items-center justify-between text-xs text-neutral-400">
-                                <span>{sesion.ejercicios.length} {locale === 'es' ? 'ejercicios' : 'exercises'}</span>
-                                <span className="font-mono text-white font-bold">{volSesion.toLocaleString()} kg {locale === 'es' ? 'volumen' : 'volume'}</span>
-                              </div>
-
-                              {/* Mini lista de ejercicios */}
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                {sesion.ejercicios.map((ej, eIdx) => (
-                                  <span key={eIdx} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[11px] text-neutral-300 font-medium">
-                                    {ej.nombre} ({ej.series.length}s)
-                                  </span>
-                                ))}
+                              <div className="flex items-center gap-3 text-xs text-neutral-300">
+                                <span>Volumen: <strong className="text-[var(--color-primary)] font-mono">{volTotalSesion} kg</strong></span>
+                                <span>·</span>
+                                <span>Ejercicios: <strong className="text-white font-mono">{sesion.ejercicios.length}</strong></span>
                               </div>
 
                               <div className="pt-2 flex justify-end">
@@ -502,7 +496,6 @@ export default function HistorialPage() {
                 {sesionesDelMes.length > 0 ? (
                   <div className="space-y-3">
                     {sesionesDelMes.map((sesion) => {
-                      // Calcular volumen de la sesión
                       const volSesion = sesion.ejercicios.reduce((tot, ej) =>
                         tot + ej.series.reduce((sTot, s) => sTot + (s.kg || 0) * (s.reps || 0), 0), 0);
 
@@ -557,7 +550,7 @@ export default function HistorialPage() {
                           )}
 
                           <div className="flex items-center justify-between text-xs text-neutral-400 pt-1 group-hover:text-white transition-colors">
-                            <span className="text-[11px] font-semibold">{locale === 'es' ? 'Ver serie por serie y desglose' : 'View set by set breakdown'}</span>
+                            <span className="text-[11px] font-semibold">{locale === 'es' ? 'Ver desglose completo' : 'View full breakdown'}</span>
                             <ArrowRight size={14} className="text-[var(--color-primary)] group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
@@ -592,147 +585,126 @@ export default function HistorialPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════ */}
-        {/* VISTA 2: HISTORIAL DE TODO (TODOS LOS MESES Y BÚSQUEDA)      */}
+        {/* VISTA 2: AÑO ENTERO (12 MESES Y RESUMEN ANUAL)               */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        {vista === 'todo' && (
-          <div className="space-y-6">
+        {vista === 'anio' && (
+          <div className="space-y-6 animate-fadeIn">
 
-            {/* Panel de Selección de Fechas, Alcance Temporal y Búsqueda */}
-            <div className="card p-4 sm:p-5 rounded-2xl space-y-4">
-              
-              {/* Fila 1: Buscador y Salto directo a fecha específica */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                {/* Buscador */}
-                <div className="relative flex-1">
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
-                  <input
-                    type="text"
-                    placeholder={locale === 'es' ? "Buscar por rutina o ejercicio..." : "Search routine or exercise..."}
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-white text-xs sm:text-sm outline-none focus:border-[var(--color-primary)] transition-colors"
-                  />
+            {/* Cabecera del Año con selector de año y buscador */}
+            <div className="card p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+                  <button
+                    onClick={irAnioAnterior}
+                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    title={locale === 'es' ? 'Año anterior' : 'Previous year'}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    onClick={irAnioSiguiente}
+                    className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    title={locale === 'es' ? 'Año siguiente' : 'Next year'}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
 
-                {/* Ir directamente a una fecha elegida */}
-                <div className="flex items-center gap-2 bg-neutral-800/90 p-1.5 rounded-xl border border-neutral-700 shrink-0">
-                  <span className="text-xs text-neutral-300 font-bold px-2 flex items-center gap-1.5">
-                    <Calendar size={13} className="text-[var(--color-primary)]" />
-                    {locale === 'es' ? 'Ir a fecha:' : 'Go to date:'}
-                  </span>
-                  <input
-                    type="date"
-                    value={fechaIr}
-                    onChange={(e) => setFechaIr(e.target.value)}
-                    className="bg-neutral-900 border border-neutral-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-primary)]"
-                  />
-                  <button
-                    onClick={() => handleIrAFecha(fechaIr)}
-                    disabled={!fechaIr}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                      fechaIr
-                        ? 'bg-[var(--color-primary)] text-black cursor-pointer hover:brightness-110'
-                        : 'bg-white/5 text-neutral-500 cursor-not-allowed'
-                    }`}
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl sm:text-3xl font-black text-white">
+                    {anioSeleccionado}
+                  </h2>
+
+                  {/* Selector rápido de año */}
+                  <select
+                    value={anioSeleccionado}
+                    onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+                    className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer"
                   >
-                    {locale === 'es' ? 'Ver' : 'Go'}
-                  </button>
+                    {aniosDisponibles.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              {/* Fila 2: Filtro por Año + Selector de límite hasta qué año ir + Rango personalizado */}
-              <div className="pt-3 border-t border-neutral-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                
-                {/* Selector rápido de años */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0">
-                  <span className="text-xs font-bold text-neutral-400 mr-1 flex items-center gap-1 shrink-0">
-                    <Filter size={12} /> {locale === 'es' ? 'Año:' : 'Year:'}
-                  </span>
-                  <button
-                    onClick={() => setFiltroAnio('todos')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                      filtroAnio === 'todos'
-                        ? 'bg-[var(--color-primary)] text-black font-black'
-                        : 'bg-white/5 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    {locale === 'es' ? 'Todos' : 'All'}
-                  </button>
-                  {aniosDisponibles.map((y) => (
-                    <button
-                      key={y}
-                      onClick={() => setFiltroAnio(y)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                        filtroAnio === y
-                          ? 'bg-[var(--color-primary)] text-black font-black'
-                          : 'bg-white/5 text-neutral-400 hover:text-white'
-                      }`}
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Controles de Límite y Rango de Fechas */}
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  {/* Selector de hasta qué año consultar */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-neutral-400 font-semibold">{locale === 'es' ? 'Hasta año:' : 'Back to year:'}</span>
-                    <select
-                      value={anioLimite}
-                      onChange={(e) => setAnioLimite(Number(e.target.value))}
-                      className="bg-neutral-800 border border-neutral-700 text-white rounded-lg px-2.5 py-1 text-xs font-mono outline-none focus:border-[var(--color-primary)]"
-                    >
-                      <option value={2024}>2024 (2 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2023}>2023 (3 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2022}>2022 (4 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2020}>2020 (6 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2018}>2018 (8 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2015}>2015 (10 {locale === 'es' ? 'años' : 'years'})</option>
-                      <option value={2010}>2010 ({locale === 'es' ? 'Histórico completo' : 'Full history'})</option>
-                    </select>
-                  </div>
-
-                  {/* Rango Desde / Hasta */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-neutral-500 font-semibold">{locale === 'es' ? 'Desde:' : 'From:'}</span>
-                    <input
-                      type="date"
-                      value={fechaDesde}
-                      onChange={(e) => setFechaDesde(e.target.value)}
-                      className="bg-neutral-800 border border-neutral-700 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[var(--color-primary)]"
-                    />
-                    <span className="text-neutral-500 font-semibold">{locale === 'es' ? 'Hasta:' : 'To:'}</span>
-                    <input
-                      type="date"
-                      value={fechaHasta}
-                      onChange={(e) => setFechaHasta(e.target.value)}
-                      className="bg-neutral-800 border border-neutral-700 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[var(--color-primary)]"
-                    />
-                    {(fechaDesde || fechaHasta) && (
-                      <button
-                        onClick={() => { setFechaDesde(''); setFechaHasta(''); }}
-                        className="text-[11px] text-red-400 hover:underline px-1"
-                      >
-                        {locale === 'es' ? 'Limpiar' : 'Clear'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
+              {/* Buscador dentro del año */}
+              <div className="relative w-full md:w-72">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  type="text"
+                  placeholder={locale === 'es' ? `Buscar sesiones en ${anioSeleccionado}...` : `Search workouts in ${anioSeleccionado}...`}
+                  value={busquedaAnio}
+                  onChange={(e) => setBusquedaAnio(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white text-xs outline-none focus:border-[var(--color-primary)] transition-colors"
+                />
               </div>
             </div>
 
-            {/* Si está buscando, muestra la lista filtrada directamente */}
-            {busqueda.trim() ? (
-              <div className="space-y-3">
-                <p className="text-xs text-neutral-400 font-semibold px-1">
-                  {locale === 'es'
-                    ? `Resultados para "${busqueda}": ${sesionesFiltradasTodo.length} sesiones encontradas`
-                    : `Results for "${busqueda}": ${sesionesFiltradasTodo.length} sessions found`}
+            {/* Estadísticas del Año */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <div className="card p-4 rounded-2xl">
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                  {locale === 'es' ? 'Entrenamientos en el año' : 'Workouts in year'}
+                </div>
+                <p className="text-2xl font-black text-white">{metricasAnio.totalSesiones}</p>
+                <p className="text-[11px] text-neutral-500 mt-1">{metricasAnio.mesesActivos} {locale === 'es' ? 'meses con actividad' : 'active months'}</p>
+              </div>
+
+              <div className="card p-4 rounded-2xl">
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                  {locale === 'es' ? 'Volumen Anual' : 'Annual Volume'}
+                </div>
+                <p className="text-2xl font-black text-white">
+                  {metricasAnio.volumenTotalKg >= 1000
+                    ? `${(metricasAnio.volumenTotalKg / 1000).toFixed(1)} Ton`
+                    : `${metricasAnio.volumenTotalKg} kg`}
                 </p>
+                <p className="text-[11px] text-neutral-500 mt-1">{locale === 'es' ? 'peso total movido' : 'total weight moved'}</p>
+              </div>
+
+              <div className="card p-4 rounded-2xl">
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                  {locale === 'es' ? 'Tiempo Entrenado' : 'Time Trained'}
+                </div>
+                <p className="text-2xl font-black text-white">
+                  {Math.floor(metricasAnio.minutosTotales / 60)}h {metricasAnio.minutosTotales % 60}m
+                </p>
+                <p className="text-[11px] text-neutral-500 mt-1">{locale === 'es' ? 'horas acumuladas' : 'accumulated hours'}</p>
+              </div>
+
+              <div className="card p-4 rounded-2xl">
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                  {locale === 'es' ? 'Promedio / Mes' : 'Avg / Month'}
+                </div>
+                <p className="text-2xl font-black text-white">
+                  {metricasAnio.mesesActivos > 0
+                    ? Math.round(metricasAnio.totalSesiones / metricasAnio.mesesActivos)
+                    : 0}
+                </p>
+                <p className="text-[11px] text-neutral-500 mt-1">{locale === 'es' ? 'sesiones por mes activo' : 'sessions per active month'}</p>
+              </div>
+            </div>
+
+            {/* Si hay búsqueda activa: resultados de la búsqueda */}
+            {busquedaAnio.trim() ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-xs font-bold text-white">
+                    {locale === 'es'
+                      ? `Resultados para "${busquedaAnio}": ${sesionesAnioFiltradas.length} sesiones`
+                      : `Results for "${busquedaAnio}": ${sesionesAnioFiltradas.length} sessions`}
+                  </p>
+                  <button
+                    onClick={() => setBusquedaAnio('')}
+                    className="text-xs text-[var(--color-primary)] hover:underline cursor-pointer"
+                  >
+                    {locale === 'es' ? 'Ver todos los meses' : 'View all months'}
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {sesionesFiltradasTodo.map((s) => (
+                  {sesionesAnioFiltradas.map((s) => (
                     <div
                       key={s.id}
                       onClick={() => navigate(`/historial/${s.fecha}`)}
@@ -759,28 +731,78 @@ export default function HistorialPage() {
                 </div>
               </div>
             ) : (
-              /* Grid completo de meses históricos dinámicos */
+              /* Grid de los 12 Meses del Año */
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="text-base font-extrabold text-white">
-                    {locale === 'es' ? 'Todos los Meses' : 'All Months'}
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <Calendar size={16} className="text-[var(--color-primary)]" />
+                    <span>{locale === 'es' ? `Meses de ${anioSeleccionado}` : `Months of ${anioSeleccionado}`}</span>
                   </h3>
-                  <span className="text-xs text-neutral-400 font-mono">
-                    {todosLosMeses.filter(m => filtroAnio === 'todos' || m.anio === filtroAnio).length} {locale === 'es' ? 'meses en archivo' : 'months archived'}
+                  <span className="text-xs text-neutral-400">
+                    {locale === 'es' ? 'Pulsa en un mes para ver su calendario' : 'Click a month to view calendar'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {todosLosMeses.filter(m => filtroAnio === 'todos' || m.anio === filtroAnio).map((m, i) => (
-                    <MonthCard key={`${m.anio}-${m.mes}-${i}`} mes={m.mes} anio={m.anio} />
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {mesesDelAnio.map((m) => {
+                    const tieneSesiones = m.totalSesiones > 0;
+                    const esMesActualEnAnio = m.mes === ahora.getMonth() && anioSeleccionado === ahora.getFullYear();
+
+                    return (
+                      <div
+                        key={m.mes}
+                        onClick={() => abrirMesDesdeAnio(m.mes)}
+                        className={`card card-hover p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 cursor-pointer border ${
+                          esMesActualEnAnio
+                            ? 'border-[var(--color-primary)] shadow-[0_0_20px_rgba(219,240,89,0.12)]'
+                            : tieneSesiones
+                            ? 'border-neutral-800 hover:border-neutral-600'
+                            : 'border-neutral-800/50 opacity-60 hover:opacity-100 hover:border-neutral-700'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-lg font-black text-white capitalize">
+                              {m.nombre}
+                            </h4>
+                            {esMesActualEnAnio && (
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-black">
+                                {locale === 'es' ? 'Actual' : 'Current'}
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-xs text-neutral-400">
+                            {tieneSesiones
+                              ? `${m.totalSesiones} ${locale === 'es' ? 'entrenamientos' : 'workouts'}`
+                              : (locale === 'es' ? 'Sin entrenamientos' : 'No workouts')}
+                          </p>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs">
+                          {tieneSesiones ? (
+                            <span className="font-mono text-neutral-300 font-bold">
+                              {m.volumenKg >= 1000 ? `${(m.volumenKg / 1000).toFixed(1)}k` : m.volumenKg} <span className="text-neutral-500 font-normal">kg</span>
+                            </span>
+                          ) : (
+                            <span className="text-neutral-500 text-[11px]">—</span>
+                          )}
+
+                          <span className="text-[11px] font-bold text-[var(--color-primary)] flex items-center gap-1 group-hover:underline">
+                            <span>{locale === 'es' ? 'Ver mes' : 'View month'}</span>
+                            <ArrowRight size={12} />
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ─── RESUMEN GLOBAL INFERIOR (CON ICONOS LUCIDE LIMPIOS) ─── */}
+        {/* ─── RESUMEN GLOBAL INFERIOR ─── */}
         <div className="pt-4 border-t border-neutral-800">
           <ResumenEstadisticas
             volumenTotalKg={metricas.volumenTotalKg}
