@@ -4,13 +4,10 @@ import { useI18n } from '../context/I18nContext';
 import {
   Timer,
   Watch,
-  Bell,
   Footprints,
   Play,
   Pause,
   RotateCcw,
-  Plus,
-  Trash2,
   Volume2,
   VolumeX,
   Flame,
@@ -44,15 +41,7 @@ function playBeep(frequency = 880, duration = 0.2, count = 1) {
   }
 }
 
-type TabUtilidad = 'temporizador' | 'cronometro' | 'alarmas' | 'pasos';
-
-interface AlarmaItem {
-  id: string;
-  hora: string; // "07:30"
-  etiqueta: string;
-  activa: boolean;
-  dias: string[]; // ['L','M','X','J','V','S','D']
-}
+type TabUtilidad = 'temporizador' | 'cronometro' | 'pasos';
 
 interface VueltaItem {
   numero: number;
@@ -202,80 +191,7 @@ export default function UtilidadesPage() {
   };
 
   // ─────────────────────────────────────────────────────────────
-  // 3. ALARMAS Y RECORDATORIOS
-  // ─────────────────────────────────────────────────────────────
-  const [alarmas, setAlarmas] = useState<AlarmaItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('dailyset:alarmas');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [
-      { id: '1', hora: '07:30', etiqueta: 'Entrenamiento Mañanero', activa: true, dias: ['L', 'M', 'X', 'J', 'V'] },
-      { id: '2', hora: '13:30', etiqueta: 'Tomar Creatina / Hidratación', activa: true, dias: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] },
-      { id: '3', hora: '20:00', etiqueta: 'Estiramientos y Movilidad', activa: false, dias: ['M', 'J', 'S'] },
-    ];
-  });
-
-  const [nuevaHora, setNuevaHora] = useState('08:00');
-  const [nuevaEtiqueta, setNuevaEtiqueta] = useState('');
-  const [mostrarCrearAlarma, setMostrarCrearAlarma] = useState(false);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('dailyset:alarmas', JSON.stringify(alarmas));
-    } catch {}
-  }, [alarmas]);
-
-  // Chequeo de alarmas cada 30 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const ahora = new Date();
-      const horaStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-      const diaNum = ahora.getDay();
-      const diaMap = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-      const diaHoyLetra = diaMap[diaNum];
-
-      alarmas.forEach((a) => {
-        if (a.activa && a.hora === horaStr && a.dias.includes(diaHoyLetra)) {
-          playBeep(750, 0.4, 2);
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`⏰ ${a.etiqueta || 'Alarma DailySet'}`, {
-              body: `Son las ${a.hora}. ¡Momento de tu hábito de entrenamiento!`,
-            });
-          }
-        }
-      });
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [alarmas]);
-
-  const toggleAlarma = (id: string) => {
-    setAlarmas((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, activa: !a.activa } : a))
-    );
-  };
-
-  const eliminarAlarma = (id: string) => {
-    setAlarmas((prev) => prev.filter((a) => a.id !== id));
-  };
-
-  const agregarAlarma = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nuevaHora) return;
-    const nueva: AlarmaItem = {
-      id: Date.now().toString(),
-      hora: nuevaHora,
-      etiqueta: nuevaEtiqueta.trim() || (locale === 'es' ? 'Recordatorio entrenamiento' : 'Workout reminder'),
-      activa: true,
-      dias: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
-    };
-    setAlarmas([...alarmas, nueva]);
-    setNuevaEtiqueta('');
-    setMostrarCrearAlarma(false);
-  };
-
-  // ─────────────────────────────────────────────────────────────
-  // 4. CUENTA PASOS (PODÓMETRO)
+  // 3. CUENTA PASOS (PODÓMETRO)
   // ─────────────────────────────────────────────────────────────
   const hoyFechaStr = new Date().toISOString().split('T')[0];
   const [pasosHoy, setPasosHoy] = useState<number>(() => {
@@ -380,7 +296,6 @@ export default function UtilidadesPage() {
           {[
             { id: 'temporizador', label: locale === 'es' ? 'Temporizador' : 'Timer', icon: <Timer size={16} /> },
             { id: 'cronometro', label: locale === 'es' ? 'Cronómetro' : 'Stopwatch', icon: <Watch size={16} /> },
-            { id: 'alarmas', label: locale === 'es' ? 'Alarmas' : 'Alarms', icon: <Bell size={16} /> },
             { id: 'pasos', label: locale === 'es' ? 'Cuenta Pasos' : 'Step Counter', icon: <Footprints size={16} /> },
           ].map((item) => {
             const isActive = tabActiva === item.id;
@@ -603,149 +518,7 @@ export default function UtilidadesPage() {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            3. PESTAÑA: ALARMAS Y RECORDATORIOS
-           ───────────────────────────────────────────────────────────── */}
-        {tabActiva === 'alarmas' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <h3 className="text-base font-black text-white uppercase italic tracking-wide">
-                  {locale === 'es' ? 'Alarmas de Entrenamiento' : 'Training Alarms'}
-                </h3>
-                <p className="text-xs text-neutral-400">
-                  {locale === 'es'
-                    ? 'Recordatorios para entrenar, tomar suplementos o hidratarte.'
-                    : 'Reminders to train, take supplements, or hydrate.'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMostrarCrearAlarma(!mostrarCrearAlarma)}
-                className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-black text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
-              >
-                <Plus size={14} />
-                <span>{locale === 'es' ? 'Nueva Alarma' : 'New Alarm'}</span>
-              </button>
-            </div>
-
-            {/* Formulario de nueva alarma */}
-            {mostrarCrearAlarma && (
-              <Card className="p-5 border border-[var(--color-primary)]/30 animate-fadeIn" hoverable={false}>
-                <form onSubmit={agregarAlarma} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">
-                        {locale === 'es' ? 'Hora de la alarma' : 'Alarm time'}
-                      </label>
-                      <input
-                        type="time"
-                        value={nuevaHora}
-                        onChange={(e) => setNuevaHora(e.target.value)}
-                        required
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono text-base font-bold outline-none focus:border-[var(--color-primary)] transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">
-                        {locale === 'es' ? 'Etiqueta o Hábito' : 'Label or Habit'}
-                      </label>
-                      <input
-                        type="text"
-                        value={nuevaEtiqueta}
-                        onChange={(e) => setNuevaEtiqueta(e.target.value)}
-                        placeholder={locale === 'es' ? 'Ej: Rutina de Pierna, Creatina...' : 'Ex: Leg day, Creatine...'}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs font-bold outline-none focus:border-[var(--color-primary)] transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setMostrarCrearAlarma(false)}
-                      className="px-4 py-2 rounded-xl bg-white/5 text-neutral-400 hover:text-white text-xs font-bold"
-                    >
-                      {locale === 'es' ? 'Cancelar' : 'Cancel'}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 rounded-xl bg-[var(--color-primary)] text-black text-xs font-black uppercase tracking-wider cursor-pointer"
-                    >
-                      {locale === 'es' ? 'Guardar Alarma' : 'Save Alarm'}
-                    </button>
-                  </div>
-                </form>
-              </Card>
-            )}
-
-            {/* Lista de alarmas */}
-            <div className="space-y-3">
-              {alarmas.map((a) => (
-                <div
-                  key={a.id}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex items-center justify-between gap-4 ${
-                    a.activa
-                      ? 'bg-neutral-900/80 border-white/10'
-                      : 'bg-neutral-900/30 border-white/5 opacity-50'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-white">
-                        {a.hora}
-                      </span>
-                      <span className="text-xs font-bold text-neutral-300">
-                        {a.etiqueta}
-                      </span>
-                    </div>
-                    <div className="flex gap-1 pt-1">
-                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
-                        <span
-                          key={d}
-                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                            a.dias.includes(d)
-                              ? 'bg-white/10 text-[var(--color-primary)]'
-                              : 'text-neutral-600'
-                          }`}
-                        >
-                          {d}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {/* Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => toggleAlarma(a.id)}
-                      className={`w-12 h-6 rounded-full relative transition-colors duration-300 cursor-pointer ${
-                        a.activa ? 'bg-[var(--color-primary)]' : 'bg-neutral-700'
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full absolute top-0.5 transition-all duration-300 ${
-                          a.activa ? 'right-0.5 bg-black' : 'left-0.5 bg-white'
-                        }`}
-                      />
-                    </button>
-
-                    {/* Eliminar */}
-                    <button
-                      type="button"
-                      onClick={() => eliminarAlarma(a.id)}
-                      className="p-2 rounded-xl text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────────────
-            4. PESTAÑA: CUENTA PASOS (PODÓMETRO)
+            3. PESTAÑA: CUENTA PASOS (PODÓMETRO)
            ───────────────────────────────────────────────────────────── */}
         {tabActiva === 'pasos' && (
           <div className="space-y-6 animate-fadeIn">
