@@ -13,6 +13,8 @@ export interface PerfilPublico {
   siguiendoCount?: number;
   rutinasCount?: number;
   esSeguido?: boolean;
+  esBloqueado?: boolean;
+  tipoSugerencia?: 'popular' | 'creador_activo' | 'nuevo' | 'recomendado';
 }
 
 export interface EjercicioSimple {
@@ -42,3 +44,31 @@ export interface FollowRelationship {
 }
 
 export type FeedFilterType = 'todos' | 'siguiendo';
+
+export interface BloqueoUsuario {
+  id?: string;
+  bloqueador_id: string;
+  bloqueado_id: string;
+  created_at?: string;
+  perfilBloqueado?: PerfilPublico;
+}
+
+export type MotivoReporte =
+  | 'spam'
+  | 'acoso'
+  | 'contenido_inapropiado'
+  | 'suplantacion'
+  | 'nombre_ofensivo'
+  | 'otro';
+
+export interface ReporteContenido {
+  id?: string;
+  reportador_id: string;
+  tipo: 'usuario' | 'rutina';
+  reportado_usuario_id: string;
+  rutina_id?: number | null;
+  motivo: MotivoReporte;
+  descripcion?: string;
+  created_at?: string;
+}
+

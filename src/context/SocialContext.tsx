@@ -1,9 +1,9 @@
 // src/context/SocialContext.tsx
-// Estado global y acciones para la sección Social de DailySet
+// Estado global y acciones para la sección Social de DailySet con soporte de bloqueos y sugerencias
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import type { RutinaPublica, PerfilPublico, FeedFilterType } from '../types/social';
+import type { RutinaPublica, PerfilPublico, FeedFilterType, ReporteContenido } from '../types/social';
 import {
   getFeedPublico,
   buscarUsuarios as apiBuscarUsuarios,
@@ -13,6 +13,10 @@ import {
   dejarDeSeguir as apiDejarDeSeguir,
   clonarRutina as apiClonarRutina,
   toggleVisibilidadRutina as apiToggleVisibilidad,
+  getUsuariosBloqueadosIds,
+  bloquearUsuario as apiBloquearUsuario,
+  desbloquearUsuario as apiDesbloquearUsuario,
+  reportarContenido as apiReportarContenido,
 } from '../lib/socialService';
 
 interface SocialContextType {
@@ -28,9 +32,16 @@ interface SocialContextType {
   setBusquedaQuery: (query: string) => void;
   usuariosEncontrados: PerfilPublico[];
   buscandoUsuarios: boolean;
+  sugerencias: PerfilPublico[];
+  cargandoSugerencias: boolean;
   refrescarFeed: () => Promise<void>;
   clonarRutinaSocial: (rutinaId: number) => Promise<number | null>;
   togglePrivacidadRutina: (rutinaId: number, estadoActual: boolean) => Promise<boolean>;
+  bloqueadosIds: string[];
+  estaBloqueado: (userId: string) => boolean;
+  bloquearAtleta: (userId: string) => Promise<boolean>;
+  desbloquearAtleta: (userId: string) => Promise<boolean>;
+  reportarContenidoSocial: (reporte: Omit<ReporteContenido, 'reportador_id'>) => Promise<boolean>;
 }
 
 const SocialContext = createContext<SocialContextType | undefined>(undefined);
@@ -44,30 +55,56 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [filtroFeed, setFiltroFeed] = useState<FeedFilterType>('todos');
 
   const [seguidosIds, setSeguidosIds] = useState<string[]>([]);
+  const [bloqueadosIds, setBloqueadosIds] = useState<string[]>([]);
 
   const [busquedaQuery, setBusquedaQuery] = useState('');
   const [usuariosEncontrados, setUsuariosEncontrados] = useState<PerfilPublico[]>([]);
   const [buscandoUsuarios, setBuscandoUsuarios] = useState(false);
 
-  // 1. Cargar lista de seguidos cuando el usuario está autenticado
-  const cargarSeguidos = useCallback(async () => {
+  const [sugerencias, setSugerencias] = useState<PerfilPublico[]>([]);
+  const [cargandoSugerencias, setCargandoSugerencias] = useState(false);
+
+  // 1. Cargar lista de seguidos y bloqueados cuando el usuario está autenticado
+  const cargarSeguidosYBloqueados = useCallback(async () => {
     if (!user) {
       setSeguidosIds([]);
+      setBloqueadosIds([]);
       return;
     }
     try {
-      const ids = await getIdsSeguidos(user.id);
-      setSeguidosIds(ids);
+      const [fIds, bIds] = await Promise.all([
+        getIdsSeguidos(user.id),
+        getUsuariosBloqueadosIds(user.id),
+      ]);
+      setSeguidosIds(fIds);
+      setBloqueadosIds(bIds);
     } catch (err) {
-      console.error('Error al cargar seguidos:', err);
+      console.error('Error al cargar seguidos y bloqueados:', err);
     }
   }, [user]);
 
   useEffect(() => {
-    cargarSeguidos();
-  }, [cargarSeguidos]);
+    cargarSeguidosYBloqueados();
+  }, [cargarSeguidosYBloqueados]);
 
-  // 2. Cargar feed según el filtro activo (todos o solo seguidos)
+  // 2. Cargar sugerencias de atletas
+  const cargarSugerencias = useCallback(async () => {
+    setCargandoSugerencias(true);
+    try {
+      const data = await getUsuariosSugeridos(user?.id, 12, bloqueadosIds);
+      setSugerencias(data);
+    } catch (err) {
+      console.error('Error cargando sugerencias:', err);
+    } finally {
+      setCargandoSugerencias(false);
+    }
+  }, [user?.id, bloqueadosIds]);
+
+  useEffect(() => {
+    cargarSugerencias();
+  }, [cargarSugerencias]);
+
+  // 3. Cargar feed según el filtro activo (todos o solo seguidos), excluyendo bloqueados
   const cargarFeed = useCallback(async () => {
     setCargandoFeed(true);
     setErrorFeed(null);
@@ -76,6 +113,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         currentUserId: user?.id,
         soloSeguidos: filtroFeed === 'siguiendo',
         seguidosIds,
+        bloqueadosIds,
         limite: 30,
       });
       setFeed(data);
@@ -84,22 +122,22 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     } finally {
       setCargandoFeed(false);
     }
-  }, [user?.id, filtroFeed, seguidosIds]);
+  }, [user?.id, filtroFeed, seguidosIds, bloqueadosIds]);
 
   useEffect(() => {
     cargarFeed();
   }, [cargarFeed]);
 
-  // 3. Buscar usuarios con debounce y cargar sugeridos si no hay término
+  // 4. Buscar usuarios con debounce y cargar sugeridos si no hay término
   useEffect(() => {
     let cancelado = false;
 
     if (!busquedaQuery.trim()) {
       setBuscandoUsuarios(true);
-      getUsuariosSugeridos(user?.id, 12)
-        .then(sugeridos => {
+      getUsuariosSugeridos(user?.id, 12, bloqueadosIds)
+        .then(res => {
           if (!cancelado) {
-            setUsuariosEncontrados(sugeridos);
+            setUsuariosEncontrados(res);
             setBuscandoUsuarios(false);
           }
         })
@@ -114,7 +152,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     setBuscandoUsuarios(true);
     const timer = setTimeout(async () => {
       try {
-        const resultados = await apiBuscarUsuarios(busquedaQuery, user?.id);
+        const resultados = await apiBuscarUsuarios(busquedaQuery, user?.id, bloqueadosIds);
         if (!cancelado) setUsuariosEncontrados(resultados);
       } catch (err) {
         console.error('Error buscando usuarios:', err);
@@ -127,9 +165,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       cancelado = true;
       clearTimeout(timer);
     };
-  }, [busquedaQuery, user?.id]);
+  }, [busquedaQuery, user?.id, bloqueadosIds]);
 
-  // 4. Comprobar si el usuario actual sigue a un ID dado
+  // 5. Helpers de estado
   const estaSiguiendo = useCallback(
     (targetUserId: string) => {
       return seguidosIds.includes(targetUserId);
@@ -137,14 +175,20 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [seguidosIds]
   );
 
-  // 5. Toggle seguir/dejar de seguir con actualización optimista
+  const estaBloqueado = useCallback(
+    (targetUserId: string) => {
+      return bloqueadosIds.includes(targetUserId);
+    },
+    [bloqueadosIds]
+  );
+
+  // 6. Toggle seguir/dejar de seguir con actualización optimista
   const toggleSeguir = async (targetUserId: string): Promise<boolean> => {
     if (!user) throw new Error('Debes iniciar sesión para seguir usuarios');
     if (user.id === targetUserId) return false;
 
     const actualmenteSiguiendo = seguidosIds.includes(targetUserId);
 
-    // Actualización optimista
     setSeguidosIds(prev =>
       actualmenteSiguiendo ? prev.filter(id => id !== targetUserId) : [...prev, targetUserId]
     );
@@ -157,7 +201,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       }
       return !actualmenteSiguiendo;
     } catch (err) {
-      // Revertir optimismo en caso de error
       setSeguidosIds(prev =>
         actualmenteSiguiendo ? [...prev, targetUserId] : prev.filter(id => id !== targetUserId)
       );
@@ -165,19 +208,57 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 6. Clonar rutina pública
+  // 7. Bloquear y Desbloquear usuarios
+  const bloquearAtleta = async (targetUserId: string): Promise<boolean> => {
+    if (!user) throw new Error('Debes iniciar sesión');
+    if (user.id === targetUserId) return false;
+
+    // Actualización de estado local inmediata
+    setBloqueadosIds(prev => (prev.includes(targetUserId) ? prev : [...prev, targetUserId]));
+    setSeguidosIds(prev => prev.filter(id => id !== targetUserId));
+    setFeed(prev => prev.filter(r => r.usuario_id !== targetUserId));
+    setUsuariosEncontrados(prev => prev.filter(u => u.id !== targetUserId));
+    setSugerencias(prev => prev.filter(u => u.id !== targetUserId));
+
+    const ok = await apiBloquearUsuario(user.id, targetUserId);
+    return ok;
+  };
+
+  const desbloquearAtleta = async (targetUserId: string): Promise<boolean> => {
+    if (!user) throw new Error('Debes iniciar sesión');
+
+    setBloqueadosIds(prev => prev.filter(id => id !== targetUserId));
+    const ok = await apiDesbloquearUsuario(user.id, targetUserId);
+    if (ok) {
+      cargarFeed();
+      cargarSugerencias();
+    }
+    return ok;
+  };
+
+  // 8. Reportar contenido social
+  const reportarContenidoSocial = async (
+    reporte: Omit<ReporteContenido, 'reportador_id'>
+  ): Promise<boolean> => {
+    if (!user) throw new Error('Debes iniciar sesión para reportar contenido');
+    return await apiReportarContenido({
+      ...reporte,
+      reportador_id: user.id,
+    });
+  };
+
+  // 9. Clonar rutina pública
   const clonarRutinaSocial = async (rutinaId: number): Promise<number | null> => {
     if (!user) throw new Error('Debes iniciar sesión para clonar rutinas');
     return await apiClonarRutina(rutinaId, user.id);
   };
 
-  // 7. Toggle privacidad de una rutina
+  // 10. Toggle privacidad de una rutina
   const togglePrivacidadRutina = async (rutinaId: number, estadoActual: boolean): Promise<boolean> => {
     if (!user) throw new Error('Debes iniciar sesión');
     const nuevoEstado = !estadoActual;
     const ok = await apiToggleVisibilidad(rutinaId, nuevoEstado, user.id);
     if (ok) {
-      // Actualizar localmente si está en el feed
       setFeed(prev =>
         nuevoEstado
           ? prev
@@ -202,9 +283,16 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         setBusquedaQuery,
         usuariosEncontrados,
         buscandoUsuarios,
+        sugerencias,
+        cargandoSugerencias,
         refrescarFeed: cargarFeed,
         clonarRutinaSocial,
         togglePrivacidadRutina,
+        bloqueadosIds,
+        estaBloqueado,
+        bloquearAtleta,
+        desbloquearAtleta,
+        reportarContenidoSocial,
       }}
     >
       {children}

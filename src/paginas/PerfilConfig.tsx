@@ -11,11 +11,12 @@ import {
   Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail,
   Phone, KeyRound, HelpCircle, CheckCircle2, AlertCircle,
   Download, Trash2, ShieldCheck, AlertTriangle, FileSpreadsheet, Loader2,
+  Ban, Check, X,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
 import { supabase } from "../lib/supabaseClient";
-import { esNombreUsuarioDisponible } from "../lib/socialService";
+import { esNombreUsuarioDisponible, getPerfilesBloqueados, desbloquearUsuario } from "../lib/socialService";
 import { useHistorial } from "../context/HistorialContext";
 import { useRutinas } from "../context/RutinasContext";
 
@@ -86,6 +87,41 @@ export default function PerfilConfigPage() {
   const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
   const [errorEliminar, setErrorEliminar] = useState('');
   const [exportandoCSV, setExportandoCSV] = useState(false);
+
+  // ── Moderación: Usuarios Bloqueados ─────────────────────────────────────────
+  const [perfilesBloqueados, setPerfilesBloqueados] = useState<any[]>([]);
+  const [cargandoBloqueados, setCargandoBloqueados] = useState(false);
+  const [desbloqueandoId, setDesbloqueandoId] = useState<string | null>(null);
+
+  const cargarBloqueados = async () => {
+    if (!user?.id) return;
+    setCargandoBloqueados(true);
+    try {
+      const lista = await getPerfilesBloqueados(user.id);
+      setPerfilesBloqueados(lista);
+    } catch (err) {
+      console.error('Error cargando bloqueados:', err);
+    } finally {
+      setCargandoBloqueados(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarBloqueados();
+  }, [user?.id]);
+
+  const handleDesbloquearEnConfig = async (targetId: string) => {
+    if (!user?.id) return;
+    setDesbloqueandoId(targetId);
+    try {
+      await desbloquearUsuario(user.id, targetId);
+      setPerfilesBloqueados(prev => prev.filter(p => p.id !== targetId));
+    } catch (err) {
+      console.error('Error desbloqueando usuario:', err);
+    } finally {
+      setDesbloqueandoId(null);
+    }
+  };
 
   // ── Datos físicos ──────────────────────────────────────────────────────────
   const [pesoKg, setPesoKg] = useState<string>(user?.pesoKg?.toString() ?? '');
@@ -536,7 +572,7 @@ export default function PerfilConfigPage() {
                     ) : (
                       <p className="text-white font-black italic uppercase flex items-center gap-2">
                         {nombre || (locale === 'es' ? 'Sin nombre' : 'No name')}
-                        {successNombre && <span className="text-green-400 text-[10px] font-bold normal-case">✓ {locale === 'es' ? 'guardado' : 'saved'}</span>}
+                        {successNombre && <span className="text-green-400 text-[10px] font-bold normal-case flex items-center gap-1"><Check size={12} /> {locale === 'es' ? 'guardado' : 'saved'}</span>}
                       </p>
                     )}
                     {errorNombre && <p className="text-red-400 text-[9px] mt-1 font-bold">{errorNombre}</p>}
@@ -574,7 +610,7 @@ export default function PerfilConfigPage() {
                     ) : (
                       <p className="text-white font-mono font-bold flex items-center gap-2">
                         @{user?.nombre_usuario || nombreUsuario || 'atleta'}
-                        {successUsuario && <span className="text-green-400 text-[10px] font-bold normal-case font-sans">✓ {locale === 'es' ? 'guardado' : 'saved'}</span>}
+                        {successUsuario && <span className="text-green-400 text-[10px] font-bold normal-case font-sans flex items-center gap-1"><Check size={12} /> {locale === 'es' ? 'guardado' : 'saved'}</span>}
                       </p>
                     )}
                     {errorUsuario && <p className="text-red-400 text-[9px] mt-1 font-bold">{errorUsuario}</p>}
@@ -648,9 +684,10 @@ export default function PerfilConfigPage() {
                       <button
                         type="button"
                         onClick={() => setMostrarRecuperacion(false)}
-                        className="text-neutral-400 hover:text-white text-xs font-bold"
+                        className="text-neutral-400 hover:text-white text-xs font-bold p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                        title={locale === 'es' ? 'Cerrar' : 'Close'}
                       >
-                        ✕
+                        <X size={14} />
                       </button>
                     </div>
                     <p className="text-[11px] text-neutral-400">
@@ -818,7 +855,7 @@ export default function PerfilConfigPage() {
                 )}
 
                 {errorPassword && <p className="text-red-400 text-[10px] font-bold">{errorPassword}</p>}
-                {successPassword && <p className="text-green-400 text-[10px] font-bold">✓ {locale === 'es' ? 'Contraseña actualizada correctamente' : 'Password updated successfully'}</p>}
+                {successPassword && <p className="text-green-400 text-[10px] font-bold flex items-center gap-1"><Check size={12} /> {locale === 'es' ? 'Contraseña actualizada correctamente' : 'Password updated successfully'}</p>}
 
                 <div className="flex justify-end">
                   <button
@@ -982,6 +1019,80 @@ export default function PerfilConfigPage() {
                         : (locale === 'es' ? 'Descargar CSV' : 'Download CSV')}
                     </span>
                   </button>
+                </div>
+
+                {/* Moderación: Usuarios Bloqueados */}
+                <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-neutral-800 text-neutral-400 shrink-0">
+                        <Ban size={18} />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                          {locale === 'es' ? 'Usuarios Bloqueados' : 'Blocked Users'}
+                        </h4>
+                        <p className="text-neutral-400 text-xs mt-0.5">
+                          {locale === 'es'
+                            ? 'Gestiona a qué atletas has bloqueado en la comunidad social.'
+                            : 'Manage athletes you have blocked in the social community.'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400">
+                      {perfilesBloqueados.length}
+                    </span>
+                  </div>
+
+                  {cargandoBloqueados ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 size={18} className="animate-spin text-neutral-500" />
+                    </div>
+                  ) : perfilesBloqueados.length === 0 ? (
+                    <p className="text-xs text-neutral-500 italic pl-1">
+                      {locale === 'es'
+                        ? 'No tienes a ningún usuario bloqueado actualmente.'
+                        : 'You do not have any blocked users currently.'}
+                    </p>
+                  ) : (
+                    <div className="space-y-2 pt-1">
+                      {perfilesBloqueados.map(b => (
+                        <div
+                          key={b.id}
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 gap-2"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
+                              {b.avatar_url ? (
+                                <img src={b.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <UserIcon size={16} className="text-neutral-500" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-white truncate">
+                                {b.nombre_completo || b.nombre_usuario}
+                              </p>
+                              <p className="text-[10px] text-neutral-400 truncate">
+                                @{b.nombre_usuario}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDesbloquearEnConfig(b.id)}
+                            disabled={desbloqueandoId === b.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 transition-colors cursor-pointer shrink-0"
+                          >
+                            {desbloqueandoId === b.id
+                              ? (locale === 'es' ? 'Desbloqueando...' : 'Unblocking...')
+                              : (locale === 'es' ? 'Desbloquear' : 'Unblock')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Eliminar cuenta por RGPD */}

@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoriaColor } from '../../data/rutinasPredefinidas';
 import BotonSeguir from './BotonSeguir';
+import ModalReportar from './ModalReportar';
 import {
   Copy,
   Check,
@@ -22,6 +23,7 @@ import {
   Share2,
   Loader2,
   Globe,
+  Flag,
 } from 'lucide-react';
 
 interface RutinaPublicaCardProps {
@@ -41,6 +43,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
   const [clonando, setClonando] = useState(false);
   const [clonadoExitoso, setClonadoExitoso] = useState(false);
   const [copiadoLink, setCopiadoLink] = useState(false);
+  const [mostrarReporte, setMostrarReporte] = useState(false);
 
   const esMiRutina = user?.id === rutina.usuario_id;
   const perfil = rutina.perfil;
@@ -307,6 +310,22 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
           >
             {copiadoLink ? <Check size={14} className="text-emerald-500" /> : <Share2 size={14} />}
           </button>
+
+          {/* Botón Reportar rutina */}
+          {!esMiRutina && (
+            <button
+              type="button"
+              onClick={() => setMostrarReporte(true)}
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                isLight
+                  ? 'text-neutral-400 hover:text-red-600 hover:bg-neutral-100'
+                  : 'text-neutral-500 hover:text-red-400 hover:bg-neutral-800'
+              }`}
+              title={locale === 'es' ? 'Reportar rutina' : 'Report routine'}
+            >
+              <Flag size={13} />
+            </button>
+          )}
         </div>
 
         {/* Botón Entrenar Ahora */}
@@ -323,6 +342,19 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
           <span>{locale === 'es' ? 'Entrenar' : 'Train'}</span>
         </button>
       </div>
+
+      {/* Modal de Reporte de Rutina */}
+      {mostrarReporte && (
+        <ModalReportar
+          tipo="rutina"
+          targetUsuarioId={rutina.usuario_id}
+          targetNombreUsuario={perfil?.nombre_usuario || 'atleta'}
+          targetRutinaId={rutina.id}
+          targetRutinaNombre={rutina.nombre}
+          onCerrar={() => setMostrarReporte(false)}
+          isLight={isLight}
+        />
+      )}
     </article>
   );
 }

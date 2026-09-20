@@ -5,7 +5,7 @@ import type { PerfilPublico } from '../../types/social';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../context/I18nContext';
 import BotonSeguir from './BotonSeguir';
-import { User, Dumbbell, Users } from 'lucide-react';
+import { User, Dumbbell, Users, Sparkles } from 'lucide-react';
 
 interface PerfilPublicoCardProps {
   perfil: PerfilPublico;
@@ -56,17 +56,44 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
             <p className={`text-xs truncate ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
               @{perfil.nombre_usuario}
             </p>
-            {perfil.nivel_entrenamiento && (
-              <span
-                className={`inline-block mt-0.5 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
-                  isLight
-                    ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
-                    : 'bg-neutral-800 text-[var(--color-primary)] border border-neutral-700'
-                }`}
-              >
-                {perfil.nivel_entrenamiento}
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+              {perfil.nivel_entrenamiento && (
+                <span
+                  className={`inline-block text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
+                    isLight
+                      ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                      : 'bg-neutral-800 text-[var(--color-primary)] border border-neutral-700'
+                  }`}
+                >
+                  {perfil.nivel_entrenamiento}
+                </span>
+              )}
+
+              {perfil.tipoSugerencia && (
+                <span
+                  className={`inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
+                    perfil.tipoSugerencia === 'popular'
+                      ? isLight ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      : perfil.tipoSugerencia === 'creador_activo'
+                      ? isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : perfil.tipoSugerencia === 'nuevo'
+                      ? isLight ? 'bg-sky-50 text-sky-800 border-sky-200' : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                      : isLight ? 'bg-neutral-100 text-neutral-800 border-neutral-200' : 'bg-neutral-800 text-neutral-300 border-neutral-700'
+                  }`}
+                >
+                  <Sparkles size={8} />
+                  <span>
+                    {perfil.tipoSugerencia === 'popular'
+                      ? (locale === 'es' ? 'Popular' : 'Popular')
+                      : perfil.tipoSugerencia === 'creador_activo'
+                      ? (locale === 'es' ? 'Creador Activo' : 'Active Creator')
+                      : perfil.tipoSugerencia === 'nuevo'
+                      ? (locale === 'es' ? 'Nuevo' : 'New')
+                      : (locale === 'es' ? 'Sugerido' : 'Suggested')}
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

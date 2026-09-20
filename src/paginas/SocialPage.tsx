@@ -1,5 +1,5 @@
 // src/paginas/SocialPage.tsx
-// Página principal del apartado Social de DailySet con fondo blanco por defecto y detección de modo oscuro
+// Página principal del apartado Social de DailySet con fondo blanco por defecto, invitaciones, sugerencias y moderación
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -11,6 +11,8 @@ import { useI18n } from '../context/I18nContext';
 import RutinaPublicaCard from '../componentes/social/RutinaPublicaCard';
 import PerfilPublicoCard from '../componentes/social/PerfilPublicoCard';
 import ModalPerfilPublico from '../componentes/social/ModalPerfilPublico';
+import InvitarAmigosModal from '../componentes/social/InvitarAmigosModal';
+import { getPerfilPorNombreUsuario } from '../lib/socialService';
 import { supabase } from '../lib/supabaseClient';
 import {
   Users,
@@ -24,16 +26,17 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  Plus,
   Sun,
   Moon,
   Monitor,
+  UserPlus,
+  Sparkles,
+  Share2,
 } from 'lucide-react';
 
 type TabSocial = 'feed' | 'explorar' | 'mi_perfil';
 export type SocialThemeMode = 'auto' | 'light' | 'dark';
 
-// Helper para detectar si el sistema o dispositivo prefiere modo oscuro
 const getDevicePrefersDark = (): boolean => {
   if (typeof window === 'undefined' || !window.matchMedia) return false;
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -52,6 +55,8 @@ export default function SocialPage() {
     setBusquedaQuery,
     usuariosEncontrados,
     buscandoUsuarios,
+    sugerencias,
+    cargandoSugerencias,
     refrescarFeed,
   } = useSocial();
   const { locale } = useI18n();
@@ -59,7 +64,10 @@ export default function SocialPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabActiva, setTabActiva] = useState<TabSocial>('feed');
 
-  // Estado del tema para Social (Fondo blanco por defecto, con detección automática de modo oscuro del dispositivo y control manual)
+  // Modal de Invitación
+  const [mostrarInvitarModal, setMostrarInvitarModal] = useState(false);
+
+  // Estado del tema para Social (Fondo blanco por defecto, con detección automática de modo oscuro)
   const [themeMode, setThemeMode] = useState<SocialThemeMode>(() => {
     const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
     if (guardado === 'auto' || guardado === 'light' || guardado === 'dark') {
@@ -72,11 +80,9 @@ export default function SocialPage() {
     const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
     if (guardado === 'dark') return true;
     if (guardado === 'light') return false;
-    // Si es 'auto' o primera vez: si el dispositivo está en modo oscuro -> dark. Si no -> light (fondo blanco por defecto).
     return getDevicePrefersDark();
   });
 
-  // Escuchar cambios de color-scheme en el dispositivo en tiempo real si está en modo auto
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -90,7 +96,6 @@ export default function SocialPage() {
   }, [themeMode]);
 
   const toggleTema = () => {
-    // Si está en dark, cambiar a light. Si está en light, cambiar a dark.
     const nuevoModo: SocialThemeMode = isDarkEffective ? 'light' : 'dark';
     setThemeMode(nuevoModo);
     setIsDarkEffective(nuevoModo === 'dark');
@@ -105,8 +110,9 @@ export default function SocialPage() {
 
   const isLight = !isDarkEffective;
 
-  // Estado para el modal de visualización de perfil ajeno
+  // Estado para el modal de visualización de perfil
   const [perfilSeleccionadoId, setPerfilSeleccionadoId] = useState<string | null>(null);
+  const [esPerfilInvitacion, setEsPerfilInvitacion] = useState(false);
 
   // Estados para editar la bio en "Mi Perfil Social"
   const [bioTexto, setBioTexto] = useState('');
@@ -127,18 +133,33 @@ export default function SocialPage() {
     fetchMiBio();
   }, [user?.id]);
 
-  // Si la URL contiene ?perfil=USER_ID, abrir el modal de ese perfil automáticamente
+  // Si la URL contiene ?perfil=ID o ?invitacion=USERNAME o ?ref=USERNAME
   useEffect(() => {
     const perfilQuery = searchParams.get('perfil');
     if (perfilQuery) {
       setPerfilSeleccionadoId(perfilQuery);
+      setEsPerfilInvitacion(false);
+      return;
     }
-  }, [searchParams]);
+
+    const invitacionQuery = searchParams.get('invitacion') || searchParams.get('ref');
+    if (invitacionQuery) {
+      getPerfilPorNombreUsuario(invitacionQuery, user?.id).then(perfilInv => {
+        if (perfilInv) {
+          setPerfilSeleccionadoId(perfilInv.id);
+          setEsPerfilInvitacion(true);
+        }
+      });
+    }
+  }, [searchParams, user?.id]);
 
   const handleCerrarModalPerfil = () => {
     setPerfilSeleccionadoId(null);
-    if (searchParams.has('perfil')) {
+    setEsPerfilInvitacion(false);
+    if (searchParams.has('perfil') || searchParams.has('invitacion') || searchParams.has('ref')) {
       searchParams.delete('perfil');
+      searchParams.delete('invitacion');
+      searchParams.delete('ref');
       setSearchParams(searchParams);
     }
   };
@@ -191,9 +212,19 @@ export default function SocialPage() {
             </p>
           </div>
 
-          {/* Selector de Tema y Botón Crear Rutina */}
+          {/* Selector de Tema y Botón Invitar */}
           <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
-            {/* Control de tema claro / oscuro con detección de dispositivo */}
+            {/* Botón Invitar Amigos */}
+            <button
+              type="button"
+              onClick={() => setMostrarInvitarModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer bg-[var(--color-primary)] text-black"
+            >
+              <UserPlus size={14} />
+              <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
+            </button>
+
+            {/* Control de tema claro / oscuro */}
             <div className={`flex items-center p-1 rounded-xl border ${
               isLight ? 'bg-neutral-100/90 border-neutral-200' : 'bg-neutral-900 border-neutral-800'
             }`}>
@@ -220,7 +251,6 @@ export default function SocialPage() {
                 )}
               </button>
 
-              {/* Opción para restaurar sincronización con el dispositivo */}
               {themeMode !== 'auto' ? (
                 <button
                   type="button"
@@ -249,47 +279,47 @@ export default function SocialPage() {
             {/* Botón rápido para ir a crear rutina */}
             <Link
               to="/mis-rutinas"
-              className={`inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm ${
+              className={`p-2 rounded-xl border transition-colors ${
                 isLight
-                  ? 'bg-neutral-900 text-white hover:bg-neutral-800 border border-neutral-900'
-                  : 'bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700'
+                  ? 'bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200'
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-800'
               }`}
+              title={locale === 'es' ? 'Gestionar mis rutinas' : 'Manage my routines'}
             >
-              <Plus size={15} />
-              <span>{locale === 'es' ? 'Crear mi rutina' : 'Create routine'}</span>
+              <Dumbbell size={16} />
             </Link>
           </div>
         </div>
 
-        {/* ── Selector de Pestañas Principales ── */}
-        <div className={`flex items-center gap-1.5 p-1 rounded-2xl border ${
-          isLight ? 'bg-neutral-100/90 border-neutral-200/90' : 'bg-neutral-900/80 border-neutral-800'
+        {/* ── Navegación por Pestañas ── */}
+        <div className={`flex items-center gap-2 p-1.5 rounded-2xl border ${
+          isLight ? 'bg-neutral-100 border-neutral-200/90' : 'bg-neutral-900/80 border-neutral-800'
         }`}>
           <button
             type="button"
             onClick={() => setTabActiva('feed')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
               tabActiva === 'feed'
                 ? isLight
-                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
-                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                  ? 'bg-white text-neutral-900 shadow-sm'
+                  : 'bg-neutral-800 text-white shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
-            <Globe size={16} className={tabActiva === 'feed' ? 'text-[var(--color-primary)]' : ''} />
-            <span>{locale === 'es' ? 'Feed de Rutinas' : 'Routines Feed'}</span>
+            <Users size={16} className={tabActiva === 'feed' ? 'text-[var(--color-primary)]' : ''} />
+            <span>{locale === 'es' ? 'Feed de Rutinas' : 'Workout Feed'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setTabActiva('explorar')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
               tabActiva === 'explorar'
                 ? isLight
-                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
-                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                  ? 'bg-white text-neutral-900 shadow-sm'
+                  : 'bg-neutral-800 text-white shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
@@ -302,18 +332,18 @@ export default function SocialPage() {
           <button
             type="button"
             onClick={() => setTabActiva('mi_perfil')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
               tabActiva === 'mi_perfil'
                 ? isLight
-                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
-                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                  ? 'bg-white text-neutral-900 shadow-sm'
+                  : 'bg-neutral-800 text-white shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
             <User size={16} className={tabActiva === 'mi_perfil' ? 'text-[var(--color-primary)]' : ''} />
-            <span>{locale === 'es' ? 'Mi Perfil Público' : 'My Public Profile'}</span>
+            <span>{locale === 'es' ? 'Mi Perfil' : 'My Profile'}</span>
           </button>
         </div>
 
@@ -321,16 +351,16 @@ export default function SocialPage() {
             PESTAÑA 1: FEED SOCIAL DE RUTINAS PÚBLICAS
         ════════════════════════════════════════════════════════════════════════════════ */}
         {tabActiva === 'feed' && (
-          <div className="space-y-4">
-            {/* Barra de Filtros del Feed (Todos vs Siguiendo) y Refrescar */}
-            <div className={`flex items-center justify-between gap-3 flex-wrap p-2.5 rounded-xl border ${
-              isLight ? 'bg-neutral-100/80 border-neutral-200/80' : 'bg-neutral-900/40 border-neutral-800/60'
-            }`}>
-              <div className="flex items-center gap-2">
+          <div className="space-y-6">
+            {/* Filtros del Feed (Para ti / Siguiendo) */}
+            <div className="flex items-center justify-between gap-3">
+              <div className={`flex items-center p-1 rounded-xl border ${
+                isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-900 border-neutral-800'
+              }`}>
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('todos')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     filtroFeed === 'todos'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : isLight
@@ -338,14 +368,13 @@ export default function SocialPage() {
                       : 'bg-neutral-800 text-neutral-300 hover:text-white'
                   }`}
                 >
-                  <Globe size={13} />
-                  <span>{locale === 'es' ? 'Para ti (Todos)' : 'For you (All)'}</span>
+                  {locale === 'es' ? 'Para ti' : 'For you'}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('siguiendo')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     filtroFeed === 'siguiendo'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : isLight
@@ -386,53 +415,85 @@ export default function SocialPage() {
                 <span>{errorFeed}</span>
               </div>
             ) : feed.length === 0 ? (
-              <div className={`text-center py-16 px-4 rounded-2xl border border-dashed space-y-3 ${
-                isLight ? 'bg-white border-neutral-200 shadow-sm' : 'bg-neutral-900/30 border-neutral-800'
-              }`}>
-                <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
-                  isLight ? 'bg-neutral-100 text-neutral-400' : 'bg-neutral-800/80 text-neutral-500'
+              <div className="space-y-6">
+                <div className={`text-center py-12 px-4 rounded-2xl border border-dashed space-y-3 ${
+                  isLight ? 'bg-white border-neutral-200 shadow-sm' : 'bg-neutral-900/30 border-neutral-800'
                 }`}>
-                  <Dumbbell size={28} />
+                  <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
+                    isLight ? 'bg-neutral-100 text-neutral-400' : 'bg-neutral-800/80 text-neutral-500'
+                  }`}>
+                    <Dumbbell size={28} />
+                  </div>
+                  <h3 className={`font-extrabold text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+                    {filtroFeed === 'siguiendo'
+                      ? locale === 'es'
+                        ? 'No hay publicaciones de personas que sigues'
+                        : 'No posts from people you follow'
+                      : locale === 'es'
+                      ? 'No hay rutinas públicas compartidas todavía'
+                      : 'No public routines shared yet'}
+                  </h3>
+                  <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                    {filtroFeed === 'siguiendo'
+                      ? locale === 'es'
+                        ? 'Sigue a atletas recomendados abajo o comparte tu enlace de invitación para entrenar juntos.'
+                        : 'Follow recommended athletes below or share your invite link to train together.'
+                      : locale === 'es'
+                      ? 'Sé el primero en compartir. Al crear o editar tus rutinas en Mis Rutinas, cambia la privacidad a Pública.'
+                      : 'Be the first to share! When creating or editing your routines, switch privacy to Public.'}
+                  </p>
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setMostrarInvitarModal(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black shadow-md cursor-pointer"
+                    >
+                      <UserPlus size={14} />
+                      <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTabActiva('explorar')}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                        isLight ? 'bg-neutral-100 text-neutral-800 border-neutral-200' : 'bg-neutral-800 text-white border-neutral-700'
+                      }`}
+                    >
+                      <Compass size={14} />
+                      <span>{locale === 'es' ? 'Explorar atletas' : 'Explore athletes'}</span>
+                    </button>
+                  </div>
                 </div>
-                <h3 className={`font-extrabold text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                  {filtroFeed === 'siguiendo'
-                    ? locale === 'es'
-                      ? 'No hay publicaciones de personas que sigues'
-                      : 'No posts from people you follow'
-                    : locale === 'es'
-                    ? 'No hay rutinas públicas compartidas todavía'
-                    : 'No public routines shared yet'}
-                </h3>
-                <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                  {filtroFeed === 'siguiendo'
-                    ? locale === 'es'
-                      ? 'Sigue a otros atletas desde la pestaña "Buscar Atletas" o cambia a la pestaña "Para ti" para ver todas las rutinas públicas.'
-                      : 'Follow other athletes from the "Find Athletes" tab or switch to "For you" to view all public routines.'
-                    : locale === 'es'
-                    ? '¡Sé el primero en compartir! Al crear o editar tus rutinas en Mis Rutinas, cambia la privacidad a "Pública".'
-                    : 'Be the first to share! When creating or editing your routines, switch privacy to "Public".'}
-                </p>
-                {filtroFeed === 'siguiendo' ? (
-                  <button
-                    type="button"
-                    onClick={() => setTabActiva('explorar')}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black shadow-md mt-2 cursor-pointer"
-                  >
-                    <Compass size={14} />
-                    <span>{locale === 'es' ? 'Explorar atletas' : 'Explore athletes'}</span>
-                  </button>
-                ) : (
-                  <Link
-                    to="/mis-rutinas"
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shadow-md mt-2 ${
-                      isLight
-                        ? 'bg-neutral-900 text-white hover:bg-neutral-800 border border-neutral-900'
-                        : 'bg-neutral-800 text-white border border-neutral-700 hover:bg-neutral-700'
-                    }`}
-                  >
-                    <Plus size={14} />
-                    <span>{locale === 'es' ? 'Ir a mis rutinas' : 'Go to my routines'}</span>
-                  </Link>
+
+                {/* Sugerencias de Atletas en Cold Start */}
+                {sugerencias.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-[var(--color-primary)]" />
+                        <h4 className={`text-xs font-black uppercase tracking-wider ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+                          {locale === 'es' ? 'Atletas recomendados para ti' : 'Recommended athletes for you'}
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTabActiva('explorar')}
+                        className={`text-xs font-bold ${isLight ? 'text-neutral-600 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'}`}
+                      >
+                        {locale === 'es' ? 'Ver todos' : 'View all'}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {sugerencias.slice(0, 4).map(perfil => (
+                        <PerfilPublicoCard
+                          key={perfil.id}
+                          perfil={perfil}
+                          onClick={() => setPerfilSeleccionadoId(perfil.id)}
+                          isLight={isLight}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (
@@ -451,19 +512,53 @@ export default function SocialPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            PESTAÑA 2: EXPLORAR / BUSCADOR DE ATLETAS
+            PESTAÑA 2: EXPLORAR / BUSCADOR DE ATLETAS + INVITACIÓN + SUGERENCIAS
         ════════════════════════════════════════════════════════════════════════════════ */}
         {tabActiva === 'explorar' && (
-          <div className="space-y-5">
-            {/* Buscador de usuarios */}
+          <div className="space-y-6">
+            {/* Banner de Invitación y Código de Atleta */}
+            <div
+              className={`rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                isLight
+                  ? 'bg-gradient-to-r from-amber-50/70 via-white to-neutral-50 border-neutral-200/90 shadow-sm'
+                  : 'bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-neutral-800'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-[var(--color-primary)] text-black">
+                  <UserPlus size={20} />
+                </div>
+                <div>
+                  <h4 className={`font-black text-sm sm:text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+                    {locale === 'es' ? '¿Quieres entrenar con amigos?' : 'Want to train with friends?'}
+                  </h4>
+                  <p className={`text-xs ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                    {locale === 'es'
+                      ? 'Comparte tu código de atleta o enlace para conectar de inmediato.'
+                      : 'Share your athlete code or link to connect immediately.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarInvitarModal(true)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-[var(--color-primary)] text-black shadow-md hover:opacity-95 transition-all cursor-pointer shrink-0"
+              >
+                <Share2 size={13} fill="#000000" />
+                <span>{locale === 'es' ? 'Compartir mi enlace' : 'Share my link'}</span>
+              </button>
+            </div>
+
+            {/* Buscador de usuarios por nombre o @código */}
             <div className="relative">
               <Search size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`} />
               <input
                 type="text"
                 placeholder={
                   locale === 'es'
-                    ? 'Buscar atleta por nombre o nombre de usuario...'
-                    : 'Search athlete by name or username...'
+                    ? 'Buscar atleta por nombre o código (@usuario)...'
+                    : 'Search athlete by name or code (@username)...'
                 }
                 value={busquedaQuery}
                 onChange={e => setBusquedaQuery(e.target.value)}
@@ -472,7 +567,6 @@ export default function SocialPage() {
                     ? 'bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-400 focus:ring-1 focus:ring-neutral-200'
                     : 'bg-neutral-900 border-neutral-800 text-white placeholder-neutral-500 focus:border-[var(--color-primary)]'
                 }`}
-                autoFocus
               />
               {buscandoUsuarios && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -481,14 +575,17 @@ export default function SocialPage() {
               )}
             </div>
 
-            {/* Resultados */}
+            {/* Resultados / Sugerencias */}
             {busquedaQuery.trim() === '' ? (
               usuariosEncontrados.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
-                    <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                      {locale === 'es' ? 'Atletas registrados en DailySet' : 'Athletes registered on DailySet'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={14} className="text-[var(--color-primary)]" />
+                      <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-700' : 'text-neutral-300'}`}>
+                        {locale === 'es' ? 'Atletas sugeridos y comunidad DailySet' : 'Suggested athletes & DailySet community'}
+                      </span>
+                    </div>
                     <span className={`text-[11px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
                       {usuariosEncontrados.length} {locale === 'es' ? 'atletas' : 'athletes'}
                     </span>
@@ -504,7 +601,7 @@ export default function SocialPage() {
                     ))}
                   </div>
                 </div>
-              ) : buscandoUsuarios ? (
+              ) : buscandoUsuarios || cargandoSugerencias ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 size={24} className="animate-spin text-[var(--color-primary)]" />
                 </div>
@@ -518,8 +615,8 @@ export default function SocialPage() {
                   </h4>
                   <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                     {locale === 'es'
-                      ? 'Escribe en el buscador de arriba para descubrir perfiles públicos por nombre o usuario.'
-                      : 'Type in the search box above to discover public profiles by name or username.'}
+                      ? 'Escribe en el buscador de arriba para descubrir perfiles por nombre o código de usuario.'
+                      : 'Type in the search box above to discover profiles by name or user code.'}
                   </p>
                 </div>
               )
@@ -527,10 +624,15 @@ export default function SocialPage() {
               <div className={`text-center py-12 px-4 rounded-2xl border ${
                 isLight ? 'bg-white border-neutral-200/90 text-neutral-600' : 'bg-neutral-900/30 border-neutral-800/60 text-neutral-400'
               }`}>
-                <p className="text-sm">
+                <p className="text-sm font-semibold">
                   {locale === 'es'
                     ? `No se encontraron atletas para "${busquedaQuery}".`
                     : `No athletes found for "${busquedaQuery}".`}
+                </p>
+                <p className="text-xs mt-1 text-neutral-500">
+                  {locale === 'es'
+                    ? 'Prueba a buscar por su nombre de usuario exacto o pídele su código de invitación.'
+                    : 'Try searching by their exact username or ask for their invite code.'}
                 </p>
               </div>
             ) : (
@@ -764,6 +866,15 @@ export default function SocialPage() {
           <ModalPerfilPublico
             perfilId={perfilSeleccionadoId}
             onCerrar={handleCerrarModalPerfil}
+            isLight={isLight}
+            esInvitacion={esPerfilInvitacion}
+          />
+        )}
+
+        {/* ── Modal de Invitación a Amigos ── */}
+        {mostrarInvitarModal && (
+          <InvitarAmigosModal
+            onCerrar={() => setMostrarInvitarModal(false)}
             isLight={isLight}
           />
         )}

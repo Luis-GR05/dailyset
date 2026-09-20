@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '../';
 import { supabase } from '../../lib/supabaseClient';
-import { esNombreUsuarioDisponible } from '../../lib/socialService';
+import { esNombreUsuarioDisponible, getPerfilPorNombreUsuario, seguirUsuario } from '../../lib/socialService';
+import { UserPlus } from 'lucide-react';
 
 interface FormErrors {
     nombre_usuario?: string;
@@ -44,6 +45,8 @@ function validarCampo(campo: string, valor: string, password?: string): string {
 
 export default function FormularioRegistro() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const invitador = searchParams.get('ref') || searchParams.get('invitacion');
 
     const [form, setForm] = useState({
         nombre_usuario: '',
@@ -133,8 +136,19 @@ export default function FormularioRegistro() {
             // El perfil ya lo crea el trigger automáticamente
             if (data.user && !data.session) {
                 // Email de confirmación enviado
-                navigate('/registro-confirmacion'); // o muestra un mensaje
+                navigate('/registro-confirmacion');
             } else {
+                // Si se registró mediante enlace de invitación, conectar como seguidor
+                if (data.user?.id && invitador) {
+                    try {
+                        const perfilInv = await getPerfilPorNombreUsuario(invitador);
+                        if (perfilInv && perfilInv.id !== data.user.id) {
+                            await seguirUsuario(data.user.id, perfilInv.id);
+                        }
+                    } catch {
+                        // Continuar sin interrumpir el registro
+                    }
+                }
                 navigate('/dashboard');
             }
 
@@ -150,6 +164,20 @@ export default function FormularioRegistro() {
 
     return (
         <form className="space-y-4 w-full" onSubmit={handleSubmit} noValidate>
+            {/* Aviso de Invitación si aplica */}
+            {invitador && (
+                <div className="p-3.5 rounded-2xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-white text-xs flex items-center gap-3">
+                    <UserPlus size={18} className="text-[var(--color-primary)] shrink-0" />
+                    <div>
+                        <span className="font-bold text-[var(--color-primary)] block">
+                            Invitación de @{invitador.replace(/^@/, '')}
+                        </span>
+                        <span className="text-[11px] text-neutral-400">
+                            Te conectarás automáticamente para seguir sus rutinas y progresar juntos.
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Nombre de usuario */}
             <div className="space-y-1">

@@ -24,3 +24,5 @@ export { default as MonthCard } from './ui/MonthCard';
 export { default as ResumenEstadisticas } from './ui/ResumenEstadisticas';
 export { default as NotificacionesDropdown } from './ui/NotificacionesDropdown';
 export { default as TuSemanaEnCifrasModal } from './estadisticas/TuSemanaEnCifrasModal';
+export { default as InvitarAmigosModal } from './social/InvitarAmigosModal';
+export { default as ModalReportar } from './social/ModalReportar';
