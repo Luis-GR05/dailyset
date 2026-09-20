@@ -7,7 +7,12 @@ import { useEjercicios } from '../context/EjerciciosContext';
 import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioRutina from '../componentes/forms/FormularioRutina';
 import EditarEjerciciosRutina from '../componentes/forms/EditarEjerciciosRutina';
-import { Pencil, Trash2, ListPlus, X, Dumbbell, Sparkles, Check, Clock, ChevronDown, ChevronUp, Plus, Brain, RefreshCw, ArrowLeft } from 'lucide-react';
+import {
+    Pencil, Trash2, ListPlus, X, Dumbbell, Sparkles, Check, Clock,
+    ChevronDown, ChevronUp, Plus, Brain, RefreshCw, ArrowLeft,
+    Flame, Zap, Heart, Trophy, Award, Gauge, User, Home, Building2,
+    Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle
+} from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, type RutinaTemplate } from '../data/rutinasPredefinidas';
 
@@ -330,7 +335,10 @@ export default function MisRutinasPage() {
 
                         {error && (
                             <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-300">
-                                <span>⚠️ {error}</span>
+                                <span className="flex items-center gap-2">
+                                    <AlertTriangle size={15} className="shrink-0 text-amber-400" />
+                                    <span>{error}</span>
+                                </span>
                                 <button
                                     onClick={() => refrescar()}
                                     className="self-start sm:self-auto px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
@@ -674,17 +682,19 @@ export default function MisRutinasPage() {
                                         <h3 className="text-base font-bold text-white">{locale === 'es' ? '¿Cuál es tu objetivo principal?' : 'What is your main goal?'}</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             {([
-                                                { value: 'ganar_musculo', icon: '💪', label: locale === 'es' ? 'Ganar músculo' : 'Build muscle', sub: locale === 'es' ? 'Más volumen y fuerza' : 'More size & strength', color: '#DBF059' },
-                                                { value: 'perder_peso', icon: '🔥', label: locale === 'es' ? 'Perder peso' : 'Lose weight', sub: locale === 'es' ? 'Quemar grasa' : 'Burn fat', color: '#f59e0b' },
-                                                { value: 'resistencia', icon: '🏃', label: locale === 'es' ? 'Resistencia' : 'Endurance', sub: locale === 'es' ? 'Aguante y cardio' : 'Stamina & cardio', color: '#4361EE' },
-                                                { value: 'flexibilidad', icon: '🧘', label: locale === 'es' ? 'Flexibilidad' : 'Flexibility', sub: locale === 'es' ? 'Movilidad y elasticidad' : 'Mobility & stretching', color: '#34d399' },
+                                                { value: 'ganar_musculo', icon: <Dumbbell size={20} />, label: locale === 'es' ? 'Ganar músculo' : 'Build muscle', sub: locale === 'es' ? 'Más volumen y fuerza' : 'More size & strength', color: '#DBF059' },
+                                                { value: 'perder_peso', icon: <Flame size={20} />, label: locale === 'es' ? 'Perder peso' : 'Lose weight', sub: locale === 'es' ? 'Quemar grasa' : 'Burn fat', color: '#f59e0b' },
+                                                { value: 'resistencia', icon: <Zap size={20} />, label: locale === 'es' ? 'Resistencia' : 'Endurance', sub: locale === 'es' ? 'Aguante y cardio' : 'Stamina & cardio', color: '#4361EE' },
+                                                { value: 'flexibilidad', icon: <Heart size={20} />, label: locale === 'es' ? 'Flexibilidad' : 'Flexibility', sub: locale === 'es' ? 'Movilidad y elasticidad' : 'Mobility & stretching', color: '#34d399' },
                                             ] as const).map(opt => (
                                                 <button key={opt.value}
                                                     onClick={() => { setWizardAnswers(p => ({ ...p, objetivo: opt.value })); setPasoIA(1); }}
-                                                    className="p-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
+                                                    className="p-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] cursor-pointer"
                                                     style={{ background: wizardAnswers.objetivo === opt.value ? `${opt.color}18` : 'rgba(255,255,255,0.03)', border: wizardAnswers.objetivo === opt.value ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.07)' }}
                                                 >
-                                                    <div className="text-2xl mb-2">{opt.icon}</div>
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${opt.color}20`, color: opt.color }}>
+                                                        {opt.icon}
+                                                    </div>
                                                     <div className="font-bold text-white text-sm">{opt.label}</div>
                                                     <div className="text-neutral-500 text-[11px] mt-0.5">{opt.sub}</div>
                                                 </button>
@@ -699,16 +709,18 @@ export default function MisRutinasPage() {
                                         <h3 className="text-base font-bold text-white">{locale === 'es' ? '¿Cuál es tu nivel de experiencia?' : 'What is your experience level?'}</h3>
                                         <div className="flex flex-col gap-3">
                                             {([
-                                                { value: 'principiante', icon: '🌱', label: locale === 'es' ? 'Principiante' : 'Beginner', sub: locale === 'es' ? 'Menos de 1 año entrenando' : 'Less than 1 year training', color: '#34d399' },
-                                                { value: 'intermedio', icon: '🏋️', label: locale === 'es' ? 'Intermedio' : 'Intermediate', sub: locale === 'es' ? '1-3 años de experiencia' : '1-3 years of experience', color: '#f59e0b' },
-                                                { value: 'avanzado', icon: '🥇', label: locale === 'es' ? 'Avanzado' : 'Advanced', sub: locale === 'es' ? 'Más de 3 años entrenando' : 'More than 3 years training', color: '#ef4444' },
+                                                { value: 'principiante', icon: <Gauge size={20} />, label: locale === 'es' ? 'Principiante' : 'Beginner', sub: locale === 'es' ? 'Menos de 1 año entrenando' : 'Less than 1 year training', color: '#34d399' },
+                                                { value: 'intermedio', icon: <Award size={20} />, label: locale === 'es' ? 'Intermedio' : 'Intermediate', sub: locale === 'es' ? '1-3 años de experiencia' : '1-3 years of experience', color: '#f59e0b' },
+                                                { value: 'avanzado', icon: <Trophy size={20} />, label: locale === 'es' ? 'Avanzado' : 'Advanced', sub: locale === 'es' ? 'Más de 3 años entrenando' : 'More than 3 years training', color: '#ef4444' },
                                             ] as const).map(opt => (
                                                 <button key={opt.value}
                                                     onClick={() => { setWizardAnswers(p => ({ ...p, nivel: opt.value })); setPasoIA(2); }}
-                                                    className="p-4 rounded-2xl flex items-center gap-4 text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                                                    className="p-4 rounded-2xl flex items-center gap-4 text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                                                     style={{ background: wizardAnswers.nivel === opt.value ? `${opt.color}15` : 'rgba(255,255,255,0.03)', border: wizardAnswers.nivel === opt.value ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.07)' }}
                                                 >
-                                                    <div className="text-2xl">{opt.icon}</div>
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${opt.color}20`, color: opt.color }}>
+                                                        {opt.icon}
+                                                    </div>
                                                     <div>
                                                         <div className="font-bold text-white text-sm">{opt.label}</div>
                                                         <div className="text-neutral-500 text-[11px] mt-0.5">{opt.sub}</div>
@@ -768,16 +780,18 @@ export default function MisRutinasPage() {
                                         <h3 className="text-base font-bold text-white">{locale === 'es' ? '¿Qué equipamiento tienes disponible?' : 'What equipment do you have?'}</h3>
                                         <div className="flex flex-col gap-3">
                                             {([
-                                                { value: 'ninguno', icon: '🤸', label: locale === 'es' ? 'Sin equipamiento' : 'No equipment', sub: locale === 'es' ? 'Calistenia y peso corporal' : 'Calisthenics & bodyweight', color: '#34d399' },
-                                                { value: 'basico', icon: '🏠', label: locale === 'es' ? 'Equipamiento básico' : 'Basic equipment', sub: locale === 'es' ? 'Mancuernas, barra, bandas' : 'Dumbbells, barbell, bands', color: '#f59e0b' },
-                                                { value: 'completo', icon: '🏢', label: locale === 'es' ? 'Gimnasio completo' : 'Full gym access', sub: locale === 'es' ? 'Todo disponible' : 'All equipment available', color: '#4361EE' },
+                                                { value: 'ninguno', icon: <User size={20} />, label: locale === 'es' ? 'Sin equipamiento' : 'No equipment', sub: locale === 'es' ? 'Calistenia y peso corporal' : 'Calisthenics & bodyweight', color: '#34d399' },
+                                                { value: 'basico', icon: <Home size={20} />, label: locale === 'es' ? 'Equipamiento básico' : 'Basic equipment', sub: locale === 'es' ? 'Mancuernas, barra, bandas' : 'Dumbbells, barbell, bands', color: '#f59e0b' },
+                                                { value: 'completo', icon: <Building2 size={20} />, label: locale === 'es' ? 'Gimnasio completo' : 'Full gym access', sub: locale === 'es' ? 'Todo disponible' : 'All equipment available', color: '#4361EE' },
                                             ] as const).map(opt => (
                                                 <button key={opt.value}
                                                     onClick={() => { setWizardAnswers(p => ({ ...p, equipamiento: opt.value })); setPasoIA(5); }}
-                                                    className="p-4 rounded-2xl flex items-center gap-4 text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                                                    className="p-4 rounded-2xl flex items-center gap-4 text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                                                     style={{ background: wizardAnswers.equipamiento === opt.value ? `${opt.color}15` : 'rgba(255,255,255,0.03)', border: wizardAnswers.equipamiento === opt.value ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.07)' }}
                                                 >
-                                                    <div className="text-2xl">{opt.icon}</div>
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${opt.color}20`, color: opt.color }}>
+                                                        {opt.icon}
+                                                    </div>
                                                     <div>
                                                         <div className="font-bold text-white text-sm">{opt.label}</div>
                                                         <div className="text-neutral-500 text-[11px] mt-0.5">{opt.sub}</div>
@@ -794,10 +808,10 @@ export default function MisRutinasPage() {
                                         <h3 className="text-base font-bold text-white">{locale === 'es' ? '¿Qué zona quieres trabajar?' : 'Which area to focus on?'}</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             {([
-                                                { value: 'completo', icon: '🔄', label: locale === 'es' ? 'Cuerpo completo' : 'Full body', sub: locale === 'es' ? 'Todo a la vez' : 'Everything at once', color: '#DBF059' },
-                                                { value: 'superior', icon: '👆', label: locale === 'es' ? 'Tren superior' : 'Upper body', sub: locale === 'es' ? 'Pecho, espalda, brazos' : 'Chest, back, arms', color: '#f59e0b' },
-                                                { value: 'inferior', icon: '👇', label: locale === 'es' ? 'Tren inferior' : 'Lower body', sub: locale === 'es' ? 'Piernas y glúteos' : 'Legs & glutes', color: '#4361EE' },
-                                                { value: 'core', icon: '⭕', label: 'Core', sub: locale === 'es' ? 'Abdominales y lumbar' : 'Abs & lower back', color: '#34d399' },
+                                                { value: 'completo', icon: <Maximize2 size={20} />, label: locale === 'es' ? 'Cuerpo completo' : 'Full body', sub: locale === 'es' ? 'Todo a la vez' : 'Everything at once', color: '#DBF059' },
+                                                { value: 'superior', icon: <ArrowUp size={20} />, label: locale === 'es' ? 'Tren superior' : 'Upper body', sub: locale === 'es' ? 'Pecho, espalda, brazos' : 'Chest, back, arms', color: '#f59e0b' },
+                                                { value: 'inferior', icon: <ArrowDown size={20} />, label: locale === 'es' ? 'Tren inferior' : 'Lower body', sub: locale === 'es' ? 'Piernas y glúteos' : 'Legs & glutes', color: '#4361EE' },
+                                                { value: 'core', icon: <Target size={20} />, label: 'Core', sub: locale === 'es' ? 'Abdominales y lumbar' : 'Abs & lower back', color: '#34d399' },
                                             ] as const).map(opt => (
                                                 <button key={opt.value}
                                                     onClick={() => {
@@ -810,10 +824,12 @@ export default function MisRutinasPage() {
                                                             setGenerando(false);
                                                         }, 2200);
                                                     }}
-                                                    className="p-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
+                                                    className="p-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] cursor-pointer"
                                                     style={{ background: wizardAnswers.zona === opt.value ? `${opt.color}18` : 'rgba(255,255,255,0.03)', border: wizardAnswers.zona === opt.value ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.07)' }}
                                                 >
-                                                    <div className="text-2xl mb-2">{opt.icon}</div>
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${opt.color}20`, color: opt.color }}>
+                                                        {opt.icon}
+                                                    </div>
                                                     <div className="font-bold text-white text-sm">{opt.label}</div>
                                                     <div className="text-neutral-500 text-[11px] mt-0.5">{opt.sub}</div>
                                                 </button>
