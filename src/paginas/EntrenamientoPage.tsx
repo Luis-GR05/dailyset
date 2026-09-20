@@ -1,19 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AppLayout, Card } from "../componentes";
-import { Eye, ExternalLink, Dumbbell, Sun, Timer } from 'lucide-react';
+import { Eye, ExternalLink, Dumbbell, Sun, Timer, Play, Trash2, WifiOff } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import { useRutinas } from '../context/RutinasContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
 import { useWakeLock } from '../hooks/useWakeLock';
 import TemporizadorDescanso from '../componentes/entrenamiento/TemporizadorDescanso';
 import TarjetaCompartirModal, { type DatosCompartirSesion } from '../componentes/compartir/TarjetaCompartirModal';
+import {
+    obtenerSesionActiva,
+    guardarProgresoSesion,
+    descartarSesionActiva,
+    guardarSesionPendienteSync,
+    sincronizarSesionesPendientes,
+    type SesionActivaData,
+} from '../lib/sesionActivaService';
 
 type EntrenamientoLocationState = {
     nombre?: string;
     rutinaId?: number | string;
     ejerciciosIds?: number[];
+    recuperarActiva?: boolean;
 } | null;
 
 interface SerieUI {
@@ -87,9 +97,12 @@ export default function EntrenamientoPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const { t, locale } = useI18n();
+    const { user } = useAuth();
     const { rutinas } = useRutinas();
     const { ejercicios: catalogoEjercicios } = useEjercicios();
     const { crearSesion } = useHistorial();
+
+    const userId = user?.id || 'anonimo';
 
     const state = (location.state ?? null) as EntrenamientoLocationState;
     const rutinaId = state?.rutinaId;
@@ -138,9 +151,87 @@ export default function EntrenamientoPage() {
     const [mostrarModalCompartir, setMostrarModalCompartir] = useState(false);
     const [datosCompartir, setDatosCompartir] = useState<DatosCompartirSesion | null>(null);
 
+    // Estados para Recuperación de Sesión Interrumpida y Sincronización Offline
+    const [sesionRecuperable, setSesionRecuperable] = useState<SesionActivaData | null>(null);
+    const [mostrarModalRecuperar, setMostrarModalRecuperar] = useState(false);
+    const [guardadoOfflineExitoso, setGuardadoOfflineExitoso] = useState(false);
+
+    // Restaurar sesión activa
+    const aplicarSesionRecuperada = useCallback((s: SesionActivaData) => {
+        setEjerciciosUI(s.ejerciciosUI);
+        setStartedAtMs(s.startedAtMs);
+        setEmpezado(true);
+        const transcurrido = Math.max(0, Math.floor((Date.now() - s.startedAtMs) / 1000));
+        setElapsedSeconds(transcurrido);
+        setMostrarModalRecuperar(false);
+        requestWakeLock();
+    }, [requestWakeLock]);
+
+    // Descartar sesión activa
+    const descartarRecuperada = useCallback(() => {
+        descartarSesionActiva(userId);
+        setSesionRecuperable(null);
+        setMostrarModalRecuperar(false);
+    }, [userId]);
+
+    // Detectar si hay sesión activa al montar la página
+    useEffect(() => {
+        const sesionGuardada = obtenerSesionActiva(userId);
+        if (!sesionGuardada) return;
+
+        if (state?.recuperarActiva) {
+            aplicarSesionRecuperada(sesionGuardada);
+        } else {
+            const tieneProgreso = sesionGuardada.ejerciciosUI.some(e =>
+                e.series.some(s => s.completada || s.kg > 0 || s.reps > 0)
+            );
+            if (tieneProgreso) {
+                setSesionRecuperable(sesionGuardada);
+                setMostrarModalRecuperar(true);
+            }
+        }
+    }, [userId, state?.recuperarActiva, aplicarSesionRecuperada]);
+
+    // Sincronizar sesiones pendientes guardadas en cola offline al recuperar la red
+    useEffect(() => {
+        const syncPendientes = async () => {
+            if (navigator.onLine && userId && userId !== 'anonimo') {
+                try {
+                    await sincronizarSesionesPendientes(userId, crearSesion);
+                } catch (err) {
+                    console.warn('Error sincronizando cola offline:', err);
+                }
+            }
+        };
+
+        window.addEventListener('online', syncPendientes);
+        syncPendientes();
+
+        return () => {
+            window.removeEventListener('online', syncPendientes);
+        };
+    }, [userId, crearSesion]);
+
+    // Función de persistencia serie a serie en localStorage
+    const persistirProgreso = useCallback((nuevosEjercicios: EjercicioUI[], startMs?: number) => {
+        const tStart = startMs ?? startedAtMs;
+        if (!tStart) return;
+        guardarProgresoSesion({
+            id: `sesion-${userId}-${tStart}`,
+            userId,
+            rutinaId: rutina?.id ?? (typeof rutinaId === 'number' ? rutinaId : null),
+            nombreRutina: sesionRecuperable?.nombreRutina || nombreRutina,
+            startedAtMs: tStart,
+            lastSavedAtMs: Date.now(),
+            ejerciciosUI: nuevosEjercicios,
+            segundosDescansoConfig,
+            elapsedSeconds,
+        });
+    }, [userId, startedAtMs, rutina?.id, rutinaId, sesionRecuperable?.nombreRutina, nombreRutina, segundosDescansoConfig, elapsedSeconds]);
+
     useEffect(() => {
         if (empezado) return;
-        // Inicializar ejercicios/series desde la rutina real
+        // Inicializar ejercicios/series desde la rutina real si no hay sesión restaurada
         const base = (ejerciciosDeRutina.length > 0 ? ejerciciosDeRutina : []).map((ej) => ({
             id: ej.id,
             nombre: ej.nombre,
@@ -163,21 +254,27 @@ export default function EntrenamientoPage() {
     const toggleSerie = (ejercicioId: number, serieNumero: number) => {
         let recienCompletada = false;
         let nombreEjercicio = '';
-        setEjerciciosUI(prev => prev.map(ej => {
-            if (ej.id !== ejercicioId) return ej;
-            nombreEjercicio = ej.nombre;
-            return {
-                ...ej,
-                series: ej.series.map(s => {
-                    if (s.numero === serieNumero) {
-                        const nuevoEstado = !s.completada;
-                        if (nuevoEstado) recienCompletada = true;
-                        return { ...s, completada: nuevoEstado };
-                    }
-                    return s;
-                })
-            };
-        }));
+        setEjerciciosUI(prev => {
+            const actualizados = prev.map(ej => {
+                if (ej.id !== ejercicioId) return ej;
+                nombreEjercicio = ej.nombre;
+                return {
+                    ...ej,
+                    series: ej.series.map(s => {
+                        if (s.numero === serieNumero) {
+                            const nuevoEstado = !s.completada;
+                            if (nuevoEstado) recienCompletada = true;
+                            return { ...s, completada: nuevoEstado };
+                        }
+                        return s;
+                    })
+                };
+            });
+            if (empezado) {
+                persistirProgreso(actualizados);
+            }
+            return actualizados;
+        });
 
         // Si se completa una serie durante el entrenamiento, activar descanso automáticamente
         if (recienCompletada && empezado) {
@@ -188,37 +285,60 @@ export default function EntrenamientoPage() {
     };
 
     const actualizarSerieCampo = (ejercicioId: number, serieNumero: number, campo: 'kg' | 'reps', valor: number) => {
-        setEjerciciosUI(prev => prev.map(ej => {
-            if (ej.id !== ejercicioId) return ej;
-            return {
-                ...ej,
-                series: ej.series.map(s => s.numero === serieNumero ? { ...s, [campo]: valor } : s),
-            };
-        }));
+        setEjerciciosUI(prev => {
+            const actualizados = prev.map(ej => {
+                if (ej.id !== ejercicioId) return ej;
+                return {
+                    ...ej,
+                    series: ej.series.map(s => s.numero === serieNumero ? { ...s, [campo]: valor } : s),
+                };
+            });
+            if (empezado) {
+                persistirProgreso(actualizados);
+            }
+            return actualizados;
+        });
     };
 
     const addSerie = (ejercicioId: number) => {
-        setEjerciciosUI(prev => prev.map(ej => {
-            if (ej.id !== ejercicioId) return ej;
-            const nextNumero = ej.series.length + 1;
-            return { ...ej, series: [...ej.series, { numero: nextNumero, kg: 0, reps: 0, completada: false }] };
-        }));
+        setEjerciciosUI(prev => {
+            const actualizados = prev.map(ej => {
+                if (ej.id !== ejercicioId) return ej;
+                const nextNumero = ej.series.length + 1;
+                return { ...ej, series: [...ej.series, { numero: nextNumero, kg: 0, reps: 0, completada: false }] };
+            });
+            if (empezado) {
+                persistirProgreso(actualizados);
+            }
+            return actualizados;
+        });
     };
 
     const quitarSerie = (ejercicioId: number, serieNumero: number) => {
-        setEjerciciosUI(prev => prev.map(ej => {
-            if (ej.id !== ejercicioId) return ej;
-            // Mantener al menos 1 serie por ejercicio
-            if (ej.series.length <= 1) return ej;
-            const filtradas = ej.series.filter(s => s.numero !== serieNumero);
-            // Renumerar
-            const renumeradas = filtradas.map((s, idx) => ({ ...s, numero: idx + 1 }));
-            return { ...ej, series: renumeradas };
-        }));
+        setEjerciciosUI(prev => {
+            const actualizados = prev.map(ej => {
+                if (ej.id !== ejercicioId) return ej;
+                // Mantener al menos 1 serie por ejercicio
+                if (ej.series.length <= 1) return ej;
+                const filtradas = ej.series.filter(s => s.numero !== serieNumero);
+                const renumeradas = filtradas.map((s, idx) => ({ ...s, numero: idx + 1 }));
+                return { ...ej, series: renumeradas };
+            });
+            if (empezado) {
+                persistirProgreso(actualizados);
+            }
+            return actualizados;
+        });
     };
 
     const eliminarEjercicio = (id: number) => {
-        setEjerciciosUI(prev => prev.filter(ej => ej.id !== id));
+        setEjerciciosUI(prev => {
+            const actualizados = prev.filter(ej => ej.id !== id);
+            if (empezado) {
+                persistirProgreso(actualizados);
+            }
+            return actualizados;
+        });
     };
 
     const volumenTotal = useMemo(() => {
@@ -240,7 +360,7 @@ export default function EntrenamientoPage() {
             const puntuacion = calcularPuntuacion({
                 ejercicios: ejerciciosUI,
             });
-            await crearSesion({
+            const sesionPayload = {
                 fecha: todayYYYYMMDD(),
                 duracionMin,
                 puntuacion,
@@ -249,9 +369,30 @@ export default function EntrenamientoPage() {
                     ejercicioId: ej.id,
                     series: ej.series.map(s => ({ kg: s.kg, reps: s.reps, completada: s.completada })),
                 })),
-            });
+            };
 
-            // Liberar pantalla encendida y cerrar descanso
+            try {
+                await crearSesion(sesionPayload);
+                setGuardadoOfflineExitoso(false);
+            } catch (networkErr: any) {
+                console.warn('Error de red al sincronizar con Supabase. Guardando en cola local:', networkErr);
+                guardarSesionPendienteSync({
+                    id: `offline-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                    userId,
+                    fecha: sesionPayload.fecha,
+                    duracionMin,
+                    puntuacion,
+                    rutinaId: sesionPayload.rutinaId,
+                    nombreRutina,
+                    ejercicios: sesionPayload.ejercicios,
+                    creadaEnMs: Date.now(),
+                });
+                setGuardadoOfflineExitoso(true);
+            }
+
+            // Liberar pantalla encendida, cerrar descanso y descartar sesión activa en curso
+            descartarSesionActiva(userId);
+            setEmpezado(false);
             releaseWakeLock();
             setMostrarDescanso(false);
 
@@ -371,6 +512,7 @@ export default function EntrenamientoPage() {
                                     const now = Date.now();
                                     setStartedAtMs(now);
                                     setElapsedSeconds(0);
+                                    persistirProgreso(ejerciciosUI, now);
                                 }}
                             >
                                 {(locale === 'es' ? 'EMPEZAR' : 'START')}
@@ -390,6 +532,18 @@ export default function EntrenamientoPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Aviso de entrenamiento guardado en cola offline */}
+                {guardadoOfflineExitoso && (
+                    <div className="rounded-2xl p-4 bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2.5">
+                        <WifiOff size={16} className="shrink-0 text-amber-400" />
+                        <span>
+                            {locale === 'es'
+                                ? 'Entrenamiento guardado localmente de forma segura. Se sincronizará automáticamente con la nube en cuanto recuperes la conexión.'
+                                : 'Workout saved safely to local storage. It will automatically sync to the cloud once connection is restored.'}
+                        </span>
+                    </div>
+                )}
 
                 {errorGuardar && (
                     <Card className="p-4 border border-red-500/30" hoverable={false}>
@@ -581,6 +735,76 @@ export default function EntrenamientoPage() {
                         datos={datosCompartir}
                         onContinuar={() => navigate('/historial')}
                     />
+                )}
+
+                {/* Modal de Recuperación de Sesión Interrumpida */}
+                {mostrarModalRecuperar && sesionRecuperable && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-md rounded-3xl bg-[#121214] border border-white/10 p-6 shadow-2xl flex flex-col gap-4">
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border"
+                                    style={{
+                                        backgroundColor: 'rgba(219,240,89,0.15)',
+                                        borderColor: 'rgba(219,240,89,0.3)',
+                                        color: 'var(--color-primary)',
+                                    }}
+                                >
+                                    <Dumbbell size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-black text-white">
+                                        {locale === 'es' ? 'Tienes un entrenamiento sin terminar' : 'Unfinished workout detected'}
+                                    </h3>
+                                    <p className="text-xs text-neutral-400 mt-0.5">
+                                        {locale === 'es' ? '¿Deseas continuar donde lo dejaste?' : 'Do you want to continue where you left off?'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl p-4 bg-white/5 border border-white/5 space-y-2 text-xs">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-neutral-400">{locale === 'es' ? 'Rutina' : 'Routine'}:</span>
+                                    <span className="font-bold text-white">{sesionRecuperable.nombreRutina}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-neutral-400">{locale === 'es' ? 'Tiempo transcurrido' : 'Time elapsed'}:</span>
+                                    <span className="font-bold text-neutral-200">
+                                        {Math.max(1, Math.round((Date.now() - sesionRecuperable.startedAtMs) / 60000))} min
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-neutral-400">{locale === 'es' ? 'Series completadas' : 'Completed sets'}:</span>
+                                    <span className="font-bold text-[var(--color-primary)]">
+                                        {sesionRecuperable.ejerciciosUI.reduce((acc, ej) => acc + ej.series.filter(s => s.completada).length, 0)} {locale === 'es' ? 'series' : 'sets'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={descartarRecuperada}
+                                    className="flex-1 py-3 rounded-xl border border-white/10 hover:border-red-500/30 hover:bg-red-500/10 text-neutral-400 hover:text-red-400 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                >
+                                    <Trash2 size={14} />
+                                    <span>{locale === 'es' ? 'Descartar' : 'Discard'}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => aplicarSesionRecuperada(sesionRecuperable)}
+                                    className="flex-1 py-3 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                    style={{
+                                        backgroundColor: 'var(--color-primary)',
+                                        color: '#000000',
+                                    }}
+                                >
+                                    <Play size={14} fill="#000000" />
+                                    <span>{locale === 'es' ? 'Continuar' : 'Continue'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </AppLayout>

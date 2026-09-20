@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import BannerEntrenamientoActivo from '../entrenamiento/BannerEntrenamientoActivo';
 import { Home, Dumbbell, User as UserIcon, Activity, Users } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
@@ -52,6 +53,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro = fa
             className="flex-1 p-4 md:p-6 lg:p-8 pb-24 md:pb-8"
           >
             <div className={fullWidth ? "w-full" : "max-w-5xl mx-auto"}>
+              <BannerEntrenamientoActivo />
               {children}
             </div>
           </main>
