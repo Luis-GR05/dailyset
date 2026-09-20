@@ -4,6 +4,7 @@ import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from '../context/I18nContext';
 import MesCalendario from '../componentes/ui/MesCalendario';
+import MonthYearPicker from '../componentes/ui/MonthYearPicker';
 import {
   Calendar,
   Layers,
@@ -13,6 +14,7 @@ import {
   Dumbbell,
   ArrowRight,
   Activity,
+  X,
 } from 'lucide-react';
 
 export default function HistorialPage() {
@@ -33,14 +35,6 @@ export default function HistorialPage() {
 
   // Locale string — debe estar antes de cualquier useMemo que lo use
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
-
-  // Meses disponibles para el selector en vista mes
-  const mesesDisponibles = useMemo(() => {
-    return Array.from({ length: 12 }, (_, m) => ({
-      value: m,
-      label: new Date(anioActual, m).toLocaleString(localeStr, { month: 'long' }),
-    }));
-  }, [anioActual, localeStr]);
 
   // Día seleccionado en el calendario interactivo del mes
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
@@ -280,7 +274,7 @@ export default function HistorialPage() {
                 </div>
               </div>
 
-              {/* Derecha: selector de mes + año + botón hoy */}
+              {/* Derecha: MonthYearPicker + botón hoy */}
               <div className="flex items-center gap-2 shrink-0">
                 {!esMesDeHoy && (
                   <button
@@ -290,34 +284,18 @@ export default function HistorialPage() {
                     {locale === 'es' ? '← Hoy' : '← Today'}
                   </button>
                 )}
-                {/* Selector de mes */}
-                <select
-                  value={mesActual}
-                  onChange={(e) => {
-                    setMesActual(Number(e.target.value));
+                <MonthYearPicker
+                  mes={mesActual}
+                  anio={anioActual}
+                  aniosDisponibles={aniosDisponibles}
+                  localeStr={localeStr}
+                  sublabel={`${sesionesDelMes.length} ${locale === 'es' ? 'sesiones' : 'sessions'}`}
+                  onChange={(m, y) => {
+                    setMesActual(m);
+                    setAnioActual(y);
                     setDiaSeleccionado(null);
                   }}
-                  className="bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-xl px-3 py-2 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
-                  title={locale === 'es' ? 'Elegir mes' : 'Select month'}
-                >
-                  {mesesDisponibles.map(m => (
-                    <option key={m.value} value={m.value} className="capitalize">{m.label}</option>
-                  ))}
-                </select>
-                {/* Selector de año */}
-                <select
-                  value={anioActual}
-                  onChange={(e) => {
-                    setAnioActual(Number(e.target.value));
-                    setDiaSeleccionado(null);
-                  }}
-                  className="bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-xl px-3 py-2 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
-                  title={locale === 'es' ? 'Elegir año' : 'Select year'}
-                >
-                  {aniosDisponibles.map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 
