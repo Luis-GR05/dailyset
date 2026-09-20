@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AppLayout, TituloPagina, Card } from '../componentes';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import {
   Timer,
   Watch,
@@ -25,6 +26,13 @@ import {
   Layers,
   Award,
   Pencil,
+  Utensils,
+  Scale,
+  PieChart,
+  Apple,
+  ArrowDownRight,
+  ArrowUpRight,
+  HeartPulse,
 } from 'lucide-react';
 
 // Sonido sintético con Web Audio API (funciona en cualquier navegador sin dependencias externas)
@@ -51,7 +59,7 @@ function playBeep(frequency = 880, duration = 0.2, count = 1) {
   }
 }
 
-type TabUtilidad = 'temporizador' | 'cronometro' | 'pasos' | '1rm';
+type TabUtilidad = 'temporizador' | 'cronometro' | 'pasos' | '1rm' | 'macros';
 
 interface VueltaItem {
   numero: number;
@@ -356,6 +364,108 @@ export default function UtilidadesPage() {
     { pct: 50, reps: '20+ reps', desc: locale === 'es' ? 'Calentamiento / Activación' : 'Warm-up / Activation', zona: 'resist' },
   ];
 
+  // ─────────────────────────────────────────────────────────────
+  // 5. CALCULADORA DE CALORÍAS Y MACRONUTRIENTES (TDEE & MACROS)
+  // ─────────────────────────────────────────────────────────────
+  const { user } = useAuth();
+
+  const [generoMacros, setGeneroMacros] = useState<'masculino' | 'femenino'>(
+    user?.genero === 'femenino' ? 'femenino' : 'masculino'
+  );
+  const [edadMacros, setEdadMacros] = useState<number>(user?.edad || 26);
+  const [pesoMacros, setPesoMacros] = useState<number>(user?.pesoKg || 75);
+  const [alturaMacros, setAlturaMacros] = useState<number>(user?.alturaCm || 178);
+  const [grasaCorporalMacros, setGrasaCorporalMacros] = useState<number | ''>('');
+  const [unidadPesoMacros, setUnidadPesoMacros] = useState<'kg' | 'lbs'>('kg');
+
+  const [nivelActividadMacros, setNivelActividadMacros] = useState<
+    'sedentario' | 'ligero' | 'moderado' | 'activo' | 'muy_activo'
+  >(user?.nivelActividad || 'moderado');
+
+  const [objetivoMacros, setObjetivoMacros] = useState<
+    'perdida_agresiva' | 'deficit_moderado' | 'mantenimiento' | 'volumen_limpio' | 'volumen_agresivo'
+  >('deficit_moderado');
+
+  const [distribucionMacros, setDistribucionMacros] = useState<
+    'equilibrado' | 'alto_proteina' | 'alto_carbos' | 'keto'
+  >('alto_proteina');
+
+  const [numComidas, setNumComidas] = useState<number>(4);
+
+  // Sincronizar automáticamente si el usuario ya tenía datos guardados en el perfil
+  useEffect(() => {
+    if (user?.edad) setEdadMacros(user.edad);
+    if (user?.pesoKg) setPesoMacros(user.pesoKg);
+    if (user?.alturaCm) setAlturaMacros(user.alturaCm);
+    if (user?.genero && user.genero !== 'otro') setGeneroMacros(user.genero);
+    if (user?.nivelActividad) setNivelActividadMacros(user.nivelActividad);
+  }, [user]);
+
+  // Peso normalizado en KG para las fórmulas científicas
+  const pesoKgReal = unidadPesoMacros === 'lbs' ? pesoMacros * 0.453592 : pesoMacros;
+
+  // 1. BMR (Tasa Metabólica Basal)
+  const calcularBMR = () => {
+    if (!pesoKgReal || !alturaMacros || !edadMacros) return 0;
+    if (grasaCorporalMacros !== '' && Number(grasaCorporalMacros) > 0) {
+      const masaMagra = pesoKgReal * (1 - Number(grasaCorporalMacros) / 100);
+      return Math.round(370 + 21.6 * masaMagra);
+    }
+    const bmrBase = 10 * pesoKgReal + 6.25 * alturaMacros - 5 * edadMacros;
+    return Math.round(generoMacros === 'masculino' ? bmrBase + 5 : bmrBase - 161);
+  };
+
+  const bmrCalculado = calcularBMR();
+
+  // 2. Factores de Actividad Física
+  const factoresActividad = {
+    sedentario: 1.2,
+    ligero: 1.375,
+    moderado: 1.55,
+    activo: 1.725,
+    muy_activo: 1.9,
+  };
+
+  const factorActividadActual = factoresActividad[nivelActividadMacros] || 1.55;
+  const tdeeMantenimiento = Math.round(bmrCalculado * factorActividadActual);
+
+  // 3. Modificador de Objetivo
+  const modificadoresObjetivo = {
+    perdida_agresiva: -0.25,
+    deficit_moderado: -0.15,
+    mantenimiento: 0,
+    volumen_limpio: 0.10,
+    volumen_agresivo: 0.18,
+  };
+
+  const pctObjetivo = modificadoresObjetivo[objetivoMacros] || 0;
+  const caloriasObjetivo = Math.round(tdeeMantenimiento * (1 + pctObjetivo));
+  const diferenciaCalorica = caloriasObjetivo - tdeeMantenimiento;
+  const cambioSemanalKg = Math.round(((diferenciaCalorica * 7) / 7700) * 100) / 100;
+
+  // 4. Distribución de Macronutrientes
+  const presetsDistribucion = {
+    equilibrado: { carbPct: 40, protPct: 30, grasPct: 30, desc: locale === 'es' ? 'Equilibrado (40C / 30P / 30G)' : 'Balanced (40C / 30P / 30G)' },
+    alto_proteina: { carbPct: 35, protPct: 40, grasPct: 25, desc: locale === 'es' ? 'Alto en Proteína (35C / 40P / 25G)' : 'High Protein (35C / 40P / 25G)' },
+    alto_carbos: { carbPct: 55, protPct: 25, grasPct: 20, desc: locale === 'es' ? 'Rendimiento (55C / 25P / 20G)' : 'Performance (55C / 25P / 20G)' },
+    keto: { carbPct: 5, protPct: 30, grasPct: 65, desc: locale === 'es' ? 'Cetogénica (5C / 30P / 65G)' : 'Keto (5C / 30P / 65G)' },
+  };
+
+  const presetActual = presetsDistribucion[distribucionMacros];
+
+  const gramosProteina = Math.round((caloriasObjetivo * (presetActual.protPct / 100)) / 4);
+  const gramosCarbohidratos = Math.round((caloriasObjetivo * (presetActual.carbPct / 100)) / 4);
+  const gramosGrasas = Math.round((caloriasObjetivo * (presetActual.grasPct / 100)) / 9);
+
+  const protPorKg = (gramosProteina / (pesoKgReal || 1)).toFixed(1);
+  const carbPorKg = (gramosCarbohidratos / (pesoKgReal || 1)).toFixed(1);
+  const grasPorKg = (gramosGrasas / (pesoKgReal || 1)).toFixed(1);
+
+  const kcalPorComida = Math.round(caloriasObjetivo / (numComidas || 1));
+  const protPorComida = Math.round(gramosProteina / (numComidas || 1));
+  const carbPorComida = Math.round(gramosCarbohidratos / (numComidas || 1));
+  const grasPorComida = Math.round(gramosGrasas / (numComidas || 1));
+
   return (
     <AppLayout>
       <div className="space-y-6 pb-12 max-w-4xl mx-auto">
@@ -368,6 +478,7 @@ export default function UtilidadesPage() {
             { id: 'cronometro', label: locale === 'es' ? 'Cronómetro' : 'Stopwatch', icon: <Watch size={16} /> },
             { id: 'pasos', label: locale === 'es' ? 'Cuenta Pasos' : 'Step Counter', icon: <Footprints size={16} /> },
             { id: '1rm', label: locale === 'es' ? 'Calculadora 1RM' : '1RM Calculator', icon: <Dumbbell size={16} /> },
+            { id: 'macros', label: locale === 'es' ? 'Calorías y Macros' : 'Calories & Macros', icon: <Utensils size={16} /> },
           ].map((item) => {
             const isActive = tabActiva === item.id;
             return (
@@ -1151,6 +1262,735 @@ export default function UtilidadesPage() {
                     ? 'Ideal para series de calentamiento, semanas de descarga activa o acondicionamiento metabólico (+15 reps).'
                     : 'Ideal for warm-up sets, deload weeks, or conditioning (+15 reps).'}
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ══ 5. CALCULADORA DE CALORÍAS Y MACRONUTRIENTES         ══ */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        {tabActiva === 'macros' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* ── PARÁMETROS DEL USUARIO ── */}
+            <Card className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800/80">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+                    <Utensils size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-white">
+                      {locale === 'es' ? 'Parámetros Corporales y Actividad' : 'Body Parameters & Activity'}
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      {locale === 'es'
+                        ? 'Cálculo de TDEE y BMR mediante ecuaciones validadas (Mifflin-St Jeor / Katch-McArdle)'
+                        : 'TDEE & BMR estimation using validated scientific formulas'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Selector Sexo Biológico */}
+                <div className="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setGeneroMacros('masculino')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      generoMacros === 'masculino'
+                        ? 'bg-[var(--color-primary)] text-neutral-950 shadow-md'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {locale === 'es' ? 'Masculino' : 'Male'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGeneroMacros('femenino')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      generoMacros === 'femenino'
+                        ? 'bg-[var(--color-primary)] text-neutral-950 shadow-md'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {locale === 'es' ? 'Femenino' : 'Female'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Medidas corporales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Edad */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-neutral-300">
+                    {locale === 'es' ? 'Edad (años)' : 'Age (years)'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={10}
+                      max={120}
+                      value={edadMacros || ''}
+                      onChange={(e) => setEdadMacros(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors"
+                      placeholder="25"
+                    />
+                  </div>
+                </div>
+
+                {/* Peso */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-neutral-300">
+                      {locale === 'es' ? 'Peso' : 'Weight'}
+                    </label>
+                    <div className="flex items-center text-[10px] bg-neutral-950 rounded px-1 border border-neutral-800">
+                      <button
+                        type="button"
+                        onClick={() => setUnidadPesoMacros('kg')}
+                        className={`px-1.5 py-0.5 rounded ${
+                          unidadPesoMacros === 'kg' ? 'text-[var(--color-primary)] font-bold' : 'text-neutral-500'
+                        }`}
+                      >
+                        kg
+                      </button>
+                      <span className="text-neutral-700">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setUnidadPesoMacros('lbs')}
+                        className={`px-1.5 py-0.5 rounded ${
+                          unidadPesoMacros === 'lbs' ? 'text-[var(--color-primary)] font-bold' : 'text-neutral-500'
+                        }`}
+                      >
+                        lbs
+                      </button>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.5"
+                      min={20}
+                      max={300}
+                      value={pesoMacros || ''}
+                      onChange={(e) => setPesoMacros(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors"
+                      placeholder="75"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-neutral-500">
+                      {unidadPesoMacros}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Altura */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-neutral-300">
+                    {locale === 'es' ? 'Altura (cm)' : 'Height (cm)'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={100}
+                      max={250}
+                      value={alturaMacros || ''}
+                      onChange={(e) => setAlturaMacros(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors"
+                      placeholder="178"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-neutral-500">
+                      cm
+                    </span>
+                  </div>
+                </div>
+
+                {/* % Grasa Corporal (Opcional) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-neutral-300">
+                      {locale === 'es' ? '% Grasa Corporal' : 'Body Fat %'}
+                    </label>
+                    <span className="text-[10px] text-neutral-500">
+                      {locale === 'es' ? 'Opcional' : 'Optional'}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={3}
+                      max={60}
+                      step="0.5"
+                      value={grasaCorporalMacros}
+                      onChange={(e) => setGrasaCorporalMacros(e.target.value === '' ? '' : Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors"
+                      placeholder="15"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-neutral-500">
+                      %
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nivel de actividad física */}
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                  <HeartPulse size={14} className="text-[var(--color-primary)]" />
+                  {locale === 'es' ? 'Nivel de Actividad Semanal' : 'Weekly Activity Level'}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                  {[
+                    {
+                      id: 'sedentario',
+                      nombre: locale === 'es' ? 'Sedentario' : 'Sedentary',
+                      desc: locale === 'es' ? 'Poco o ningún ejercicio' : 'Little to no exercise',
+                      factor: 'x1.2',
+                    },
+                    {
+                      id: 'ligero',
+                      nombre: locale === 'es' ? 'Ligero' : 'Light',
+                      desc: locale === 'es' ? '1 a 3 días/semana' : '1-3 days/week',
+                      factor: 'x1.375',
+                    },
+                    {
+                      id: 'moderado',
+                      nombre: locale === 'es' ? 'Moderado' : 'Moderate',
+                      desc: locale === 'es' ? '3 a 5 días/semana' : '3-5 days/week',
+                      factor: 'x1.55',
+                    },
+                    {
+                      id: 'activo',
+                      nombre: locale === 'es' ? 'Activo' : 'Active',
+                      desc: locale === 'es' ? '6 a 7 días intensos' : '6-7 heavy days',
+                      factor: 'x1.725',
+                    },
+                    {
+                      id: 'muy_activo',
+                      nombre: locale === 'es' ? 'Muy Activo' : 'Very Active',
+                      desc: locale === 'es' ? 'Entreno doble o físico' : 'Physical labor / 2x a day',
+                      factor: 'x1.9',
+                    },
+                  ].map((act) => {
+                    const activo = nivelActividadMacros === act.id;
+                    return (
+                      <button
+                        key={act.id}
+                        type="button"
+                        onClick={() => setNivelActividadMacros(act.id as any)}
+                        className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                          activo
+                            ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white shadow-sm'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1 w-full">
+                          <span className={`text-xs font-bold ${activo ? 'text-[var(--color-primary)]' : 'text-neutral-200'}`}>
+                            {act.nombre}
+                          </span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-900 text-neutral-400 border border-neutral-800">
+                            {act.factor}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-400 line-clamp-2 leading-snug">
+                          {act.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Objetivo Calórico y Distribución de Macronutrientes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {/* Objetivo */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                    <Target size={14} className="text-[var(--color-primary)]" />
+                    {locale === 'es' ? 'Objetivo Calórico' : 'Calorie Goal'}
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      {
+                        id: 'perdida_agresiva',
+                        label: locale === 'es' ? 'Déficit Agresivo (-25%)' : 'Aggressive Cut (-25%)',
+                        desc: locale === 'es' ? 'Pérdida rápida de grasa' : 'Fast fat loss',
+                      },
+                      {
+                        id: 'deficit_moderado',
+                        label: locale === 'es' ? 'Déficit Moderado (-15%)' : 'Moderate Cut (-15%)',
+                        desc: locale === 'es' ? 'Preserva al máximo la masa muscular' : 'Preserves maximum muscle mass',
+                      },
+                      {
+                        id: 'mantenimiento',
+                        label: locale === 'es' ? 'Mantenimiento (0%)' : 'Maintenance (0%)',
+                        desc: locale === 'es' ? 'Recomposición corporal y fuerza' : 'Body recomposition and performance',
+                      },
+                      {
+                        id: 'volumen_limpio',
+                        label: locale === 'es' ? 'Superávit Limpio (+10%)' : 'Lean Bulk (+10%)',
+                        desc: locale === 'es' ? 'Ganancia muscular con mínima grasa' : 'Muscle gain with minimal fat',
+                      },
+                      {
+                        id: 'volumen_agresivo',
+                        label: locale === 'es' ? 'Superávit Intenso (+18%)' : 'Aggressive Bulk (+18%)',
+                        desc: locale === 'es' ? 'Máxima ganancia de fuerza y masa' : 'Maximum size and strength phase',
+                      },
+                    ].map((obj) => {
+                      const activo = objetivoMacros === obj.id;
+                      return (
+                        <button
+                          key={obj.id}
+                          type="button"
+                          onClick={() => setObjetivoMacros(obj.id as any)}
+                          className={`p-2.5 px-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            activo
+                              ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white'
+                              : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                          }`}
+                        >
+                          <div>
+                            <div className={`text-xs font-bold ${activo ? 'text-[var(--color-primary)]' : 'text-neutral-200'}`}>
+                              {obj.label}
+                            </div>
+                            <div className="text-[11px] text-neutral-500">{obj.desc}</div>
+                          </div>
+                          <span
+                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              activo
+                                ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
+                                : 'border-neutral-700'
+                            }`}
+                          >
+                            {activo && <span className="w-1.5 h-1.5 rounded-full bg-neutral-950" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Distribución de Macronutrientes y Número de Comidas */}
+                <div className="space-y-4 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                      <PieChart size={14} className="text-[var(--color-primary)]" />
+                      {locale === 'es' ? 'Proporción de Macronutrientes' : 'Macronutrient Ratio'}
+                    </label>
+                    <div className="space-y-2">
+                      {[
+                        {
+                          id: 'alto_proteina',
+                          label: locale === 'es' ? 'Alto en Proteína' : 'High Protein',
+                          ratios: '40% P / 35% C / 25% G',
+                          desc: locale === 'es' ? 'Recomendado para fuerza y definición' : 'Recommended for strength & cutting',
+                        },
+                        {
+                          id: 'equilibrado',
+                          label: locale === 'es' ? 'Equilibrado' : 'Balanced',
+                          ratios: '30% P / 40% C / 30% G',
+                          desc: locale === 'es' ? 'Sostenible y versátil para cualquier estilo' : 'Sustainable everyday balance',
+                        },
+                        {
+                          id: 'alto_carbos',
+                          label: locale === 'es' ? 'Rendimiento Atlético' : 'Athletic Performance',
+                          ratios: '25% P / 55% C / 20% G',
+                          desc: locale === 'es' ? 'Prioriza reservas de glucógeno y resistencia' : 'High glycogen & endurance',
+                        },
+                        {
+                          id: 'keto',
+                          label: locale === 'es' ? 'Cetogénica / Keto' : 'Ketogenic',
+                          ratios: '30% P / 5% C / 65% G',
+                          desc: locale === 'es' ? 'Grasas predominantes y carbohidratos mínimos' : 'Low carb, fat-adapted energy',
+                        },
+                      ].map((macro) => {
+                        const activo = distribucionMacros === macro.id;
+                        return (
+                          <button
+                            key={macro.id}
+                            type="button"
+                            onClick={() => setDistribucionMacros(macro.id as any)}
+                            className={`w-full p-2.5 px-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                              activo
+                                ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white'
+                                : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                            }`}
+                          >
+                            <div>
+                              <div className={`text-xs font-bold ${activo ? 'text-[var(--color-primary)]' : 'text-neutral-200'}`}>
+                                {macro.label}
+                              </div>
+                              <div className="text-[11px] text-neutral-500">{macro.desc}</div>
+                            </div>
+                            <span className="text-[11px] font-mono text-[var(--color-primary)] font-bold">
+                              {macro.ratios}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Selector de número de comidas */}
+                  <div className="space-y-2 pt-2 border-t border-neutral-800/80">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                        <Utensils size={14} className="text-[var(--color-primary)]" />
+                        {locale === 'es' ? 'Comidas al Día' : 'Meals per Day'}
+                      </label>
+                      <span className="text-xs font-mono font-bold text-[var(--color-primary)]">
+                        {numComidas} {locale === 'es' ? 'comidas' : 'meals'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {[2, 3, 4, 5, 6].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNumComidas(n)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-mono font-bold border transition-all ${
+                            numComidas === n
+                              ? 'bg-[var(--color-primary)] text-neutral-950 border-[var(--color-primary)] shadow-sm'
+                              : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* ── TARJETAS PRINCIPALES DE RESULTADOS ENERGÉTICOS ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Calorías Objetivo */}
+              <div className="relative p-6 rounded-3xl bg-neutral-900/90 border border-[var(--color-primary)]/40 shadow-xl overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)]/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    {locale === 'es' ? 'Calorías Objetivo' : 'Target Calories'}
+                  </span>
+                  <span className="p-2 rounded-xl bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
+                    <Flame size={18} />
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-4xl sm:text-5xl font-black font-mono text-white tracking-tight">
+                    {caloriasObjetivo.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-bold text-neutral-400">kcal/día</span>
+                </div>
+
+                <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-xs">
+                  <span className="text-neutral-400">
+                    {diferenciaCalorica === 0
+                      ? locale === 'es' ? 'Equilibrio energético' : 'Energy balance'
+                      : diferenciaCalorica > 0
+                      ? `+${diferenciaCalorica} kcal vs TDEE`
+                      : `${diferenciaCalorica} kcal vs TDEE`}
+                  </span>
+                  <span
+                    className={`font-mono font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                      cambioSemanalKg < 0
+                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        : cambioSemanalKg > 0
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-neutral-800 text-neutral-300'
+                    }`}
+                  >
+                    {cambioSemanalKg < 0 ? <ArrowDownRight size={12} /> : cambioSemanalKg > 0 ? <ArrowUpRight size={12} /> : null}
+                    {cambioSemanalKg > 0 ? `+${cambioSemanalKg}` : cambioSemanalKg} kg/sem
+                  </span>
+                </div>
+              </div>
+
+              {/* TDEE Mantenimiento */}
+              <div className="p-6 rounded-3xl bg-neutral-900/60 border border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      {locale === 'es' ? 'Mantenimiento (TDEE)' : 'Maintenance (TDEE)'}
+                    </span>
+                    <span className="p-2 rounded-xl bg-neutral-800 text-neutral-300">
+                      <Scale size={18} />
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {tdeeMantenimiento.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-semibold text-neutral-400">kcal/día</span>
+                  </div>
+                  <p className="text-xs text-neutral-400">
+                    {locale === 'es'
+                      ? 'Gasto energético diario total considerando tu nivel de actividad física.'
+                      : 'Total daily energy expenditure factoring in your weekly activity.'}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-neutral-800/80 text-[11px] font-mono text-neutral-500">
+                  Factor PAL: {factorActividadActual}x
+                </div>
+              </div>
+
+              {/* BMR Tasa Metabólica Basal */}
+              <div className="p-6 rounded-3xl bg-neutral-900/60 border border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      {locale === 'es' ? 'Metabolismo Basal (BMR)' : 'Basal Metabolic Rate'}
+                    </span>
+                    <span className="p-2 rounded-xl bg-neutral-800 text-neutral-300">
+                      <HeartPulse size={18} />
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {bmrCalculado.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-semibold text-neutral-400">kcal/día</span>
+                  </div>
+                  <p className="text-xs text-neutral-400">
+                    {locale === 'es'
+                      ? 'Calorías mínimas en reposo absoluto para funciones vitales celulares.'
+                      : 'Minimum energy expenditure at complete physical and mental rest.'}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-neutral-800/80 text-[11px] font-mono text-neutral-500">
+                  {grasaCorporalMacros && Number(grasaCorporalMacros) > 0
+                    ? 'Fórmula: Katch-McArdle (Masa Magra)'
+                    : 'Fórmula: Mifflin-St Jeor'}
+                </div>
+              </div>
+            </div>
+
+            {/* ── DESGLOSE DE MACRONUTRIENTES ── */}
+            <Card className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-neutral-800/80">
+                <div>
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <PieChart size={18} className="text-[var(--color-primary)]" />
+                    {locale === 'es' ? 'Reparto de Macronutrientes' : 'Macronutrient Breakdown'}
+                  </h3>
+                  <p className="text-xs text-neutral-400">
+                    {presetActual.desc}
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold text-neutral-400">
+                  100% ({caloriasObjetivo} kcal)
+                </span>
+              </div>
+
+              {/* Barra de progreso apilada de Macronutrientes */}
+              <div className="space-y-2">
+                <div className="h-4 w-full rounded-full bg-neutral-950 overflow-hidden flex p-0.5 gap-0.5 border border-neutral-800">
+                  <div
+                    style={{ width: `${presetActual.protPct}%` }}
+                    className="h-full bg-blue-500 rounded-l-full transition-all duration-500"
+                    title={`Proteínas: ${presetActual.protPct}%`}
+                  />
+                  <div
+                    style={{ width: `${presetActual.carbPct}%` }}
+                    className="h-full bg-amber-500 transition-all duration-500"
+                    title={`Carbohidratos: ${presetActual.carbPct}%`}
+                  />
+                  <div
+                    style={{ width: `${presetActual.grasPct}%` }}
+                    className="h-full bg-rose-500 rounded-r-full transition-all duration-500"
+                    title={`Grasas: ${presetActual.grasPct}%`}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[11px] font-mono text-neutral-400 pt-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    {locale === 'es' ? 'Proteínas' : 'Protein'} ({presetActual.protPct}%)
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                    {locale === 'es' ? 'Carbohidratos' : 'Carbs'} ({presetActual.carbPct}%)
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                    {locale === 'es' ? 'Grasas' : 'Fats'} ({presetActual.grasPct}%)
+                  </span>
+                </div>
+              </div>
+
+              {/* Tarjetas individuales de cada macronutriente */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Proteínas */}
+                <div className="p-5 rounded-2xl bg-neutral-950/70 border border-blue-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      <h4 className="text-sm font-extrabold text-white">
+                        {locale === 'es' ? 'Proteínas' : 'Protein'}
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      4 kcal/g
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {gramosProteina}
+                    </span>
+                    <span className="text-sm font-bold text-neutral-400">g/día</span>
+                  </div>
+
+                  <div className="space-y-1 pt-2 border-t border-neutral-800/80 text-xs">
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
+                      <span className="font-mono font-bold text-blue-400">{protPorKg} g/kg</span>
+                    </div>
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Energía total:' : 'Total energy:'}</span>
+                      <span className="font-mono text-neutral-300">{gramosProteina * 4} kcal</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Carbohidratos */}
+                <div className="p-5 rounded-2xl bg-neutral-950/70 border border-amber-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <h4 className="text-sm font-extrabold text-white">
+                        {locale === 'es' ? 'Carbohidratos' : 'Carbs'}
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      4 kcal/g
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {gramosCarbohidratos}
+                    </span>
+                    <span className="text-sm font-bold text-neutral-400">g/día</span>
+                  </div>
+
+                  <div className="space-y-1 pt-2 border-t border-neutral-800/80 text-xs">
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
+                      <span className="font-mono font-bold text-amber-400">{carbPorKg} g/kg</span>
+                    </div>
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Energía total:' : 'Total energy:'}</span>
+                      <span className="font-mono text-neutral-300">{gramosCarbohidratos * 4} kcal</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grasas */}
+                <div className="p-5 rounded-2xl bg-neutral-950/70 border border-rose-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      <h4 className="text-sm font-extrabold text-white">
+                        {locale === 'es' ? 'Grasas Saludables' : 'Healthy Fats'}
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      9 kcal/g
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {gramosGrasas}
+                    </span>
+                    <span className="text-sm font-bold text-neutral-400">g/día</span>
+                  </div>
+
+                  <div className="space-y-1 pt-2 border-t border-neutral-800/80 text-xs">
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
+                      <span className="font-mono font-bold text-rose-400">{grasPorKg} g/kg</span>
+                    </div>
+                    <div className="flex justify-between text-neutral-400">
+                      <span>{locale === 'es' ? 'Energía total:' : 'Total energy:'}</span>
+                      <span className="font-mono text-neutral-300">{gramosGrasas * 9} kcal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* ── DISTRIBUCIÓN SUGERIDA POR COMIDAS ── */}
+            <Card className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-800/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                    <Apple size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold text-white">
+                      {locale === 'es'
+                        ? `Distribución en ${numComidas} Comidas Diarias`
+                        : `Breakdown for ${numComidas} Daily Meals`}
+                    </h4>
+                    <p className="text-xs text-neutral-400">
+                      {locale === 'es'
+                        ? 'Promedio aproximado por ingesta para mantener niveles óptimos de energía y síntesis proteica.'
+                        : 'Equally distributed target per meal to optimize energy and muscle protein synthesis.'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-1 rounded-xl border border-[var(--color-primary)]/20">
+                  ~{kcalPorComida} kcal / {locale === 'es' ? 'comida' : 'meal'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {Array.from({ length: numComidas }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/90 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">
+                        {locale === 'es' ? `Comida ${idx + 1}` : `Meal ${idx + 1}`}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-neutral-300">
+                        {kcalPorComida} kcal
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-neutral-900 text-center">
+                      <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                        <span className="text-[10px] text-blue-400 block font-medium">Prot</span>
+                        <span className="text-xs font-mono font-bold text-white">{protPorComida}g</span>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <span className="text-[10px] text-amber-400 block font-medium">Carb</span>
+                        <span className="text-xs font-mono font-bold text-white">{carbPorComida}g</span>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                        <span className="text-[10px] text-rose-400 block font-medium">Grasa</span>
+                        <span className="text-xs font-mono font-bold text-white">{grasPorComida}g</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* ── NOTA CIENTÍFICA / GUÍA NUTRICIONAL ── */}
+            <div className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800 flex items-start gap-3 text-xs text-neutral-400 leading-relaxed">
+              <span className="p-1.5 rounded-lg bg-neutral-800 text-[var(--color-primary)] mt-0.5 flex-shrink-0">
+                <Info size={16} />
+              </span>
+              <div>
+                <span className="font-bold text-neutral-200 block mb-1">
+                  {locale === 'es' ? 'Pautas basadas en evidencia' : 'Evidence-based guidelines'}
+                </span>
+                {locale === 'es'
+                  ? 'Para optimizar la síntesis proteica muscular (MPS), se recomienda distribuir el consumo de proteínas en tomas de 20 a 40g cada 3-4 horas. Los valores de BMR y TDEE son aproximaciones científicas; monitorea el peso corporal durante 2-3 semanas y ajusta las calorías según la respuesta real de tu organismo.'
+                  : 'To optimize muscle protein synthesis (MPS), distribute protein into 20-40g doses every 3-4 hours. BMR and TDEE equations are approximations; track weight for 2-3 weeks and adjust intake accordingly.'}
               </div>
             </div>
           </div>
