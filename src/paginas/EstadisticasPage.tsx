@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { AppLayout, TituloPagina, CardEstadistica } from "../componentes";
+import { AppLayout, TituloPagina, CardEstadistica, TuSemanaEnCifrasModal } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -35,6 +35,7 @@ export default function EstadisticasPage() {
   }, [sesiones, currentYear]);
 
   const [anioSeleccionado, setAnioSeleccionado] = useState(currentYear);
+  const [modalCifrasAbierto, setModalCifrasAbierto] = useState(false);
 
   const irAnioAnterior = () => setAnioSeleccionado(a => {
     const idx = aniosDisponibles.indexOf(a);
@@ -151,8 +152,17 @@ export default function EstadisticasPage() {
             <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
           </div>
 
-          {/* Año clickable: flechas + número grande que abre select nativo */}
-          <div className="flex items-center gap-3 self-start sm:self-auto">
+          {/* Controles de cabecera: Botón Tu semana en cifras + selector de año */}
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setModalCifrasAbierto(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer mr-1"
+            >
+              <Sparkles size={14} />
+              <span>{locale === 'es' ? 'Tu semana en cifras' : 'Week wrapped'}</span>
+            </button>
+
             <button
               onClick={irAnioAnterior}
               disabled={!canGoPrev}
@@ -275,6 +285,12 @@ export default function EstadisticasPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Tu semana y mes en cifras */}
+      <TuSemanaEnCifrasModal
+        abierto={modalCifrasAbierto}
+        onCerrar={() => setModalCifrasAbierto(false)}
+      />
     </AppLayout>
   );
 }

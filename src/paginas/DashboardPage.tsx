@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AppLayout } from "../componentes";
+import { AppLayout, TuSemanaEnCifrasModal } from "../componentes";
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +16,8 @@ import {
   Plus,
   CheckCircle2,
   FolderPlus,
+  Sparkles,
+  Share2,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -23,6 +25,9 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { sesiones } = useHistorial();
   const { rutinas } = useRutinas();
+
+  // Estado para abrir la pantalla "Tu semana en cifras"
+  const [modalCifrasAbierto, setModalCifrasAbierto] = useState(false);
 
   // Día de la semana seleccionado (0 = Lunes ... 6 = Domingo)
   const hoyFecha = new Date();
@@ -304,6 +309,48 @@ export default function DashboardPage() {
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        {/* ─── BANNER INTERACTIVO: TU SEMANA EN CIFRAS ("QUE DÉ GANAS DE COMPARTIR") ─── */}
+        <section>
+          <div
+            onClick={() => setModalCifrasAbierto(true)}
+            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-950 border border-neutral-800 hover:border-[var(--color-primary)]/50 transition-all cursor-pointer shadow-lg hover:shadow-xl"
+          >
+            {/* Resplandor decorativo */}
+            <div className="absolute top-0 right-0 w-64 h-full bg-[var(--color-primary)]/5 blur-3xl group-hover:bg-[var(--color-primary)]/10 transition-colors pointer-events-none" />
+
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <Sparkles size={20} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-black">
+                      {locale === 'es' ? 'Tu Semana en Cifras' : 'Your Week in Numbers'}
+                    </span>
+                    <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
+                      {statsCalculadas.sesionesSemanaCount} {locale === 'es' ? 'entrenos esta semana' : 'workouts this week'}
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-white mt-1 group-hover:text-[var(--color-primary)] transition-colors truncate">
+                    {locale === 'es'
+                      ? 'Descubre tus récords semanales y compártelos'
+                      : 'Discover your weekly milestones and share them'}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-800 group-hover:bg-[var(--color-primary)] group-hover:text-black text-white transition-all">
+                  <Share2 size={13} />
+                  <span>{locale === 'es' ? 'Ver resumen' : 'View wrapped'}</span>
+                </span>
+                <ChevronRight size={18} className="text-neutral-500 group-hover:text-[var(--color-primary)] group-hover:translate-x-0.5 transition-all" />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -600,6 +647,12 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
+
+      {/* Modal interactivo de Tu Semana / Mes en cifras */}
+      <TuSemanaEnCifrasModal
+        abierto={modalCifrasAbierto}
+        onCerrar={() => setModalCifrasAbierto(false)}
+      />
     </AppLayout>
   );
 }

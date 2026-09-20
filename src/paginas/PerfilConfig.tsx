@@ -10,11 +10,14 @@ import {
   Sun, Moon, Globe, Activity, Scale, Ruler, Calendar,
   Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail,
   Phone, KeyRound, HelpCircle, CheckCircle2, AlertCircle,
+  Download, Trash2, ShieldCheck, AlertTriangle, FileSpreadsheet, Loader2,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
 import { supabase } from "../lib/supabaseClient";
 import { esNombreUsuarioDisponible } from "../lib/socialService";
+import { useHistorial } from "../context/HistorialContext";
+import { useRutinas } from "../context/RutinasContext";
 
 type Tab = 'cuenta' | 'datos';
 
@@ -74,6 +77,15 @@ export default function PerfilConfigPage() {
   const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
   const [mensajeRecuperacion, setMensajeRecuperacion] = useState('');
   const [errorRecuperacion, setErrorRecuperacion] = useState('');
+
+  // ── Estados para Exportar Datos y Eliminar Cuenta (RGPD) ────────────────────
+  const { sesiones } = useHistorial();
+  const { rutinas } = useRutinas();
+  const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [confirmacionTexto, setConfirmacionTexto] = useState('');
+  const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState('');
+  const [exportandoCSV, setExportandoCSV] = useState(false);
 
   // ── Datos físicos ──────────────────────────────────────────────────────────
   const [pesoKg, setPesoKg] = useState<string>(user?.pesoKg?.toString() ?? '');
@@ -265,6 +277,149 @@ export default function PerfilConfigPage() {
       setErrorRecuperacion(e.message || (locale === 'es' ? 'Error al solicitar la recuperación' : 'Error requesting recovery'));
     } finally {
       setEnviandoRecuperacion(false);
+    }
+  };
+
+  // ── Handlers RGPD: Exportar CSV y Eliminar Cuenta ─────────────────────────
+  const handleExportarCSV = () => {
+    setExportandoCSV(true);
+    try {
+      const lineas: string[] = [];
+      const fechaHoy = new Date().toISOString().split('T')[0];
+
+      // Cabecera informativa RGPD
+      lineas.push('# DAILYSET - EXPORTACIÓN DE DATOS PERSONALES (RGPD / GDPR)');
+      lineas.push(`# Fecha de exportación: ${new Date().toISOString()}`);
+      lineas.push('');
+
+      // 1. DATOS DE PERFIL
+      lineas.push('# 1. DATOS DE PERFIL');
+      lineas.push('ID,Nombre,NombreUsuario,Email,PesoKg,AlturaCm,Edad,Genero,NivelActividad,Objetivo,UnidadesKg');
+      lineas.push(
+        [
+          `"${user?.id || ''}"`,
+          `"${(user?.nombre || '').replace(/"/g, '""')}"`,
+          `"${(user?.nombre_usuario || '').replace(/"/g, '""')}"`,
+          `"${(user?.email || '').replace(/"/g, '""')}"`,
+          user?.pesoKg ?? '',
+          user?.alturaCm ?? '',
+          user?.edad ?? '',
+          `"${user?.genero || ''}"`,
+          `"${user?.nivelActividad || ''}"`,
+          `"${user?.objetivo || ''}"`,
+          user?.unidadesKg ? 'kg' : 'lbs',
+        ].join(',')
+      );
+      lineas.push('');
+
+      // 2. RUTINAS
+      lineas.push('# 2. RUTINAS CREADAS');
+      lineas.push('ID,Nombre,Categoria,DuracionMinutos,EsPublica');
+      rutinas.forEach(r => {
+        lineas.push(
+          [
+            r.id,
+            `"${(r.nombre || '').replace(/"/g, '""')}"`,
+            `"${r.categoria || ''}"`,
+            r.duracion || 0,
+            r.is_public ? 'Si' : 'No',
+          ].join(',')
+        );
+      });
+      lineas.push('');
+
+      // 3. HISTORIAL DE SESIONES Y SERIES DE ENTRENAMIENTO
+      lineas.push('# 3. HISTORIAL DE SESIONES Y SERIES DE ENTRENAMIENTO');
+      lineas.push('SesionID,Fecha,Rutina,DuracionMinutos,Puntuacion,Ejercicio,NumeroSerie,Kg,Reps,Completada');
+      sesiones.forEach(s => {
+        if (!s.ejercicios || s.ejercicios.length === 0) {
+          lineas.push([s.id, s.fecha, `"${(s.rutina || '').replace(/"/g, '""')}"`, s.duracionMin || 0, s.puntuacion || '', '', '', '', '', ''].join(','));
+        } else {
+          s.ejercicios.forEach(ej => {
+            if (!ej.series || ej.series.length === 0) {
+              lineas.push([s.id, s.fecha, `"${(s.rutina || '').replace(/"/g, '""')}"`, s.duracionMin || 0, s.puntuacion || '', `"${(ej.nombre || '').replace(/"/g, '""')}"`, '', '', '', ''].join(','));
+            } else {
+              ej.series.forEach(sr => {
+                lineas.push([
+                  s.id,
+                  s.fecha,
+                  `"${(s.rutina || '').replace(/"/g, '""')}"`,
+                  s.duracionMin || 0,
+                  s.puntuacion || '',
+                  `"${(ej.nombre || '').replace(/"/g, '""')}"`,
+                  sr.numero,
+                  sr.kg,
+                  sr.reps,
+                  sr.completada ? 'Si' : 'No',
+                ].join(','));
+              });
+            }
+          });
+        }
+      });
+
+      const csvContent = lineas.join('\n');
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dailyset_mis_datos_${fechaHoy}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exportando CSV:', err);
+    } finally {
+      setExportandoCSV(false);
+    }
+  };
+
+  const handleEliminarCuentaRGPD = async () => {
+    const palabra = confirmacionTexto.trim().toUpperCase();
+    if (palabra !== 'ELIMINAR' && palabra !== 'DELETE') {
+      setErrorEliminar(locale === 'es' ? 'Escribe la palabra exacta para confirmar' : 'Type the exact word to confirm');
+      return;
+    }
+    if (!user?.id) return;
+    setEliminandoCuenta(true);
+    setErrorEliminar('');
+
+    try {
+      // 1. Eliminar seguidores / seguidos
+      await supabase.from('social_seguidores').delete().or(`seguidor_id.eq.${user.id},seguido_id.eq.${user.id}`);
+      
+      // 2. Obtener IDs de sesiones para eliminar series
+      const { data: userSessions } = await supabase
+        .from('sesiones_entrenamiento')
+        .select('id')
+        .eq('usuario_id', user.id);
+      
+      if (userSessions && userSessions.length > 0) {
+        const sessionIds = userSessions.map(s => s.id);
+        await supabase.from('series').delete().in('sesion_id', sessionIds);
+      }
+
+      // 3. Eliminar sesiones
+      await supabase.from('sesiones_entrenamiento').delete().eq('usuario_id', user.id);
+
+      // 4. Eliminar rutinas creadas
+      await supabase.from('rutinas').delete().eq('usuario_id', user.id);
+
+      // 5. Eliminar perfil público
+      await supabase.from('perfiles').delete().eq('id', user.id);
+
+      // 6. Limpieza de almacenamiento local
+      localStorage.clear();
+
+      // 7. Cerrar sesión y redirigir
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Error eliminando cuenta por RGPD:', err);
+      setErrorEliminar(locale === 'es' ? 'Error al procesar la eliminación. Contacta con soporte.' : 'Error deleting account. Please contact support.');
+    } finally {
+      setEliminandoCuenta(false);
     }
   };
 
@@ -790,10 +945,82 @@ export default function PerfilConfigPage() {
               </div>
             </div>
 
+            {/* Privacidad y Datos (RGPD / GDPR) */}
+            <div className="space-y-3">
+              <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic flex items-center gap-2">
+                <ShieldCheck size={11} />
+                {locale === 'es' ? 'Privacidad y Datos (RGPD)' : 'Privacy & Data (GDPR)'}
+              </h3>
+              <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-4 backdrop-blur-xl space-y-4">
+                {/* Exportar datos CSV */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] shrink-0">
+                      <FileSpreadsheet size={18} />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                        {locale === 'es' ? 'Exportar mis datos (CSV)' : 'Export my data (CSV)'}
+                      </h4>
+                      <p className="text-neutral-400 text-xs mt-0.5 max-w-md">
+                        {locale === 'es'
+                          ? 'Descarga una copia completa de tus entrenamientos, series, marcas, rutinas y datos personales en formato CSV estructurado.'
+                          : 'Download a complete copy of your workouts, sets, PRs, routines, and personal data in a structured CSV file.'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExportarCSV}
+                    disabled={exportandoCSV}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
+                  >
+                    <Download size={14} />
+                    <span>
+                      {exportandoCSV
+                        ? (locale === 'es' ? 'Exportando...' : 'Exporting...')
+                        : (locale === 'es' ? 'Descargar CSV' : 'Download CSV')}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Eliminar cuenta por RGPD */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-red-500/[0.04] border border-red-500/20">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-red-500/10 text-red-400 shrink-0">
+                      <Trash2 size={18} />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-red-400 text-xs sm:text-sm">
+                        {locale === 'es' ? 'Eliminar cuenta y datos personales' : 'Delete account and personal data'}
+                      </h4>
+                      <p className="text-neutral-400 text-xs mt-0.5 max-w-md">
+                        {locale === 'es'
+                          ? 'Derecho al olvido según el Art. 17 del RGPD. Elimina de forma permanente e irreversible toda tu cuenta y actividad.'
+                          : 'Right to erasure under GDPR Art. 17. Permanently and irreversibly deletes your account and activity.'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmacionTexto('');
+                      setErrorEliminar('');
+                      setModalEliminarAbierto(true);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
+                  >
+                    <Trash2 size={14} />
+                    <span>{locale === 'es' ? 'Eliminar cuenta' : 'Delete account'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Cerrar sesión */}
             <button
               onClick={handleCerrarSesion}
-              className="w-full border border-red-500/30 text-red-500 py-4 rounded-2xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-red-500/10 transition-all active:scale-95"
+              className="w-full border border-red-500/30 text-red-500 py-4 rounded-2xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-red-500/10 transition-all active:scale-95 cursor-pointer"
             >
               {t.profile.logout}
             </button>
@@ -936,6 +1163,92 @@ export default function PerfilConfigPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de Confirmación de Eliminación por RGPD */}
+      {modalEliminarAbierto && (
+        <div
+          className="modal-overlay z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          onClick={() => !eliminandoCuenta && setModalEliminarAbierto(false)}
+        >
+          <div
+            className="relative w-full max-w-md bg-neutral-950 border border-red-500/30 rounded-3xl p-6 sm:p-7 space-y-5 shadow-2xl animate-in fade-in zoom-in-95"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="p-3 rounded-2xl bg-red-500/15 border border-red-500/30">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white leading-tight">
+                  {locale === 'es' ? '¿Eliminar tu cuenta definitivamente?' : 'Permanently delete your account?'}
+                </h3>
+                <span className="text-[10px] font-mono uppercase text-red-400 font-bold tracking-wider">
+                  {locale === 'es' ? 'Acción irreversible · RGPD Art. 17' : 'Irreversible action · GDPR Art. 17'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-300 leading-relaxed">
+              {locale === 'es'
+                ? 'Al confirmar, se eliminarán permanentemente tus rutinas, historial de entrenamientos, series, marcas personales, seguidores y tu perfil público. Esta acción no se puede deshacer.'
+                : 'Confirming will permanently delete your routines, workout history, sets, PRs, followers, and public profile. This action cannot be undone.'}
+            </p>
+
+            <div className="space-y-2 p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+              <label className="text-[11px] font-bold text-neutral-300 block">
+                {locale === 'es'
+                  ? 'Para confirmar, escribe "ELIMINAR" a continuación:'
+                  : 'To confirm, type "DELETE" below:'}
+              </label>
+              <input
+                type="text"
+                value={confirmacionTexto}
+                onChange={e => setConfirmacionTexto(e.target.value)}
+                placeholder={locale === 'es' ? 'ELIMINAR' : 'DELETE'}
+                disabled={eliminandoCuenta}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-white font-mono text-sm placeholder-neutral-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                autoFocus
+              />
+            </div>
+
+            {errorEliminar && (
+              <p className="text-xs text-red-400 font-medium">
+                {errorEliminar}
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setModalEliminarAbierto(false)}
+                disabled={eliminandoCuenta}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {locale === 'es' ? 'Cancelar' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleEliminarCuentaRGPD}
+                disabled={
+                  eliminandoCuenta ||
+                  (confirmacionTexto.trim().toUpperCase() !== 'ELIMINAR' &&
+                    confirmacionTexto.trim().toUpperCase() !== 'DELETE')
+                }
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-red-600 hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-lg transition-all cursor-pointer"
+              >
+                {eliminandoCuenta ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>{locale === 'es' ? 'Eliminando...' : 'Deleting...'}</span>
+                  </>
+                ) : (
+                  <span>{locale === 'es' ? 'Eliminar cuenta' : 'Delete account'}</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
