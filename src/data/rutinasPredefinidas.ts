@@ -23,6 +23,28 @@ export const NIVEL_COLOR: Record<string, string> = {
   Avanzado: '#ef4444',
 };
 
+export const CATEGORIA_CONFIG: Record<string, { bg: string; text: string }> = {
+  fuerza:       { bg: '#DBF059', text: '#000000' }, // Lime DailySet
+  cardio:       { bg: '#EF4444', text: '#FFFFFF' }, // Rojo vibrante
+  empuje:       { bg: '#3B82F6', text: '#FFFFFF' }, // Azul royal
+  tirón:        { bg: '#8B5CF6', text: '#FFFFFF' }, // Violeta
+  tiron:        { bg: '#8B5CF6', text: '#FFFFFF' },
+  pierna:       { bg: '#F59E0B', text: '#000000' }, // Ámbar
+  piernas:      { bg: '#F59E0B', text: '#000000' },
+  calistenia:   { bg: '#06B6D4', text: '#000000' }, // Cian brillante
+  core:         { bg: '#EC4899', text: '#FFFFFF' }, // Rosa intenso
+  movilidad:    { bg: '#10B981', text: '#000000' }, // Esmeralda
+  flexibilidad: { bg: '#10B981', text: '#000000' },
+  hipertrofia:  { bg: '#F97316', text: '#FFFFFF' }, // Naranja
+  funcional:    { bg: '#14B8A6', text: '#000000' }, // Teal
+};
+
+export function getCategoriaColor(categoria?: string): { bg: string; text: string } {
+  if (!categoria) return { bg: '#DBF059', text: '#000000' };
+  const key = categoria.trim().toLowerCase();
+  return CATEGORIA_CONFIG[key] || { bg: '#DBF059', text: '#000000' };
+}
+
 export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
   {
     id: 'fuerza-full-body',
@@ -51,7 +73,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Enfocada en el patrón de empuje superior con press de pecho, militar, extensiones de tríceps y fondos.',
     descripcionEn: 'Focused on upper push pattern with chest press, overhead press, triceps and dips.',
-    color: '#4361EE',
+    color: '#DBF059',
     ejerciciosIds: [1881, 1311, 2082, 923, 1300],
     ejercicios: [
       { id: 1881, nombre: 'Press inclinado en máquina Smith, con agarre invertido' },
@@ -70,7 +92,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Entrenamiento completo de tracción para desarrollar una espalda densa y bíceps fuertes.',
     descripcionEn: 'Complete pull workout to build a dense back and strong biceps.',
-    color: '#f59e0b',
+    color: '#DBF059',
     ejerciciosIds: [1310, 1080, 1061, 1320],
     ejercicios: [
       { id: 1310, nombre: 'Remo de deltoides posterior con barra' },
@@ -88,7 +110,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Desarrollo potente del tren inferior: cuádriceps, cadena posterior, glúteos y gemelos.',
     descripcionEn: 'Powerful lower body development: quads, posterior chain, glutes and calves.',
-    color: '#10b981',
+    color: '#DBF059',
     ejerciciosIds: [1008, 1256, 1632, 997],
     ejercicios: [
       { id: 1008, nombre: 'Sentadilla potty' },
@@ -106,7 +128,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Intervalos intensos para acelerar el metabolismo, quemar calorías y potenciar la resistencia cardiovascular.',
     descripcionEn: 'Intense intervals to rev up metabolism, burn calories and boost cardiovascular stamina.',
-    color: '#f97316',
+    color: '#EF4444',
     ejerciciosIds: [1276, 1289, 1290, 1287],
     ejercicios: [
       { id: 1276, nombre: 'Burpee con mancuerna' },
@@ -124,7 +146,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Sesión aeróbica continuada para mejorar la salud cardiovascular, capacidad pulmonar y fondo físico.',
     descripcionEn: 'Steady aerobic session to enhance cardiovascular health, lung capacity and stamina.',
-    color: '#06b6d4',
+    color: '#EF4444',
     ejerciciosIds: [1275, 1291, 1276, 1290],
     ejercicios: [
       { id: 1275, nombre: 'Bicicleta elíptica' },
@@ -142,7 +164,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Entrena con tu propio cuerpo. Dominadas, fondos, planchas y control corporal funcional sin máquinas complejas.',
     descripcionEn: 'Train with your own bodyweight. Pull-ups, dips, planks and functional control without complex equipment.',
-    color: '#8b5cf6',
+    color: '#06B6D4',
     ejerciciosIds: [1080, 923, 922, 1008],
     ejercicios: [
       { id: 1080, nombre: 'Dominadas, estrecho, bíceps' },
@@ -160,7 +182,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Rutina focalizada en la estabilidad central, transverso, recto abdominal y oblicuos.',
     descripcionEn: 'Focused routine on core stability, transverse, rectus abdominis and obliques.',
-    color: '#ec4899',
+    color: '#EC4899',
     ejerciciosIds: [961, 886, 969, 901],
     ejercicios: [
       { id: 961, nombre: 'Plancha frontal con giro' },
@@ -178,7 +200,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Estiramientos y movilidad articular para descargar tensiones, prevenir lesiones y acelerar la recuperación.',
     descripcionEn: 'Stretches and joint mobility to release tension, prevent injury and speed up recovery.',
-    color: '#14b8a6',
+    color: '#10B981',
     ejerciciosIds: [898, 1055, 1228],
     ejercicios: [
       { id: 898, nombre: 'Estiramiento tumbado boca abajo, asistido, rectus femoris' },
@@ -195,7 +217,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Desbloquea la pelvis, alivia caderas rígidas y gana rango articular en glúteos, aductores e isquios.',
     descripcionEn: 'Unlock the pelvis, relieve tight hips and expand joint range of motion in glutes, adductors and hamstrings.',
-    color: '#10b981',
+    color: '#10B981',
     ejerciciosIds: [1591, 1593, 1055, 1631, 1549],
     ejercicios: [
       { id: 1591, nombre: 'Estiramiento, roller cadera' },
@@ -214,7 +236,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Alivia la tensión acumulada en la espalda, mejora la postura y descomprime la columna lumbar y dorsal.',
     descripcionEn: 'Relieve accumulated back tension, improve posture and decompress lumbar and thoracic spine.',
-    color: '#34d399',
+    color: '#10B981',
     ejerciciosIds: [1956, 1700, 1720, 1724],
     ejercicios: [
       { id: 1956, nombre: 'Estiramiento, columna' },
@@ -232,7 +254,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Apertura de pecho y rotación escapular para liberar los hombros y contrarrestar la postura sentada.',
     descripcionEn: 'Chest opening and scapular rotation to free up shoulders and counter prolonged sitting.',
-    color: '#2dd4bf',
+    color: '#10B981',
     ejerciciosIds: [1828, 1430, 1776, 1752],
     ejercicios: [
       { id: 1828, nombre: 'Estiramiento dinámico de pecho' },
@@ -250,7 +272,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Avanzado',
     descripcion: 'Ráfagas cortas a máxima frecuencia cardíaca con comba y saltos pliométricos para disparar la potencia.',
     descripcionEn: 'Short maximum-effort bursts with jump rope and plyometric jumps to spike explosive power.',
-    color: '#ef4444',
+    color: '#EF4444',
     ejerciciosIds: [1281, 1280, 1282, 1576, 1279],
     ejercicios: [
       { id: 1281, nombre: 'Comba' },
@@ -269,7 +291,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Principiante',
     descripcion: 'Cardio continuo protegiendo rodillas y articulaciones con elíptica, stepmill y ritmo moderado.',
     descripcionEn: 'Continuous cardio protecting knees and joints with elliptical, stepmill and steady moderate pace.',
-    color: '#38bdf8',
+    color: '#EF4444',
     ejerciciosIds: [1275, 1298, 1292, 1288],
     ejercicios: [
       { id: 1275, nombre: 'Bicicleta elíptica' },
@@ -287,7 +309,7 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
     nivel: 'Intermedio',
     descripcion: 'Agilidad de pies, saltos dinámicos y picos de pulso combinados con estabilizadores de core.',
     descripcionEn: 'Foot agility, dynamic jumps and heart rate peaks combined with core stabilizers.',
-    color: '#f59e0b',
+    color: '#EF4444',
     ejerciciosIds: [1282, 1286, 1278, 1287, 1291],
     ejercicios: [
       { id: 1282, nombre: 'Escalador' },

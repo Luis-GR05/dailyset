@@ -11,10 +11,8 @@ import {
   ChevronRight,
   Clock,
   Dumbbell,
-  Search,
   ArrowRight,
   Activity,
-  X,
 } from 'lucide-react';
 
 export default function HistorialPage() {
@@ -33,8 +31,13 @@ export default function HistorialPage() {
   // Año inspeccionado en la vista anual
   const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
 
-  // Búsqueda en la vista anual
-  const [busquedaAnio, setBusquedaAnio] = useState('');
+  // Meses disponibles para el selector en vista mes
+  const mesesDisponibles = useMemo(() => {
+    return Array.from({ length: 12 }, (_, m) => ({
+      value: m,
+      label: new Date(anioActual, m).toLocaleString(localeStr, { month: 'long' }),
+    }));
+  }, [anioActual, localeStr]);
 
   // Día seleccionado en el calendario interactivo del mes
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
@@ -160,15 +163,7 @@ export default function HistorialPage() {
     });
   }, [sesionesDelAnio, anioSeleccionado, localeStr]);
 
-  // Sesiones filtradas por búsqueda en el año
-  const sesionesAnioFiltradas = useMemo(() => {
-    if (!busquedaAnio.trim()) return [];
-    const q = busquedaAnio.toLowerCase();
-    return sesionesDelAnio.filter(s =>
-      s.rutina.toLowerCase().includes(q) ||
-      s.ejercicios.some(e => e.nombre.toLowerCase().includes(q))
-    );
-  }, [sesionesDelAnio, busquedaAnio]);
+  // (búsqueda por texto eliminada, se usa el selector de año/mes)
 
   // Clic en un día del calendario del mes
   const handleDiaClick = (dia: number) => {
@@ -253,8 +248,9 @@ export default function HistorialPage() {
           <div className="space-y-6 animate-fadeIn">
 
             {/* Barra de control del mes con navegación directa */}
-            <div className="card p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="card p-4 sm:p-5 flex items-center justify-between gap-4">
+              {/* Izquierda: flechas + título */}
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
                   <button
                     onClick={irMesAnterior}
@@ -273,40 +269,54 @@ export default function HistorialPage() {
                 </div>
 
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
-                      {nombreMesSeleccionado} <span className="text-neutral-400 font-mono text-base font-normal">{anioActual}</span>
-                    </h2>
-
-                    {/* Selector interactivo para saltar directamente a cualquier mes */}
-                    <input
-                      type="month"
-                      value={`${anioActual}-${String(mesActual + 1).padStart(2, '0')}`}
-                      onChange={(e) => {
-                        if (!e.target.value) return;
-                        const [y, m] = e.target.value.split('-').map(Number);
-                        setAnioActual(y);
-                        setMesActual(m - 1);
-                        setDiaSeleccionado(null);
-                      }}
-                      title={locale === 'es' ? 'Elegir otro mes' : 'Select another month'}
-                      className="bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs rounded-xl px-2.5 py-1 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
-                    />
-                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
+                    {nombreMesSeleccionado} <span className="text-neutral-400 font-mono text-base font-normal">{anioActual}</span>
+                  </h2>
                   <p className="text-xs text-neutral-400 mt-0.5">
                     {sesionesDelMes.length} {locale === 'es' ? 'sesiones registradas' : 'sessions recorded'}
                   </p>
                 </div>
               </div>
 
-              {!esMesDeHoy && (
-                <button
-                  onClick={irAMesHoy}
-                  className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer self-start sm:self-auto shrink-0"
+              {/* Derecha: selector de mes + año + botón hoy */}
+              <div className="flex items-center gap-2 shrink-0">
+                {!esMesDeHoy && (
+                  <button
+                    onClick={irAMesHoy}
+                    className="hidden sm:inline-flex text-xs font-bold px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    {locale === 'es' ? '← Hoy' : '← Today'}
+                  </button>
+                )}
+                {/* Selector de mes */}
+                <select
+                  value={mesActual}
+                  onChange={(e) => {
+                    setMesActual(Number(e.target.value));
+                    setDiaSeleccionado(null);
+                  }}
+                  className="bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-xl px-3 py-2 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
+                  title={locale === 'es' ? 'Elegir mes' : 'Select month'}
                 >
-                  {locale === 'es' ? '← Volver al mes actual' : '← Back to current month'}
-                </button>
-              )}
+                  {mesesDisponibles.map(m => (
+                    <option key={m.value} value={m.value} className="capitalize">{m.label}</option>
+                  ))}
+                </select>
+                {/* Selector de año */}
+                <select
+                  value={anioActual}
+                  onChange={(e) => {
+                    setAnioActual(Number(e.target.value));
+                    setDiaSeleccionado(null);
+                  }}
+                  className="bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-xl px-3 py-2 outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
+                  title={locale === 'es' ? 'Elegir año' : 'Select year'}
+                >
+                  {aniosDisponibles.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Tarjetas de Métricas del Mes */}
@@ -589,7 +599,7 @@ export default function HistorialPage() {
         {vista === 'anio' && (
           <div className="space-y-6 animate-fadeIn">
 
-            {/* Cabecera del Año con selector de año y buscador */}
+            {/* Cabecera del Año con selector de año */}
             <div className="card p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
@@ -613,31 +623,19 @@ export default function HistorialPage() {
                   <h2 className="text-2xl sm:text-3xl font-black text-white">
                     {anioSeleccionado}
                   </h2>
-
-                  {/* Selector rápido de año */}
-                  <select
-                    value={anioSeleccionado}
-                    onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                    className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer"
-                  >
-                    {aniosDisponibles.map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
-              {/* Buscador dentro del año */}
-              <div className="relative w-full md:w-72">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
-                <input
-                  type="text"
-                  placeholder={locale === 'es' ? `Buscar sesiones en ${anioSeleccionado}...` : `Search workouts in ${anioSeleccionado}...`}
-                  value={busquedaAnio}
-                  onChange={(e) => setBusquedaAnio(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white text-xs outline-none focus:border-[var(--color-primary)] transition-colors"
-                />
-              </div>
+              {/* Derecha: Selector de año */}
+              <select
+                value={anioSeleccionado}
+                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+                className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors self-start md:self-auto"
+              >
+                {aniosDisponibles.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
             </div>
 
             {/* Estadísticas del Año */}

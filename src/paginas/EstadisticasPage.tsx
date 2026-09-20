@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { AppLayout, TituloPagina, CardEstadistica } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -19,8 +20,34 @@ export default function EstadisticasPage() {
 
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
   const now = new Date();
-  const year = now.getFullYear();
+  const currentYear = now.getFullYear();
   const nowMs = now.getTime();
+
+  // Años disponibles (desde el historial + año actual)
+  const aniosDisponibles = useMemo(() => {
+    const years = new Set<number>();
+    years.add(currentYear);
+    sesiones.forEach(s => {
+      const y = parseInt(s.fecha.split('-')[0], 10);
+      if (!isNaN(y)) years.add(y);
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [sesiones, currentYear]);
+
+  const [anioSeleccionado, setAnioSeleccionado] = useState(currentYear);
+
+  const irAnioAnterior = () => setAnioSeleccionado(a => {
+    const idx = aniosDisponibles.indexOf(a);
+    return idx < aniosDisponibles.length - 1 ? aniosDisponibles[idx + 1] : a;
+  });
+  const irAnioSiguiente = () => setAnioSeleccionado(a => {
+    const idx = aniosDisponibles.indexOf(a);
+    return idx > 0 ? aniosDisponibles[idx - 1] : a;
+  });
+
+  const sesionesDelAnio = useMemo(() => {
+    return sesiones.filter(s => parseInt(s.fecha.split('-')[0], 10) === anioSeleccionado);
+  }, [sesiones, anioSeleccionado]);
 
   const {
     totalEntrenos,
@@ -33,30 +60,30 @@ export default function EstadisticasPage() {
     frecuenciaSemanalLabel,
     mejorRachaLabel,
   } = useMemo(() => {
-    const totalEntrenos = sesiones.length;
-    const totalMin = sesiones.reduce((t, s) => t + (s.duracionMin ?? 0), 0);
+    const totalEntrenos = sesionesDelAnio.length;
+    const totalMin = sesionesDelAnio.reduce((t, s) => t + (s.duracionMin ?? 0), 0);
 
     // Estimación sencilla para fuerza general: ~5 kcal/min.
     const kcal = Math.round(totalMin * 5);
 
     const mesesVolumen = Array.from({ length: 12 }, (_, m) => {
-      const d = new Date(year, m, 1);
+      const d = new Date(anioSeleccionado, m, 1);
       const name = d.toLocaleString(localeStr, { month: 'short' });
-      const volumen = sesiones
+      const volumen = sesionesDelAnio
         .filter(s => {
           const dt = new Date(s.fecha + 'T12:00:00');
-          return dt.getFullYear() === year && dt.getMonth() === m;
+          return dt.getMonth() === m;
         })
         .reduce((t, s) => t + calcularVolumenSesion(s.ejercicios), 0);
       return { name, value: Math.round(volumen) };
     });
 
     const mesesEntrenos = Array.from({ length: 12 }, (_, m) => {
-      const d = new Date(year, m, 1);
+      const d = new Date(anioSeleccionado, m, 1);
       const name = d.toLocaleString(localeStr, { month: 'short' });
-      const entrenos = sesiones.filter(s => {
+      const entrenos = sesionesDelAnio.filter(s => {
         const dt = new Date(s.fecha + 'T12:00:00');
-        return dt.getFullYear() === year && dt.getMonth() === m;
+        return dt.getMonth() === m;
       }).length;
       return { name, entrenos };
     });
@@ -66,7 +93,7 @@ export default function EstadisticasPage() {
     // Intensidad media (de HistorialContext) + etiquetas para UI.
     const intensidadMediaLabel = metricas.intensidad;
 
-    // Frecuencia semanal: media de entrenos en últimas 4 semanas.
+    // Frecuencia semanal: media de entrenos en últimas 4 semanas (global, no filtrado por año).
     const last28 = sesiones.filter(s => {
       const ms = startOfDayMs(s.fecha);
       return nowMs - ms <= 28 * 24 * 60 * 60 * 1000;
@@ -74,8 +101,8 @@ export default function EstadisticasPage() {
     const freq = (last28 / 4);
     const frecuenciaSemanalLabel = `${freq.toFixed(1)}`;
 
-    // Mejor racha (días consecutivos con >=1 sesión)
-    const uniqueDays = Array.from(new Set(sesiones.map(s => startOfDayMs(s.fecha)))).sort((a, b) => a - b);
+    // Mejor racha del año seleccionado (días consecutivos con >=1 sesión)
+    const uniqueDays = Array.from(new Set(sesionesDelAnio.map(s => startOfDayMs(s.fecha)))).sort((a, b) => a - b);
     let best = 0;
     let cur = 0;
     for (let i = 0; i < uniqueDays.length; i++) {
@@ -101,7 +128,7 @@ export default function EstadisticasPage() {
       frecuenciaSemanalLabel,
       mejorRachaLabel,
     };
-  }, [sesiones, year, localeStr, metricas.intensidad]);
+  }, [sesionesDelAnio, sesiones, anioSeleccionado, localeStr, metricas.intensidad, nowMs]);
 
   const estadisticas = useMemo(() => ([
     { titulo: t.statistics.totalWorkouts, valor: String(totalEntrenos) },
@@ -109,10 +136,47 @@ export default function EstadisticasPage() {
     { titulo: t.statistics.caloriesBurned, valor: `${kcal}` },
   ]), [t.statistics, totalEntrenos, totalMin, kcal]);
 
+  const canGoPrev = aniosDisponibles.indexOf(anioSeleccionado) < aniosDisponibles.length - 1;
+  const canGoNext = aniosDisponibles.indexOf(anioSeleccionado) > 0;
+
   return (
     <AppLayout>
       <div className="space-y-4 pb-10 max-w-5xl mx-auto">
-        <TituloPagina titulo={locale === 'es' ? `Progreso anual (${year})` : `Yearly progress (${year})`} />
+        {/* Cabecera con selector de año */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
+
+          {/* Selector de año: flechas + select */}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+              <button
+                onClick={irAnioAnterior}
+                disabled={!canGoPrev}
+                className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={locale === 'es' ? 'Año anterior' : 'Previous year'}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={irAnioSiguiente}
+                disabled={!canGoNext}
+                className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={locale === 'es' ? 'Año siguiente' : 'Next year'}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <select
+              value={anioSeleccionado}
+              onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+              className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
+            >
+              {aniosDisponibles.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="p-6 md:p-8 bg-neutral-900/40 border border-white/5 rounded-2xl backdrop-blur-xl">
           <div className="mb-6 md:mb-8">

@@ -14,7 +14,7 @@ import {
     Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle, Eye, ExternalLink, Play
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
-import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, type RutinaTemplate } from '../data/rutinasPredefinidas';
+import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, getCategoriaColor, type RutinaTemplate } from '../data/rutinasPredefinidas';
 
 type Modal =
     | { tipo: 'crear' }
@@ -176,13 +176,21 @@ export default function MisRutinasPage() {
         return () => window.clearInterval(id);
     }, [cargando, carga.startedAtMs]);
 
-    const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number }) => {
+    const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[] }) => {
         if (modal?.tipo === 'crear') {
-            await agregarRutina({ ...data, ejerciciosIds: [] });
-            setMensajeExito(locale === 'es' ? '¡Rutina creada con éxito!' : 'Routine created successfully!');
+            await agregarRutina({ ...data, ejerciciosIds: data.ejerciciosIds });
+            const total = data.ejerciciosIds.length;
+            setMensajeExito(
+                locale === 'es'
+                    ? `¡Rutina "${data.nombre}" creada con éxito${total > 0 ? ` con ${total} ejercicios` : ''}!`
+                    : `Routine "${data.nombre}" created successfully${total > 0 ? ` with ${total} exercises` : ''}!`
+            );
             setTimeout(() => setMensajeExito(null), 3500);
         } else if (modal?.tipo === 'editar') {
-            await editarRutina({ ...modal.rutina, ...data });
+            await editarRutina({ ...modal.rutina, nombre: data.nombre, categoria: data.categoria, duracion: data.duracion });
+            await actualizarEjerciciosRutina(modal.rutina.id, data.ejerciciosIds);
+            setMensajeExito(locale === 'es' ? '¡Rutina actualizada con éxito!' : 'Routine updated successfully!');
+            setTimeout(() => setMensajeExito(null), 3500);
         }
         setModal(null);
     };
@@ -314,9 +322,9 @@ export default function MisRutinasPage() {
                     >
                         <Brain size={16} style={{ color: tabActiva === 'ia' ? '#000' : 'var(--color-primary)' }} />
                         <span>{locale === 'es' ? 'Rutina con IA' : 'AI Routine'}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black"
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black inline-flex items-center justify-center"
                             style={{ background: tabActiva === 'ia' ? 'rgba(0,0,0,0.15)' : 'rgba(219,240,89,0.15)', color: tabActiva === 'ia' ? '#000' : 'var(--color-primary)' }}>
-                            ✨
+                            <Sparkles size={11} />
                         </span>
                     </button>
                 </div>
@@ -443,7 +451,10 @@ export default function MisRutinasPage() {
                                                             <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
                                                             <span
                                                                 className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
-                                                                style={{ background: 'var(--color-primary)', color: '#000000' }}
+                                                                style={{
+                                                                    background: getCategoriaColor(rutina.categoria).bg,
+                                                                    color: getCategoriaColor(rutina.categoria).text,
+                                                                }}
                                                             >
                                                                 {rutina.categoria}
                                                             </span>
@@ -601,6 +612,7 @@ export default function MisRutinasPage() {
                                 const isExpanded = rutinaExpandida === plantilla.id;
                                 const isAdding = adoptandoId === plantilla.id;
                                 const nivelBadgeColor = NIVEL_COLOR[plantilla.nivel] || '#34d399';
+                                const catBadgeColor = getCategoriaColor(plantilla.categoria);
 
                                 return (
                                     <div
@@ -608,6 +620,7 @@ export default function MisRutinasPage() {
                                         className="card card-hover p-5 flex flex-col justify-between rounded-2xl relative overflow-hidden transition-all duration-300"
                                         style={{
                                             border: `1px solid rgba(255, 255, 255, 0.08)`,
+                                            background: '#121212',
                                         }}
                                     >
                                         <div className="space-y-3">
@@ -617,8 +630,8 @@ export default function MisRutinasPage() {
                                                     <span
                                                         className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm"
                                                         style={{
-                                                            background: plantilla.color,
-                                                            color: ['#4361EE', '#8b5cf6'].includes(plantilla.color) ? '#ffffff' : '#000000',
+                                                            background: catBadgeColor.bg,
+                                                            color: catBadgeColor.text,
                                                             border: '1px solid rgba(0, 0, 0, 0.15)',
                                                         }}
                                                     >
@@ -661,7 +674,7 @@ export default function MisRutinasPage() {
                                                     style={{ color: 'var(--color-white)' }}
                                                 >
                                                     <span className="flex items-center gap-1.5">
-                                                        <Dumbbell size={14} style={{ color: plantilla.color }} />
+                                                        <Dumbbell size={14} style={{ color: catBadgeColor.bg }} />
                                                         {locale === 'es'
                                                             ? `Ver ejercicios incluidos (${plantilla.ejercicios.length})`
                                                             : `Included exercises (${plantilla.ejercicios.length})`}
@@ -977,8 +990,8 @@ export default function MisRutinasPage() {
                                     style={{ background: `${rutinaIA.color}10`, border: `1px solid ${rutinaIA.color}30` }}>
                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full"
-                                                style={{ background: rutinaIA.color, color: rutinaIA.color === '#4361EE' ? '#fff' : '#000' }}>
+                                            <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm"
+                                                style={{ background: getCategoriaColor(rutinaIA.categoria).bg, color: getCategoriaColor(rutinaIA.categoria).text }}>
                                                 {rutinaIA.categoria}
                                             </span>
                                             <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white">
