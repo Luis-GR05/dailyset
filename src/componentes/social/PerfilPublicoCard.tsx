@@ -10,9 +10,10 @@ import { User, Dumbbell, Users } from 'lucide-react';
 interface PerfilPublicoCardProps {
   perfil: PerfilPublico;
   onClick?: () => void;
+  isLight?: boolean;
 }
 
-export default function PerfilPublicoCard({ perfil, onClick }: PerfilPublicoCardProps) {
+export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: PerfilPublicoCardProps) {
   const { user } = useAuth();
   const { locale } = useI18n();
 
@@ -21,15 +22,21 @@ export default function PerfilPublicoCard({ perfil, onClick }: PerfilPublicoCard
   return (
     <div
       onClick={onClick}
-      className={`bg-neutral-900/60 border border-neutral-800/80 rounded-2xl p-4 sm:p-5 transition-all shadow-md flex flex-col justify-between gap-4 ${
-        onClick ? 'hover:border-neutral-700 cursor-pointer' : ''
-      }`}
+      className={`rounded-2xl p-4 sm:p-5 transition-all shadow-md flex flex-col justify-between gap-4 border ${
+        isLight
+          ? 'bg-white border-neutral-200/90 text-neutral-900 shadow-sm hover:border-neutral-300 hover:shadow-md'
+          : 'bg-neutral-900/60 border-neutral-800/80 text-white hover:border-neutral-700'
+      } ${onClick ? 'cursor-pointer' : ''}`}
     >
       {/* ── Cabecera: Avatar, Info y Botón Seguir ── */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar */}
-          <div className="w-12 h-12 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+          <div
+            className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden shrink-0 border ${
+              isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-800 border-white/10'
+            }`}
+          >
             {perfil.avatar_url ? (
               <img
                 src={perfil.avatar_url}
@@ -37,18 +44,26 @@ export default function PerfilPublicoCard({ perfil, onClick }: PerfilPublicoCard
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User size={22} className="text-neutral-400" />
+              <User size={22} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
             )}
           </div>
 
           {/* Nombres y Nivel */}
           <div className="min-w-0">
-            <h4 className="font-bold text-white text-base truncate">
+            <h4 className={`font-bold text-base truncate ${isLight ? 'text-neutral-900' : 'text-white'}`}>
               {perfil.nombre_completo || perfil.nombre_usuario}
             </h4>
-            <p className="text-xs text-neutral-400 truncate">@{perfil.nombre_usuario}</p>
+            <p className={`text-xs truncate ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
+              @{perfil.nombre_usuario}
+            </p>
             {perfil.nivel_entrenamiento && (
-              <span className="inline-block mt-0.5 text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-neutral-800 text-[var(--color-primary)] border border-neutral-700">
+              <span
+                className={`inline-block mt-0.5 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
+                  isLight
+                    ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                    : 'bg-neutral-800 text-[var(--color-primary)] border border-neutral-700'
+                }`}
+              >
                 {perfil.nivel_entrenamiento}
               </span>
             )}
@@ -57,33 +72,49 @@ export default function PerfilPublicoCard({ perfil, onClick }: PerfilPublicoCard
 
         {/* Botón Seguir */}
         {!esYo && (
-          <BotonSeguir targetUserId={perfil.id} size="sm" />
+          <BotonSeguir targetUserId={perfil.id} size="sm" isLight={isLight} />
         )}
       </div>
 
       {/* ── Bio / Descripción ── */}
       {perfil.bio && (
-        <p className="text-xs text-neutral-300 line-clamp-2 italic">
+        <p className={`text-xs line-clamp-2 italic ${isLight ? 'text-neutral-600' : 'text-neutral-300'}`}>
           "{perfil.bio}"
         </p>
       )}
 
       {/* ── Métricas resumidas ── */}
-      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-neutral-800/60 text-center">
-        <div className="bg-neutral-950/40 rounded-xl p-2 border border-neutral-800/40">
-          <div className="flex items-center justify-center gap-1 text-neutral-400 text-xs mb-0.5">
+      <div className={`grid grid-cols-2 gap-2 pt-3 border-t text-center ${isLight ? 'border-neutral-200/80' : 'border-neutral-800/60'}`}>
+        <div
+          className={`rounded-xl p-2 border ${
+            isLight
+              ? 'bg-neutral-50 border-neutral-200/80'
+              : 'bg-neutral-950/40 border-neutral-800/40'
+          }`}
+        >
+          <div className={`flex items-center justify-center gap-1 text-xs mb-0.5 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
             <Dumbbell size={12} className="text-[var(--color-primary)]" />
             <span>{locale === 'es' ? 'Rutinas' : 'Routines'}</span>
           </div>
-          <p className="text-base font-extrabold text-white">{perfil.rutinasCount ?? 0}</p>
+          <p className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+            {perfil.rutinasCount ?? 0}
+          </p>
         </div>
 
-        <div className="bg-neutral-950/40 rounded-xl p-2 border border-neutral-800/40">
-          <div className="flex items-center justify-center gap-1 text-neutral-400 text-xs mb-0.5">
-            <Users size={12} className="text-neutral-400" />
+        <div
+          className={`rounded-xl p-2 border ${
+            isLight
+              ? 'bg-neutral-50 border-neutral-200/80'
+              : 'bg-neutral-950/40 border-neutral-800/40'
+          }`}
+        >
+          <div className={`flex items-center justify-center gap-1 text-xs mb-0.5 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
+            <Users size={12} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
             <span>{locale === 'es' ? 'Seguidores' : 'Followers'}</span>
           </div>
-          <p className="text-base font-extrabold text-white">{perfil.seguidoresCount ?? 0}</p>
+          <p className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+            {perfil.seguidoresCount ?? 0}
+          </p>
         </div>
       </div>
     </div>

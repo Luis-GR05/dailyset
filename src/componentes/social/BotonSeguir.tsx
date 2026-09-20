@@ -11,6 +11,7 @@ interface BotonSeguirProps {
   targetUserId: string;
   size?: 'sm' | 'md';
   className?: string;
+  isLight?: boolean;
   onFollowChange?: (isFollowing: boolean) => void;
 }
 
@@ -18,6 +19,7 @@ export default function BotonSeguir({
   targetUserId,
   size = 'md',
   className = '',
+  isLight = false,
   onFollowChange,
 }: BotonSeguirProps) {
   const { user } = useAuth();
@@ -64,7 +66,9 @@ export default function BotonSeguir({
       } ${
         siguiendo
           ? hovered
-            ? 'bg-red-500/15 border border-red-500/30 text-red-400'
+            ? 'bg-red-500/15 border border-red-500/30 text-red-500'
+            : isLight
+            ? 'bg-neutral-100 border border-neutral-200 text-neutral-700 shadow-sm'
             : 'bg-neutral-800/80 border border-neutral-700/80 text-neutral-200'
           : 'shadow-md'
       } ${className}`}

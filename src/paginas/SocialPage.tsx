@@ -1,5 +1,5 @@
 // src/paginas/SocialPage.tsx
-// Página principal del apartado Social de DailySet
+// Página principal del apartado Social de DailySet con fondo blanco por defecto y detección de modo oscuro
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -25,9 +25,19 @@ import {
   AlertCircle,
   Loader2,
   Plus,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 
 type TabSocial = 'feed' | 'explorar' | 'mi_perfil';
+export type SocialThemeMode = 'auto' | 'light' | 'dark';
+
+// Helper para detectar si el sistema o dispositivo prefiere modo oscuro
+const getDevicePrefersDark = (): boolean => {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
 
 export default function SocialPage() {
   const { user } = useAuth();
@@ -48,6 +58,52 @@ export default function SocialPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabActiva, setTabActiva] = useState<TabSocial>('feed');
+
+  // Estado del tema para Social (Fondo blanco por defecto, con detección automática de modo oscuro del dispositivo y control manual)
+  const [themeMode, setThemeMode] = useState<SocialThemeMode>(() => {
+    const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
+    if (guardado === 'auto' || guardado === 'light' || guardado === 'dark') {
+      return guardado as SocialThemeMode;
+    }
+    return 'auto';
+  });
+
+  const [isDarkEffective, setIsDarkEffective] = useState<boolean>(() => {
+    const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
+    if (guardado === 'dark') return true;
+    if (guardado === 'light') return false;
+    // Si es 'auto' o primera vez: si el dispositivo está en modo oscuro -> dark. Si no -> light (fondo blanco por defecto).
+    return getDevicePrefersDark();
+  });
+
+  // Escuchar cambios de color-scheme en el dispositivo en tiempo real si está en modo auto
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const listener = (e: MediaQueryListEvent) => {
+      if (themeMode === 'auto') {
+        setIsDarkEffective(e.matches);
+      }
+    };
+    mq.addEventListener('change', listener);
+    return () => mq.removeEventListener('change', listener);
+  }, [themeMode]);
+
+  const toggleTema = () => {
+    // Si está en dark, cambiar a light. Si está en light, cambiar a dark.
+    const nuevoModo: SocialThemeMode = isDarkEffective ? 'light' : 'dark';
+    setThemeMode(nuevoModo);
+    setIsDarkEffective(nuevoModo === 'dark');
+    localStorage.setItem('dailyset_social_theme_mode', nuevoModo);
+  };
+
+  const handleSetAuto = () => {
+    setThemeMode('auto');
+    localStorage.setItem('dailyset_social_theme_mode', 'auto');
+    setIsDarkEffective(getDevicePrefersDark());
+  };
+
+  const isLight = !isDarkEffective;
 
   // Estado para el modal de visualización de perfil ajeno
   const [perfilSeleccionadoId, setPerfilSeleccionadoId] = useState<string | null>(null);
@@ -111,44 +167,114 @@ export default function SocialPage() {
   const misRutinasPrivadas = rutinas.filter(r => !r.is_public);
 
   return (
-    <AppLayout>
+    <AppLayout fondoClaro={isLight}>
       <div className="space-y-6 max-w-4xl mx-auto pb-12">
         {/* ── Encabezado de Página ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="p-2 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+              <span className={`p-2 rounded-xl ${
+                isLight
+                  ? 'bg-[var(--color-primary)]/20 text-neutral-900 border border-[var(--color-primary)]/30'
+                  : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+              }`}>
                 <Users size={22} />
               </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                 {locale === 'es' ? 'Comunidad Social' : 'Social Community'}
               </h1>
             </div>
-            <p className="text-sm text-neutral-400">
+            <p className={`text-sm ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
               {locale === 'es'
                 ? 'Descubre entrenamientos de otros atletas, comparte los tuyos y sigue a tu comunidad.'
                 : 'Discover workouts from other athletes, share yours, and follow your community.'}
             </p>
           </div>
 
-          {/* Botón rápido para ir a crear rutina */}
-          <Link
-            to="/mis-rutinas"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 transition-all self-start sm:self-auto"
-          >
-            <Plus size={16} />
-            <span>{locale === 'es' ? 'Crear mi rutina' : 'Create routine'}</span>
-          </Link>
+          {/* Selector de Tema y Botón Crear Rutina */}
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            {/* Control de tema claro / oscuro con detección de dispositivo */}
+            <div className={`flex items-center p-1 rounded-xl border ${
+              isLight ? 'bg-neutral-100/90 border-neutral-200' : 'bg-neutral-900 border-neutral-800'
+            }`}>
+              <button
+                type="button"
+                onClick={toggleTema}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none ${
+                  isLight
+                    ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
+                    : 'bg-neutral-800 text-white shadow-sm border border-neutral-700'
+                }`}
+                title={locale === 'es' ? 'Cambiar entre fondo blanco y modo oscuro' : 'Toggle between white background and dark mode'}
+              >
+                {isLight ? (
+                  <>
+                    <Sun size={14} className="text-amber-500" />
+                    <span>{locale === 'es' ? 'Fondo blanco' : 'Light theme'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={14} className="text-sky-400" />
+                    <span>{locale === 'es' ? 'Modo oscuro' : 'Dark theme'}</span>
+                  </>
+                )}
+              </button>
+
+              {/* Opción para restaurar sincronización con el dispositivo */}
+              {themeMode !== 'auto' ? (
+                <button
+                  type="button"
+                  onClick={handleSetAuto}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                    isLight ? 'text-neutral-500 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'
+                  }`}
+                  title={locale === 'es' ? 'Sincronizar automáticamente con el dispositivo' : 'Sync automatically with device'}
+                >
+                  <Monitor size={12} />
+                  <span>{locale === 'es' ? 'Auto' : 'Auto'}</span>
+                </button>
+              ) : (
+                <span
+                  className={`flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                    isLight ? 'text-neutral-400' : 'text-neutral-500'
+                  }`}
+                  title={locale === 'es' ? 'Sincronizado con tu dispositivo' : 'Synced with your device'}
+                >
+                  <Monitor size={11} />
+                  <span>{locale === 'es' ? 'Dispositivo' : 'Device'}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Botón rápido para ir a crear rutina */}
+            <Link
+              to="/mis-rutinas"
+              className={`inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm ${
+                isLight
+                  ? 'bg-neutral-900 text-white hover:bg-neutral-800 border border-neutral-900'
+                  : 'bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700'
+              }`}
+            >
+              <Plus size={15} />
+              <span>{locale === 'es' ? 'Crear mi rutina' : 'Create routine'}</span>
+            </Link>
+          </div>
         </div>
 
         {/* ── Selector de Pestañas Principales ── */}
-        <div className="flex items-center gap-1.5 p-1 bg-neutral-900/80 border border-neutral-800 rounded-2xl">
+        <div className={`flex items-center gap-1.5 p-1 rounded-2xl border ${
+          isLight ? 'bg-neutral-100/90 border-neutral-200/90' : 'bg-neutral-900/80 border-neutral-800'
+        }`}>
           <button
             type="button"
             onClick={() => setTabActiva('feed')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
               tabActiva === 'feed'
-                ? 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                ? isLight
+                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
+                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                : isLight
+                ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -161,7 +287,11 @@ export default function SocialPage() {
             onClick={() => setTabActiva('explorar')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
               tabActiva === 'explorar'
-                ? 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                ? isLight
+                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
+                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                : isLight
+                ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -174,7 +304,11 @@ export default function SocialPage() {
             onClick={() => setTabActiva('mi_perfil')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer select-none ${
               tabActiva === 'mi_perfil'
-                ? 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                ? isLight
+                  ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
+                  : 'bg-neutral-800 text-white shadow-md border border-neutral-700'
+                : isLight
+                ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -189,14 +323,18 @@ export default function SocialPage() {
         {tabActiva === 'feed' && (
           <div className="space-y-4">
             {/* Barra de Filtros del Feed (Todos vs Siguiendo) y Refrescar */}
-            <div className="flex items-center justify-between gap-3 flex-wrap bg-neutral-900/40 p-2.5 rounded-xl border border-neutral-800/60">
+            <div className={`flex items-center justify-between gap-3 flex-wrap p-2.5 rounded-xl border ${
+              isLight ? 'bg-neutral-100/80 border-neutral-200/80' : 'bg-neutral-900/40 border-neutral-800/60'
+            }`}>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('todos')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     filtroFeed === 'todos'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
+                      : isLight
+                      ? 'bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200 shadow-sm'
                       : 'bg-neutral-800 text-neutral-300 hover:text-white'
                   }`}
                 >
@@ -207,9 +345,11 @@ export default function SocialPage() {
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('siguiendo')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     filtroFeed === 'siguiendo'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
+                      : isLight
+                      ? 'bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200 shadow-sm'
                       : 'bg-neutral-800 text-neutral-300 hover:text-white'
                   }`}
                 >
@@ -222,7 +362,9 @@ export default function SocialPage() {
                 type="button"
                 onClick={() => refrescarFeed()}
                 disabled={cargandoFeed}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors cursor-pointer ${
+                  isLight ? 'text-neutral-600 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'
+                }`}
                 title={locale === 'es' ? 'Actualizar feed' : 'Refresh feed'}
               >
                 <RefreshCw size={13} className={cargandoFeed ? 'animate-spin' : ''} />
@@ -234,21 +376,25 @@ export default function SocialPage() {
             {cargandoFeed ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
-                <p className="text-xs text-neutral-400 font-medium">
+                <p className={`text-xs font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
                   {locale === 'es' ? 'Cargando rutinas de la comunidad...' : 'Loading community workouts...'}
                 </p>
               </div>
             ) : errorFeed ? (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2">
                 <AlertCircle size={16} />
                 <span>{errorFeed}</span>
               </div>
             ) : feed.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-neutral-900/30 rounded-2xl border border-dashed border-neutral-800 space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-neutral-800/80 mx-auto flex items-center justify-center text-neutral-500">
+              <div className={`text-center py-16 px-4 rounded-2xl border border-dashed space-y-3 ${
+                isLight ? 'bg-white border-neutral-200 shadow-sm' : 'bg-neutral-900/30 border-neutral-800'
+              }`}>
+                <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
+                  isLight ? 'bg-neutral-100 text-neutral-400' : 'bg-neutral-800/80 text-neutral-500'
+                }`}>
                   <Dumbbell size={28} />
                 </div>
-                <h3 className="font-extrabold text-white text-base">
+                <h3 className={`font-extrabold text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                   {filtroFeed === 'siguiendo'
                     ? locale === 'es'
                       ? 'No hay publicaciones de personas que sigues'
@@ -257,7 +403,7 @@ export default function SocialPage() {
                     ? 'No hay rutinas públicas compartidas todavía'
                     : 'No public routines shared yet'}
                 </h3>
-                <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                   {filtroFeed === 'siguiendo'
                     ? locale === 'es'
                       ? 'Sigue a otros atletas desde la pestaña "Buscar Atletas" o cambia a la pestaña "Para ti" para ver todas las rutinas públicas.'
@@ -270,7 +416,7 @@ export default function SocialPage() {
                   <button
                     type="button"
                     onClick={() => setTabActiva('explorar')}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black shadow-md mt-2"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black shadow-md mt-2 cursor-pointer"
                   >
                     <Compass size={14} />
                     <span>{locale === 'es' ? 'Explorar atletas' : 'Explore athletes'}</span>
@@ -278,7 +424,11 @@ export default function SocialPage() {
                 ) : (
                   <Link
                     to="/mis-rutinas"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-neutral-800 text-white border border-neutral-700 hover:bg-neutral-700 shadow-md mt-2"
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shadow-md mt-2 ${
+                      isLight
+                        ? 'bg-neutral-900 text-white hover:bg-neutral-800 border border-neutral-900'
+                        : 'bg-neutral-800 text-white border border-neutral-700 hover:bg-neutral-700'
+                    }`}
                   >
                     <Plus size={14} />
                     <span>{locale === 'es' ? 'Ir a mis rutinas' : 'Go to my routines'}</span>
@@ -292,6 +442,7 @@ export default function SocialPage() {
                     key={rutina.id}
                     rutina={rutina}
                     onVerPerfil={id => setPerfilSeleccionadoId(id)}
+                    isLight={isLight}
                   />
                 ))}
               </div>
@@ -306,7 +457,7 @@ export default function SocialPage() {
           <div className="space-y-5">
             {/* Buscador de usuarios */}
             <div className="relative">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <Search size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`} />
               <input
                 type="text"
                 placeholder={
@@ -316,12 +467,16 @@ export default function SocialPage() {
                 }
                 value={busquedaQuery}
                 onChange={e => setBusquedaQuery(e.target.value)}
-                className="input pl-11 pr-10 py-3 text-sm bg-neutral-900 border-neutral-800 rounded-2xl w-full text-white placeholder-neutral-500 focus:border-[var(--color-primary)]"
+                className={`input pl-11 pr-10 py-3 text-sm rounded-2xl w-full border transition-all ${
+                  isLight
+                    ? 'bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-400 focus:ring-1 focus:ring-neutral-200'
+                    : 'bg-neutral-900 border-neutral-800 text-white placeholder-neutral-500 focus:border-[var(--color-primary)]'
+                }`}
                 autoFocus
               />
               {buscandoUsuarios && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <Loader2 size={16} className="animate-spin text-neutral-400" />
+                  <Loader2 size={16} className={`animate-spin ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`} />
                 </div>
               )}
             </div>
@@ -331,10 +486,10 @@ export default function SocialPage() {
               usuariosEncontrados.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                       {locale === 'es' ? 'Atletas registrados en DailySet' : 'Athletes registered on DailySet'}
                     </span>
-                    <span className="text-[11px] font-mono text-neutral-500">
+                    <span className={`text-[11px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
                       {usuariosEncontrados.length} {locale === 'es' ? 'atletas' : 'athletes'}
                     </span>
                   </div>
@@ -344,6 +499,7 @@ export default function SocialPage() {
                         key={perfil.id}
                         perfil={perfil}
                         onClick={() => setPerfilSeleccionadoId(perfil.id)}
+                        isLight={isLight}
                       />
                     ))}
                   </div>
@@ -353,12 +509,14 @@ export default function SocialPage() {
                   <Loader2 size={24} className="animate-spin text-[var(--color-primary)]" />
                 </div>
               ) : (
-                <div className="text-center py-12 px-4 bg-neutral-900/30 rounded-2xl border border-neutral-800/60 space-y-2">
-                  <Compass size={32} className="mx-auto text-neutral-600 mb-2" />
-                  <h4 className="font-bold text-white text-sm">
+                <div className={`text-center py-12 px-4 rounded-2xl border space-y-2 ${
+                  isLight ? 'bg-white border-neutral-200/90 shadow-sm' : 'bg-neutral-900/30 border-neutral-800/60'
+                }`}>
+                  <Compass size={32} className={`mx-auto mb-2 ${isLight ? 'text-neutral-400' : 'text-neutral-600'}`} />
+                  <h4 className={`font-bold text-sm ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                     {locale === 'es' ? 'Encuentra y sigue a otros atletas' : 'Find and follow other athletes'}
                   </h4>
-                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                  <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                     {locale === 'es'
                       ? 'Escribe en el buscador de arriba para descubrir perfiles públicos por nombre o usuario.'
                       : 'Type in the search box above to discover public profiles by name or username.'}
@@ -366,8 +524,10 @@ export default function SocialPage() {
                 </div>
               )
             ) : usuariosEncontrados.length === 0 && !buscandoUsuarios ? (
-              <div className="text-center py-12 px-4 bg-neutral-900/30 rounded-2xl border border-neutral-800/60">
-                <p className="text-sm text-neutral-400">
+              <div className={`text-center py-12 px-4 rounded-2xl border ${
+                isLight ? 'bg-white border-neutral-200/90 text-neutral-600' : 'bg-neutral-900/30 border-neutral-800/60 text-neutral-400'
+              }`}>
+                <p className="text-sm">
                   {locale === 'es'
                     ? `No se encontraron atletas para "${busquedaQuery}".`
                     : `No athletes found for "${busquedaQuery}".`}
@@ -376,10 +536,10 @@ export default function SocialPage() {
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                     {locale === 'es' ? 'Resultados de búsqueda' : 'Search results'}
                   </span>
-                  <span className="text-[11px] font-mono text-neutral-500">
+                  <span className={`text-[11px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
                     {usuariosEncontrados.length}
                   </span>
                 </div>
@@ -389,6 +549,7 @@ export default function SocialPage() {
                       key={perfil.id}
                       perfil={perfil}
                       onClick={() => setPerfilSeleccionadoId(perfil.id)}
+                      isLight={isLight}
                     />
                   ))}
                 </div>
@@ -403,27 +564,35 @@ export default function SocialPage() {
         {tabActiva === 'mi_perfil' && (
           <div className="space-y-6">
             {/* Tarjeta de Biografía pública */}
-            <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 space-y-4">
+            <div className={`rounded-2xl p-5 space-y-4 border ${
+              isLight ? 'bg-white border-neutral-200/90 shadow-sm text-neutral-900' : 'bg-neutral-900/60 border-neutral-800 text-white'
+            }`}>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center overflow-hidden shrink-0">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 border ${
+                  isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-800 border-neutral-700'
+                }`}>
                   {user?.avatar_url ? (
                     <img src={user.avatar_url} alt={user.nombre} className="w-full h-full object-cover" />
                   ) : (
-                    <User size={24} className="text-neutral-400" />
+                    <User size={24} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
                   )}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-white text-base">{user?.nombre}</h3>
-                  <p className="text-xs text-neutral-400 font-mono">@{user?.nombre_usuario || 'atleta'}</p>
+                  <h3 className={`font-extrabold text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>{user?.nombre}</h3>
+                  <p className={`text-xs font-mono ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>@{user?.nombre_usuario || 'atleta'}</p>
                 </div>
               </div>
 
-              <form onSubmit={handleGuardarBio} className="space-y-3 pt-3 border-t border-neutral-800">
-                <label className="text-xs font-bold text-neutral-300 block">
+              <form onSubmit={handleGuardarBio} className={`space-y-3 pt-3 border-t ${isLight ? 'border-neutral-200/80' : 'border-neutral-800'}`}>
+                <label className={`text-xs font-bold block ${isLight ? 'text-neutral-800' : 'text-neutral-300'}`}>
                   {locale === 'es' ? 'Tu biografía pública' : 'Your public bio'}
                 </label>
                 <textarea
-                  className="input text-xs sm:text-sm resize-none rounded-xl p-3 w-full bg-neutral-950 border-neutral-800 text-white"
+                  className={`input text-xs sm:text-sm resize-none rounded-xl p-3 w-full border ${
+                    isLight
+                      ? 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:bg-white focus:border-neutral-400'
+                      : 'bg-neutral-950 border-neutral-800 text-white placeholder-neutral-500'
+                  }`}
                   rows={3}
                   maxLength={200}
                   placeholder={
@@ -435,12 +604,12 @@ export default function SocialPage() {
                   onChange={e => setBioTexto(e.target.value)}
                 />
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-neutral-500 font-mono">
+                  <span className={`text-[10px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
                     {bioTexto.length}/200
                   </span>
                   <div className="flex items-center gap-2">
                     {bioGuardadaExito && (
-                      <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium">
+                      <span className={`text-xs flex items-center gap-1 font-medium ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>
                         <Check size={14} />
                         {locale === 'es' ? 'Guardado' : 'Saved'}
                       </span>
@@ -448,7 +617,7 @@ export default function SocialPage() {
                     <button
                       type="submit"
                       disabled={guardandoBio}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black hover:opacity-90 transition-all cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black hover:opacity-90 transition-all cursor-pointer shadow-sm"
                     >
                       {guardandoBio ? (
                         <Loader2 size={13} className="animate-spin" />
@@ -467,36 +636,50 @@ export default function SocialPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-extrabold text-white text-base flex items-center gap-2">
+                  <h3 className={`font-extrabold text-base flex items-center gap-2 ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                     <Globe size={18} className="text-[var(--color-primary)]" />
                     <span>{locale === 'es' ? 'Privacidad de tus Rutinas' : 'Your Routines Privacy'}</span>
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className={`text-xs mt-0.5 ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                     {locale === 'es'
                       ? 'Gestiona fácilmente qué rutinas son visibles en el feed social.'
                       : 'Manage which workouts are visible on the social feed.'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
+                    isLight
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  }`}>
                     {misRutinasPublicas.length} {locale === 'es' ? 'públicas' : 'public'}
                   </span>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700 font-bold">
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
+                    isLight
+                      ? 'bg-neutral-100 text-neutral-600 border-neutral-200'
+                      : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                  }`}>
                     {misRutinasPrivadas.length} {locale === 'es' ? 'privadas' : 'private'}
                   </span>
                 </div>
               </div>
 
               {rutinas.length === 0 ? (
-                <div className="text-center py-10 bg-neutral-900/30 rounded-2xl border border-dashed border-neutral-800">
-                  <p className="text-xs text-neutral-400">
+                <div className={`text-center py-10 rounded-2xl border border-dashed ${
+                  isLight ? 'bg-white border-neutral-200 text-neutral-600' : 'bg-neutral-900/30 border-neutral-800 text-neutral-400'
+                }`}>
+                  <p className="text-xs">
                     {locale === 'es'
                       ? 'Aún no has creado ninguna rutina.'
                       : 'You have not created any routines yet.'}
                   </p>
                   <Link
                     to="/mis-rutinas"
-                    className="inline-block mt-3 px-3 py-1.5 text-xs font-bold bg-neutral-800 text-white rounded-lg border border-neutral-700"
+                    className={`inline-block mt-3 px-3 py-1.5 text-xs font-bold rounded-lg border ${
+                      isLight
+                        ? 'bg-neutral-900 text-white border-neutral-900'
+                        : 'bg-neutral-800 text-white border-neutral-700'
+                    }`}
                   >
                     {locale === 'es' ? 'Crear primera rutina' : 'Create first routine'}
                   </Link>
@@ -506,23 +689,27 @@ export default function SocialPage() {
                   {rutinas.map(rutina => (
                     <div
                       key={rutina.id}
-                      className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 gap-3"
+                      className={`flex items-center justify-between p-3 sm:p-4 rounded-xl gap-3 border transition-all ${
+                        isLight
+                          ? 'bg-white border-neutral-200/90 shadow-sm text-neutral-900'
+                          : 'bg-neutral-900/60 border-neutral-800 text-white'
+                      }`}
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-bold text-sm text-white truncate">{rutina.nombre}</h4>
-                          <span className="text-[10px] text-neutral-400 font-mono">
+                          <h4 className={`font-bold text-sm truncate ${isLight ? 'text-neutral-900' : 'text-white'}`}>{rutina.nombre}</h4>
+                          <span className={`text-[10px] font-mono ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
                             {rutina.duracion} min
                           </span>
                         </div>
-                        <p className="text-[11px] text-neutral-400 mt-0.5 flex items-center gap-1.5">
+                        <p className="text-[11px] mt-0.5 flex items-center gap-1.5">
                           {rutina.is_public ? (
-                            <span className="text-emerald-400 flex items-center gap-1 font-semibold">
+                            <span className={`flex items-center gap-1 font-semibold ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>
                               <Globe size={11} />
                               {locale === 'es' ? 'Visible en el feed social' : 'Visible on social feed'}
                             </span>
                           ) : (
-                            <span className="text-neutral-500 flex items-center gap-1 font-medium">
+                            <span className={`flex items-center gap-1 font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-500'}`}>
                               <Lock size={11} />
                               {locale === 'es' ? 'Privada (solo tú la ves)' : 'Private (only you see it)'}
                             </span>
@@ -539,7 +726,11 @@ export default function SocialPage() {
                         }}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shrink-0 cursor-pointer ${
                           rutina.is_public
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                            ? isLight
+                              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700'
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                            : isLight
+                            ? 'bg-neutral-100 border-neutral-200 text-neutral-700 hover:bg-neutral-200 hover:border-neutral-300'
                             : 'bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-600'
                         }`}
                         title={
@@ -573,6 +764,7 @@ export default function SocialPage() {
           <ModalPerfilPublico
             perfilId={perfilSeleccionadoId}
             onCerrar={handleCerrarModalPerfil}
+            isLight={isLight}
           />
         )}
       </div>
