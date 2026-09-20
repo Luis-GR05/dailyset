@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import type { Rutina } from '../../context/RutinasContext';
 import { useEjercicios, type Ejercicio } from '../../context/EjerciciosContext';
 import { RUTINAS_PREDEFINIDAS, getCategoriaColor } from '../../data/rutinasPredefinidas';
-import { X, Plus, Eye, ArrowUp, ArrowDown, Search, Dumbbell } from 'lucide-react';
+import { X, Plus, Eye, ArrowUp, ArrowDown, Search, Dumbbell, Lock, Globe } from 'lucide-react';
 
 interface FormularioRutinaProps {
     rutina?: Rutina | null;
-    onGuardar: (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[] }) => Promise<void>;
+    onGuardar: (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[]; is_public?: boolean }) => Promise<void>;
     onCerrar: () => void;
 }
 
@@ -41,6 +41,7 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
     const [nombre, setNombre] = useState('');
     const [categoria, setCategoria] = useState(CATEGORIAS[0]);
     const [duracion, setDuracion] = useState(45);
+    const [isPublic, setIsPublic] = useState(false);
     const [seleccionados, setSeleccionados] = useState<number[]>([]);
     const [busqueda, setBusqueda] = useState('');
     const [filtroMusculo, setFiltroMusculo] = useState('Todos');
@@ -53,7 +54,10 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
             setNombre(rutina.nombre);
             setCategoria(rutina.categoria);
             setDuracion(rutina.duracion);
+            setIsPublic(rutina.is_public ?? false);
             setSeleccionados(rutina.ejerciciosIds || []);
+        } else {
+            setIsPublic(false); // Por defecto privada
         }
     }, [rutina]);
 
@@ -191,6 +195,7 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
                 categoria,
                 duracion,
                 ejerciciosIds: seleccionados,
+                is_public: isPublic,
             });
         } catch (err: any) {
             setError(err?.message ?? 'Error al guardar la rutina');
@@ -282,6 +287,56 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Fila 3: Control de Privacidad */}
+                    <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                                {isPublic ? (
+                                    <Globe size={14} className="text-[var(--color-primary)]" />
+                                ) : (
+                                    <Lock size={14} className="text-neutral-400" />
+                                )}
+                                Privacidad de la rutina
+                            </span>
+                            <span className="text-[10px] text-neutral-500 font-medium">
+                                Por defecto: Privada
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsPublic(false)}
+                                className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition-all ${
+                                    !isPublic
+                                        ? 'bg-neutral-800 border-neutral-600 text-white shadow-sm'
+                                        : 'bg-neutral-900/50 border-neutral-800/80 text-neutral-400 hover:text-neutral-200'
+                                }`}
+                            >
+                                <Lock size={13} className={!isPublic ? 'text-white' : 'text-neutral-500'} />
+                                <span>Privada (Solo tú)</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsPublic(true)}
+                                className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition-all ${
+                                    isPublic
+                                        ? 'bg-[var(--color-primary)]/15 border-[var(--color-primary)]/40 text-[var(--color-primary)] shadow-sm'
+                                        : 'bg-neutral-900/50 border-neutral-800/80 text-neutral-400 hover:text-neutral-200'
+                                }`}
+                            >
+                                <Globe size={13} className={isPublic ? 'text-[var(--color-primary)]' : 'text-neutral-500'} />
+                                <span>Pública (Comunidad)</span>
+                            </button>
+                        </div>
+                        <p className="text-[11px] text-neutral-400">
+                            {isPublic
+                                ? '🌍 Visible en el Feed Social y en tu perfil público para que otros atletas puedan verla y clonarla.'
+                                : '🔒 Solo tú puedes ver y entrenar con esta rutina. No aparecerá en el feed social.'}
+                        </p>
                     </div>
 
                     {/* ── SELECCIÓN DE EJERCICIOS A MANO ── */}

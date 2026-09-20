@@ -10,6 +10,7 @@ export interface Rutina {
   duracion: number;
   ejerciciosIds: number[];
   imageUrl?: string;
+  is_public?: boolean;
 }
 
 interface RutinasContextType {
@@ -26,6 +27,7 @@ interface RutinasContextType {
   editarRutina: (r: Rutina) => Promise<void>;
   eliminarRutina: (id: number) => Promise<void>;
   actualizarEjerciciosRutina: (rutinaId: number, ejerciciosIds: number[]) => Promise<void>;
+  togglePrivacidad: (rutinaId: number) => Promise<void>;
 }
 
 const RutinasContext = createContext<RutinasContextType | undefined>(undefined);
@@ -74,62 +76,26 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('rutinas')
-        .select('id, nombre, duracion_estimada_minutos, categoria, etiquetas')
+        .select('id, nombre, duracion_estimada_minutos, categoria, etiquetas, is_public')
         .eq('usuario_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      const rutinaIds = data?.map(r => r.id) ?? [];
-
-      let ejerciciosPorRutina: Record<number, number[]> = {};
-      if (rutinaIds.length > 0) {
-        const { data: ejerciciosData, error: ejerciciosError } = await supabase
-          .from('ejercicios_rutina')
-          .select('rutina_id, ejercicio_id')
-          .in('rutina_id', rutinaIds)
-          .order('indice_orden', { ascending: true });
-
-        if (ejerciciosError) throw ejerciciosError;
-
-        ejerciciosPorRutina = (ejerciciosData ?? []).reduce((acc, fila) => {
-          const rid = fila.rutina_id;
-          const eid = fila.ejercicio_id;
-          if (!acc[rid]) acc[rid] = [];
-          acc[rid].push(eid);
-          return acc;
-        }, {} as Record<number, number[]>);
+      if (error) {
+        // Si la columna is_public todavía no se ha migrado en Supabase, reintentar sin ella
+        if (error.message?.includes('is_public')) {
+          const { data: fallbackData, error: fallbackErr } = await supabase
+            .from('rutinas')
+            .select('id, nombre, duracion_estimada_minutos, categoria, etiquetas')
+            .eq('usuario_id', user.id)
+            .order('created_at', { ascending: false });
+          if (fallbackErr) throw fallbackErr;
+          procesarDatosRutinas(fallbackData || [], myReq);
+          return;
+        }
+        throw error;
       }
 
-      const normalizadas: Rutina[] = (data ?? []).map(r => {
-        // Priorizar campo 'categoria' si existe, sino usar primer elemento de etiquetas
-        let categoria = r.categoria;
-        if (!categoria && Array.isArray(r.etiquetas) && r.etiquetas.length > 0) {
-          categoria = r.etiquetas[0];
-        }
-        return {
-          id: r.id,
-          nombre: r.nombre,
-          categoria: categoria || 'General',
-          duracion: r.duracion_estimada_minutos ?? 45,
-          ejerciciosIds: ejerciciosPorRutina[r.id] ?? [],
-          imageUrl: undefined,
-        };
-      });
-
-      // Si hay otra petición más reciente, ignorar esta respuesta para evitar flicker/race.
-      if (myReq === requestSeq.current) {
-        setRutinas(normalizadas);
-        // Guardar cache para renders instantáneos la próxima vez
-        try {
-          localStorage.setItem(
-            `dailyset:rutinas:${user.id}`,
-            JSON.stringify({ rutinas: normalizadas, savedAt: Date.now() })
-          );
-        } catch {
-          // ignore quota
-        }
-      }
+      procesarDatosRutinas(data || [], myReq);
     } catch (e: any) {
       console.error('Error cargando rutinas', e);
       const isFetchErr = e?.message?.includes('fetch') || e?.name === 'TypeError';
@@ -150,6 +116,59 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const procesarDatosRutinas = async (data: any[], myReq: number) => {
+    const rutinaIds = data?.map(r => r.id) ?? [];
+
+    let ejerciciosPorRutina: Record<number, number[]> = {};
+    if (rutinaIds.length > 0) {
+      const { data: ejerciciosData, error: ejerciciosError } = await supabase
+        .from('ejercicios_rutina')
+        .select('rutina_id, ejercicio_id')
+        .in('rutina_id', rutinaIds)
+        .order('indice_orden', { ascending: true });
+
+      if (ejerciciosError) throw ejerciciosError;
+
+      ejerciciosPorRutina = (ejerciciosData ?? []).reduce((acc, fila) => {
+        const rid = fila.rutina_id;
+        const eid = fila.ejercicio_id;
+        if (!acc[rid]) acc[rid] = [];
+        acc[rid].push(eid);
+        return acc;
+      }, {} as Record<number, number[]>);
+    }
+
+    const normalizadas: Rutina[] = (data ?? []).map(r => {
+      let categoria = r.categoria;
+      if (!categoria && Array.isArray(r.etiquetas) && r.etiquetas.length > 0) {
+        categoria = r.etiquetas[0];
+      }
+      return {
+        id: r.id,
+        nombre: r.nombre,
+        categoria: categoria || 'General',
+        duracion: r.duracion_estimada_minutos ?? 45,
+        ejerciciosIds: ejerciciosPorRutina[r.id] ?? [],
+        imageUrl: undefined,
+        is_public: r.is_public ?? false,
+      };
+    });
+
+    if (myReq === requestSeq.current) {
+      setRutinas(normalizadas);
+      try {
+        if (user) {
+          localStorage.setItem(
+            `dailyset:rutinas:${user.id}`,
+            JSON.stringify({ rutinas: normalizadas, savedAt: Date.now() })
+          );
+        }
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   useEffect(() => {
     cargarRutinas();
   }, [user?.id]);
@@ -157,26 +176,46 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
   const agregarRutina = async (r: Omit<Rutina, 'id'>) => {
     if (!user) throw new Error('Debes iniciar sesión');
 
+    const insertPayload: Record<string, any> = {
+      usuario_id: user.id,
+      nombre: r.nombre,
+      categoria: r.categoria,
+      etiquetas: [r.categoria],
+      duracion_estimada_minutos: r.duracion,
+      es_plantilla: false,
+      esta_activa: true,
+      is_public: r.is_public ?? false, // Por defecto privada
+    };
+
+    let dataRes: any = null;
     const { data, error } = await supabase
       .from('rutinas')
-      .insert({
-        usuario_id: user.id,
-        nombre: r.nombre,
-        categoria: r.categoria,
-        etiquetas: [r.categoria], // Mantenemos por compatibilidad
-        duracion_estimada_minutos: r.duracion,
-        es_plantilla: false,
-        esta_activa: true,
-      })
-      .select('id, nombre, duracion_estimada_minutos, categoria')
+      .insert(insertPayload)
+      .select('id, nombre, duracion_estimada_minutos, categoria, is_public')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Fallback si la columna is_public aún no está en la base de datos
+      if (error.message?.includes('is_public')) {
+        delete insertPayload.is_public;
+        const { data: retryData, error: retryError } = await supabase
+          .from('rutinas')
+          .insert(insertPayload)
+          .select('id, nombre, duracion_estimada_minutos, categoria')
+          .single();
+        if (retryError) throw retryError;
+        dataRes = retryData;
+      } else {
+        throw error;
+      }
+    } else {
+      dataRes = data;
+    }
 
     const ejerciciosIniciales = [...new Set(r.ejerciciosIds || [])];
     if (ejerciciosIniciales.length > 0) {
       const inserciones = ejerciciosIniciales.map((ejercicioId, indice) => ({
-        rutina_id: data.id,
+        rutina_id: dataRes.id,
         ejercicio_id: ejercicioId,
         indice_orden: indice,
       }));
@@ -185,12 +224,13 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     }
 
     const nueva: Rutina = {
-      id: data.id,
-      nombre: data.nombre,
-      categoria: data.categoria || r.categoria,
-      duracion: data.duracion_estimada_minutos ?? r.duracion,
+      id: dataRes.id,
+      nombre: dataRes.nombre,
+      categoria: dataRes.categoria || r.categoria,
+      duracion: dataRes.duracion_estimada_minutos ?? r.duracion,
       ejerciciosIds: ejerciciosIniciales,
       imageUrl: r.imageUrl,
+      is_public: r.is_public ?? false,
     };
 
     setRutinas(prev => [nueva, ...prev]);
@@ -199,20 +239,42 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
   const editarRutina = async (r: Rutina) => {
     if (!user) throw new Error('Debes iniciar sesión');
 
+    const updatePayload: Record<string, any> = {
+      nombre: r.nombre,
+      categoria: r.categoria,
+      etiquetas: [r.categoria],
+      duracion_estimada_minutos: r.duracion,
+      is_public: r.is_public ?? false,
+    };
+
     const { error } = await supabase
       .from('rutinas')
-      .update({
-        nombre: r.nombre,
-        categoria: r.categoria,
-        etiquetas: [r.categoria],
-        duracion_estimada_minutos: r.duracion,
-      })
+      .update(updatePayload)
       .eq('id', r.id)
       .eq('usuario_id', user.id);
 
-    if (error) throw error;
+    if (error) {
+      if (error.message?.includes('is_public')) {
+        delete updatePayload.is_public;
+        const { error: retryError } = await supabase
+          .from('rutinas')
+          .update(updatePayload)
+          .eq('id', r.id)
+          .eq('usuario_id', user.id);
+        if (retryError) throw retryError;
+      } else {
+        throw error;
+      }
+    }
 
     setRutinas(prev => prev.map(ru => (ru.id === r.id ? r : ru)));
+  };
+
+  const togglePrivacidad = async (rutinaId: number) => {
+    const rutina = rutinas.find(r => r.id === rutinaId);
+    if (!rutina) return;
+    const nuevoEstado = !rutina.is_public;
+    await editarRutina({ ...rutina, is_public: nuevoEstado });
   };
 
   const eliminarRutina = async (id: number) => {
@@ -275,6 +337,7 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
         editarRutina,
         eliminarRutina,
         actualizarEjerciciosRutina,
+        togglePrivacidad,
       }}
     >
       {children}

@@ -11,7 +11,8 @@ import {
     Pencil, Trash2, ListPlus, X, Dumbbell, Sparkles, Check, Clock,
     ChevronDown, ChevronUp, Plus, Brain, RefreshCw, ArrowLeft,
     Flame, Zap, Heart, Trophy, Award, Gauge, User, Home, Building2,
-    Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle, Eye, ExternalLink, Play
+    Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle, Eye, ExternalLink, Play,
+    Lock, Globe
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, getCategoriaColor, type RutinaTemplate } from '../data/rutinasPredefinidas';
@@ -176,18 +177,24 @@ export default function MisRutinasPage() {
         return () => window.clearInterval(id);
     }, [cargando, carga.startedAtMs]);
 
-    const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[] }) => {
+    const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[]; is_public?: boolean }) => {
         if (modal?.tipo === 'crear') {
-            await agregarRutina({ ...data, ejerciciosIds: data.ejerciciosIds });
+            await agregarRutina({ ...data, ejerciciosIds: data.ejerciciosIds, is_public: data.is_public ?? false });
             const total = data.ejerciciosIds.length;
             setMensajeExito(
                 locale === 'es'
-                    ? `¡Rutina "${data.nombre}" creada con éxito${total > 0 ? ` con ${total} ejercicios` : ''}!`
-                    : `Routine "${data.nombre}" created successfully${total > 0 ? ` with ${total} exercises` : ''}!`
+                    ? `¡Rutina "${data.nombre}" creada con éxito${total > 0 ? ` con ${total} ejercicios` : ''}! (${data.is_public ? 'Pública' : 'Privada'})`
+                    : `Routine "${data.nombre}" created successfully${total > 0 ? ` with ${total} exercises` : ''}! (${data.is_public ? 'Public' : 'Private'})`
             );
             setTimeout(() => setMensajeExito(null), 3500);
         } else if (modal?.tipo === 'editar') {
-            await editarRutina({ ...modal.rutina, nombre: data.nombre, categoria: data.categoria, duracion: data.duracion });
+            await editarRutina({
+                ...modal.rutina,
+                nombre: data.nombre,
+                categoria: data.categoria,
+                duracion: data.duracion,
+                is_public: data.is_public ?? modal.rutina.is_public ?? false,
+            });
             await actualizarEjerciciosRutina(modal.rutina.id, data.ejerciciosIds);
             setMensajeExito(locale === 'es' ? '¡Rutina actualizada con éxito!' : 'Routine updated successfully!');
             setTimeout(() => setMensajeExito(null), 3500);
@@ -458,6 +465,23 @@ export default function MisRutinasPage() {
                                                             >
                                                                 {rutina.categoria}
                                                             </span>
+                                                            {rutina.is_public ? (
+                                                                <span
+                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
+                                                                    title={locale === 'es' ? 'Rutina pública: visible en el feed social' : 'Public routine: visible on social feed'}
+                                                                >
+                                                                    <Globe size={10} />
+                                                                    {locale === 'es' ? 'Pública' : 'Public'}
+                                                                </span>
+                                                            ) : (
+                                                                <span
+                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-neutral-800 text-neutral-400 border border-neutral-700/60 shadow-sm"
+                                                                    title={locale === 'es' ? 'Rutina privada: solo visible por ti' : 'Private routine: only visible by you'}
+                                                                >
+                                                                    <Lock size={10} />
+                                                                    {locale === 'es' ? 'Privada' : 'Private'}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         <p className="text-neutral-400 text-xs mt-1">
                                                             {totalEjercicios} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}

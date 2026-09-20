@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { Home, Dumbbell, User as UserIcon, Activity } from 'lucide-react';
+import { Home, Dumbbell, User as UserIcon, Activity, Users } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface AppLayoutProps {
@@ -49,15 +49,15 @@ export default function AppLayout({ children, fullWidth = false }: AppLayoutProp
         {/* Barra de navegación inferior flotante para móvil (idéntica a la referencia) */}
         <nav
           aria-label="Navegación móvil"
-          className="md:hidden fixed bottom-3 left-4 right-4 z-40 backdrop-blur-2xl bg-black/85 border border-white/10 rounded-full px-5 py-2.5 flex items-center justify-around shadow-2xl"
+          className="md:hidden fixed bottom-3 left-3 right-3 z-40 backdrop-blur-2xl bg-black/85 border border-white/10 rounded-full px-4 py-2 flex items-center justify-around shadow-2xl"
         >
           <Link to="/dashboard" className="flex flex-col items-center gap-1">
             <Home
-              size={19}
+              size={18}
               style={{ color: location.pathname === '/dashboard' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             />
             <span
-              className="text-[10px] font-bold"
+              className="text-[9px] font-bold"
               style={{ color: location.pathname === '/dashboard' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             >
               {locale === 'es' ? 'Inicio' : 'Home'}
@@ -65,23 +65,35 @@ export default function AppLayout({ children, fullWidth = false }: AppLayoutProp
           </Link>
           <Link to="/mis-rutinas" className="flex flex-col items-center gap-1">
             <Dumbbell
-              size={19}
+              size={18}
               style={{ color: location.pathname.startsWith('/mis-rutinas') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             />
             <span
-              className="text-[10px] font-bold"
+              className="text-[9px] font-bold"
               style={{ color: location.pathname.startsWith('/mis-rutinas') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             >
               {locale === 'es' ? 'Rutinas' : 'Workout'}
             </span>
           </Link>
+          <Link to="/social" className="flex flex-col items-center gap-1">
+            <Users
+              size={18}
+              style={{ color: location.pathname.startsWith('/social') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            />
+            <span
+              className="text-[9px] font-bold"
+              style={{ color: location.pathname.startsWith('/social') ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
+            >
+              Social
+            </span>
+          </Link>
           <Link to="/estadisticas" className="flex flex-col items-center gap-1">
             <Activity
-              size={19}
+              size={18}
               style={{ color: location.pathname === '/estadisticas' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             />
             <span
-              className="text-[10px] font-bold"
+              className="text-[9px] font-bold"
               style={{ color: location.pathname === '/estadisticas' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             >
               {locale === 'es' ? 'Progreso' : 'Activity'}
@@ -89,11 +101,11 @@ export default function AppLayout({ children, fullWidth = false }: AppLayoutProp
           </Link>
           <Link to="/perfil" className="flex flex-col items-center gap-1">
             <UserIcon
-              size={19}
+              size={18}
               style={{ color: location.pathname === '/perfil' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             />
             <span
-              className="text-[10px] font-bold"
+              className="text-[9px] font-bold"
               style={{ color: location.pathname === '/perfil' ? 'var(--color-primary)' : 'var(--color-neutral-3000)' }}
             >
               {locale === 'es' ? 'Perfil' : 'Profile'}

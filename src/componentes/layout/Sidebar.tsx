@@ -9,6 +9,7 @@ import {
   BarChart2,
   Timer,
   User,
+  Users,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
   const menuItems = [
     { nombre: t.nav.dashboard, ruta: "/dashboard", icon: <LayoutDashboard size={18} /> },
     { nombre: t.nav.myRoutines, ruta: "/mis-rutinas", icon: <Dumbbell size={18} /> },
+    { nombre: locale === 'es' ? 'Social' : 'Social', ruta: "/social", icon: <Users size={18} /> },
     { nombre: t.nav.exercises, ruta: "/ejercicios", icon: <ListFilter size={18} /> },
     { nombre: t.nav.history, ruta: "/historial", icon: <Calendar size={18} /> },
     { nombre: t.nav.statistics, ruta: "/estadisticas", icon: <BarChart2 size={18} /> },
