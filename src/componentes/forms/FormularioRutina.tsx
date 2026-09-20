@@ -332,10 +332,18 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
                                 <span>Pública (Comunidad)</span>
                             </button>
                         </div>
-                        <p className="text-[11px] text-neutral-400">
-                            {isPublic
-                                ? '🌍 Visible en el Feed Social y en tu perfil público para que otros atletas puedan verla y clonarla.'
-                                : '🔒 Solo tú puedes ver y entrenar con esta rutina. No aparecerá en el feed social.'}
+                        <p className="text-[11px] text-neutral-400 flex items-center gap-1.5">
+                            {isPublic ? (
+                                <>
+                                    <Globe size={12} className="text-[var(--color-primary)] shrink-0" />
+                                    <span>Visible en el Feed Social y en tu perfil público para que otros atletas puedan verla y clonarla.</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Lock size={12} className="text-neutral-400 shrink-0" />
+                                    <span>Solo tú puedes ver y entrenar con esta rutina. No aparecerá en el feed social.</span>
+                                </>
+                            )}
                         </p>
                     </div>
 

@@ -194,25 +194,27 @@ export default function SocialPage() {
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('todos')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     filtroFeed === 'todos'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : 'bg-neutral-800 text-neutral-300 hover:text-white'
                   }`}
                 >
-                  {locale === 'es' ? '🌍 Para ti (Todos)' : '🌍 For you (All)'}
+                  <Globe size={13} />
+                  <span>{locale === 'es' ? 'Para ti (Todos)' : 'For you (All)'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setFiltroFeed('siguiendo')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     filtroFeed === 'siguiendo'
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : 'bg-neutral-800 text-neutral-300 hover:text-white'
                   }`}
                 >
-                  {locale === 'es' ? '👥 Siguiendo' : '👥 Following'}
+                  <Users size={13} />
+                  <span>{locale === 'es' ? 'Siguiendo' : 'Following'}</span>
                 </button>
               </div>
 
