@@ -32,7 +32,11 @@ export default function LineChartElement({
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="var(--color-white)" />}
           {showAxis && <XAxis dataKey="name" stroke="var(--color-white)" />}
           {showAxis && <YAxis stroke="var(--color-white)" />}
-          <Tooltip />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#333', color: '#ffffff' }}
+            labelStyle={{ color: '#ffffff' }}
+            itemStyle={{ color: '#D4FB34' }}
+          />
           <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2} />
         </LineChart>
       </ResponsiveContainer>

@@ -21,15 +21,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div
         className="p-2 border rounded shadow-lg text-xs"
         style={{
-          backgroundColor: 'var(--color-neutral-800)',
-          borderColor: 'var(--color-neutral-900)',
-          color: 'var(--color-white)',
+          backgroundColor: '#1a1a1a',
+          borderColor: '#333',
+          color: '#ffffff',
         }}
       >
-        <p className="font-semibold mb-1">{label}</p>
+        <p className="font-semibold mb-1" style={{ color: '#ffffff' }}>{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} style={{ color: entry.color }}>
-            {entry.name || entry.dataKey}: <span className="ml-1" style={{ color: 'var(--color-white)' }}>{entry.value}</span>
+            {entry.name || entry.dataKey}: <span className="ml-1" style={{ color: '#ffffff' }}>{entry.value}</span>
           </p>
         ))}
       </div>
