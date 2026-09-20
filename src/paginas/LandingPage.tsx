@@ -125,20 +125,6 @@ export default function LandingPage() {
       >
         <div className="flex items-center gap-8">
           <Logo size="md" />
-          <nav className="hidden md:flex items-center gap-6 text-xs font-black uppercase tracking-widest text-neutral-400">
-            <a href="#filosofia" className="hover:text-white transition-colors">
-              {locale === "es" ? "Filosofía" : "Philosophy"}
-            </a>
-            <a href="#en-movimiento" className="hover:text-white transition-colors">
-              {locale === "es" ? "En Movimiento" : "In Motion"}
-            </a>
-            <a href="#atletas" className="hover:text-white transition-colors">
-              {locale === "es" ? "Atletas" : "Athletes"}
-            </a>
-            <a href="#comenzar" className="hover:text-white transition-colors">
-              {locale === "es" ? "Comenzar" : "Start"}
-            </a>
-          </nav>
         </div>
 
         <div className="flex items-center gap-3">
