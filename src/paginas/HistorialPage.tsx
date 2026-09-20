@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout, TituloPagina, ResumenEstadisticas, Card, BotonPrimario } from "../componentes";
+import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from '../context/I18nContext';
 import MesCalendario from '../componentes/ui/MesCalendario';
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function HistorialPage() {
-  const { metricas, sesiones, getSesionesPorMes, getSesionesPorFecha, getMetricasPorMes } = useHistorial();
+  const { sesiones, getSesionesPorMes, getSesionesPorFecha, getMetricasPorMes } = useHistorial();
   const { locale } = useI18n();
   const navigate = useNavigate();
 
@@ -800,15 +800,6 @@ export default function HistorialPage() {
             )}
           </div>
         )}
-
-        {/* ─── RESUMEN GLOBAL INFERIOR ─── */}
-        <div className="pt-4 border-t border-neutral-800">
-          <ResumenEstadisticas
-            volumenTotalKg={metricas.volumenTotalKg}
-            intensidad={metricas.intensidad}
-            disciplinaPct={metricas.disciplinaPct}
-          />
-        </div>
 
       </div>
     </AppLayout>
