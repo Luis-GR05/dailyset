@@ -142,39 +142,55 @@ export default function EstadisticasPage() {
   return (
     <AppLayout>
       <div className="space-y-4 pb-10 max-w-5xl mx-auto">
-        {/* Cabecera con selector de año */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
+        {/* Cabecera: título + año clickable */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-neutral-800 pb-5">
+          <div>
+            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+              {locale === 'es' ? 'Progreso' : 'Progress'}
+            </p>
+            <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
+          </div>
 
-          {/* Selector de año: flechas + select */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
-              <button
-                onClick={irAnioAnterior}
-                disabled={!canGoPrev}
-                className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                title={locale === 'es' ? 'Año anterior' : 'Previous year'}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={irAnioSiguiente}
-                disabled={!canGoNext}
-                className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                title={locale === 'es' ? 'Año siguiente' : 'Next year'}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            <select
-              value={anioSeleccionado}
-              onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-              className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors"
+          {/* Año clickable: flechas + número grande que abre select nativo */}
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <button
+              onClick={irAnioAnterior}
+              disabled={!canGoPrev}
+              className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-white/8 disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
+              title={locale === 'es' ? 'Año anterior' : 'Previous year'}
             >
-              {aniosDisponibles.map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+              <ChevronLeft size={20} />
+            </button>
+
+            {/* El año es un número grande con un <select> invisible encima */}
+            <div className="relative group cursor-pointer" title={locale === 'es' ? 'Seleccionar año' : 'Select year'}>
+              {/* Texto visual del año */}
+              <span className="text-5xl font-black text-white tracking-tighter leading-none select-none group-hover:text-[var(--color-primary)] transition-colors">
+                {anioSeleccionado}
+              </span>
+              {/* Icono pequeño que indica que es clickable */}
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Select nativo invisible superpuesto — al hacer click abre el desplegable */}
+              <select
+                value={anioSeleccionado}
+                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label={locale === 'es' ? 'Seleccionar año' : 'Select year'}
+              >
+                {aniosDisponibles.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={irAnioSiguiente}
+              disabled={!canGoNext}
+              className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-white/8 disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
+              title={locale === 'es' ? 'Año siguiente' : 'Next year'}
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
 
