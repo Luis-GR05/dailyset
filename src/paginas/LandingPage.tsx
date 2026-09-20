@@ -697,7 +697,7 @@ export default function LandingPage() {
               <p className="text-black font-black text-sm">{locale === "es" ? "Utilidades" : "Utilities"}</p>
               <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Temporizador" : "Timer"}</Link></p>
               <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Cronómetro" : "Stopwatch"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Podómetro" : "Pedometer"}</Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Pasos Diarios" : "Daily Steps"}</Link></p>
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Comunidad" : "Community"}</p>

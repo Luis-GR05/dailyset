@@ -758,7 +758,7 @@ export default function UtilidadesPage() {
                       <Footprints size={18} />
                     </span>
                     <h3 className="text-base font-black text-white uppercase italic tracking-wide">
-                      {locale === 'es' ? 'Podómetro Diario' : 'Daily Pedometer'}
+                      {locale === 'es' ? 'Pasos Diarios' : 'Daily Steps'}
                     </h3>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
