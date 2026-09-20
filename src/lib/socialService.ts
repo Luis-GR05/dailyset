@@ -245,7 +245,7 @@ async function getPerfilesMap(userIds: string[]): Promise<Record<string, PerfilP
 }
 
 /**
- * Busca perfiles públicos por nombre o nombre de usuario
+ * Busca perfiles públicos por nombre o nombre de usuario en Supabase
  */
 export async function buscarUsuarios(termino: string, currentUserId?: string): Promise<PerfilPublico[]> {
   const cleanTerm = termino.trim();
@@ -258,12 +258,23 @@ export async function buscarUsuarios(termino: string, currentUserId?: string): P
       .or(`nombre_usuario.ilike.%${cleanTerm}%,nombre_completo.ilike.%${cleanTerm}%`)
       .limit(15);
 
-    const { data, error } = await query;
-    if (error || !data) return [];
+    let { data, error } = await query;
+    if (error) {
+      console.warn('Query avanzada de buscarUsuarios falló, usando consulta básica fallback:', error.message);
+      const fallbackQuery = await supabase
+        .from('perfiles')
+        .select('id, nombre_usuario, nombre_completo, avatar_url, nivel_entrenamiento')
+        .or(`nombre_usuario.ilike.%${cleanTerm}%,nombre_completo.ilike.%${cleanTerm}%`)
+        .limit(15);
+      data = fallbackQuery.data as any;
+    }
 
-    // Filtrar si es_publico es false (si la columna existe) y excluir usuario actual
+    if (!data || data.length === 0) return [];
+
+    // Filtrar si es_publico es false y excluir usuario actual
     const perfilesFiltrados = data.filter((p: any) => {
       if (p.es_publico === false) return false;
+      if (currentUserId && p.id === currentUserId) return false;
       return true;
     });
 
@@ -288,6 +299,61 @@ export async function buscarUsuarios(termino: string, currentUserId?: string): P
     }));
   } catch (err) {
     console.error('Error en buscarUsuarios:', err);
+    return [];
+  }
+}
+
+/**
+ * Obtiene atletas registrados sugeridos para explorar cuando no hay término de búsqueda
+ */
+export async function getUsuariosSugeridos(currentUserId?: string, limite = 10): Promise<PerfilPublico[]> {
+  try {
+    let query = supabase
+      .from('perfiles')
+      .select('id, nombre_usuario, nombre_completo, avatar_url, bio, nivel_entrenamiento, es_publico')
+      .limit(limite);
+
+    if (currentUserId) {
+      query = query.neq('id', currentUserId);
+    }
+
+    let { data, error } = await query;
+    if (error) {
+      const fallback = await supabase
+        .from('perfiles')
+        .select('id, nombre_usuario, nombre_completo, avatar_url, nivel_entrenamiento')
+        .limit(limite);
+      data = fallback.data as any;
+    }
+
+    if (!data || data.length === 0) return [];
+
+    const perfilesFiltrados = data.filter((p: any) => {
+      if (p.es_publico === false) return false;
+      if (currentUserId && p.id === currentUserId) return false;
+      return true;
+    });
+
+    const userIds = perfilesFiltrados.map((p: any) => p.id);
+    const [seguidoresMap, rutinasMap, seguidosPorMi] = await Promise.all([
+      getContadoresSeguidores(userIds),
+      getContadoresRutinas(userIds),
+      currentUserId ? getIdsSeguidos(currentUserId) : Promise.resolve([]),
+    ]);
+
+    return perfilesFiltrados.map((p: any) => ({
+      id: p.id,
+      nombre_usuario: p.nombre_usuario || 'atleta',
+      nombre_completo: p.nombre_completo || p.nombre_usuario,
+      avatar_url: p.avatar_url,
+      bio: p.bio,
+      nivel_entrenamiento: p.nivel_entrenamiento,
+      seguidoresCount: seguidoresMap[p.id] || 0,
+      rutinasCount: rutinasMap[p.id] || 0,
+      esSeguido: seguidosPorMi.includes(p.id),
+    }));
+  } catch (err) {
+    console.error('Error en getUsuariosSugeridos:', err);
     return [];
   }
 }

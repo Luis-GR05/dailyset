@@ -328,17 +328,43 @@ export default function SocialPage() {
 
             {/* Resultados */}
             {busquedaQuery.trim() === '' ? (
-              <div className="text-center py-12 px-4 bg-neutral-900/30 rounded-2xl border border-neutral-800/60 space-y-2">
-                <Compass size={32} className="mx-auto text-neutral-600 mb-2" />
-                <h4 className="font-bold text-white text-sm">
-                  {locale === 'es' ? 'Encuentra y sigue a otros atletas' : 'Find and follow other athletes'}
-                </h4>
-                <p className="text-xs text-neutral-400 max-w-sm mx-auto">
-                  {locale === 'es'
-                    ? 'Escribe en el buscador de arriba para descubrir perfiles públicos, ver sus estadísticas y clonar sus rutinas favoritas.'
-                    : 'Type in the search box above to discover public profiles, check their stats and clone their favorite routines.'}
-                </p>
-              </div>
+              usuariosEncontrados.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      {locale === 'es' ? 'Atletas registrados en DailySet' : 'Athletes registered on DailySet'}
+                    </span>
+                    <span className="text-[11px] font-mono text-neutral-500">
+                      {usuariosEncontrados.length} {locale === 'es' ? 'atletas' : 'athletes'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {usuariosEncontrados.map(perfil => (
+                      <PerfilPublicoCard
+                        key={perfil.id}
+                        perfil={perfil}
+                        onClick={() => setPerfilSeleccionadoId(perfil.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : buscandoUsuarios ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={24} className="animate-spin text-[var(--color-primary)]" />
+                </div>
+              ) : (
+                <div className="text-center py-12 px-4 bg-neutral-900/30 rounded-2xl border border-neutral-800/60 space-y-2">
+                  <Compass size={32} className="mx-auto text-neutral-600 mb-2" />
+                  <h4 className="font-bold text-white text-sm">
+                    {locale === 'es' ? 'Encuentra y sigue a otros atletas' : 'Find and follow other athletes'}
+                  </h4>
+                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                    {locale === 'es'
+                      ? 'Escribe en el buscador de arriba para descubrir perfiles públicos por nombre o usuario.'
+                      : 'Type in the search box above to discover public profiles by name or username.'}
+                  </p>
+                </div>
+              )
             ) : usuariosEncontrados.length === 0 && !buscandoUsuarios ? (
               <div className="text-center py-12 px-4 bg-neutral-900/30 rounded-2xl border border-neutral-800/60">
                 <p className="text-sm text-neutral-400">
@@ -348,14 +374,24 @@ export default function SocialPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {usuariosEncontrados.map(perfil => (
-                  <PerfilPublicoCard
-                    key={perfil.id}
-                    perfil={perfil}
-                    onClick={() => setPerfilSeleccionadoId(perfil.id)}
-                  />
-                ))}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    {locale === 'es' ? 'Resultados de búsqueda' : 'Search results'}
+                  </span>
+                  <span className="text-[11px] font-mono text-neutral-500">
+                    {usuariosEncontrados.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {usuariosEncontrados.map(perfil => (
+                    <PerfilPublicoCard
+                      key={perfil.id}
+                      perfil={perfil}
+                      onClick={() => setPerfilSeleccionadoId(perfil.id)}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>

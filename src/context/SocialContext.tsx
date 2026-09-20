@@ -7,6 +7,7 @@ import type { RutinaPublica, PerfilPublico, FeedFilterType } from '../types/soci
 import {
   getFeedPublico,
   buscarUsuarios as apiBuscarUsuarios,
+  getUsuariosSugeridos,
   getIdsSeguidos,
   seguirUsuario as apiSeguirUsuario,
   dejarDeSeguir as apiDejarDeSeguir,
@@ -89,27 +90,43 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     cargarFeed();
   }, [cargarFeed]);
 
-  // 3. Buscar usuarios con debounce
+  // 3. Buscar usuarios con debounce y cargar sugeridos si no hay término
   useEffect(() => {
+    let cancelado = false;
+
     if (!busquedaQuery.trim()) {
-      setUsuariosEncontrados([]);
-      setBuscandoUsuarios(false);
-      return;
+      setBuscandoUsuarios(true);
+      getUsuariosSugeridos(user?.id, 12)
+        .then(sugeridos => {
+          if (!cancelado) {
+            setUsuariosEncontrados(sugeridos);
+            setBuscandoUsuarios(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelado) setBuscandoUsuarios(false);
+        });
+      return () => {
+        cancelado = true;
+      };
     }
 
     setBuscandoUsuarios(true);
     const timer = setTimeout(async () => {
       try {
         const resultados = await apiBuscarUsuarios(busquedaQuery, user?.id);
-        setUsuariosEncontrados(resultados);
+        if (!cancelado) setUsuariosEncontrados(resultados);
       } catch (err) {
         console.error('Error buscando usuarios:', err);
       } finally {
-        setBuscandoUsuarios(false);
+        if (!cancelado) setBuscandoUsuarios(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelado = true;
+      clearTimeout(timer);
+    };
   }, [busquedaQuery, user?.id]);
 
   // 4. Comprobar si el usuario actual sigue a un ID dado
