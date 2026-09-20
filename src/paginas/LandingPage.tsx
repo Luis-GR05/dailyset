@@ -1,600 +1,736 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../componentes/shared/Logo";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import fondoLanding from "../assets/imagenes/fondoLanding.jpg";
-import mancuerna from "../assets/imagenes/mancuerna.png";
 import { useI18n } from "../context/I18nContext";
+import {
+  ArrowUpRight,
+  ChevronRight,
+  CheckCircle2,
+} from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Matriz de 3x3 puntos decorativa característica del estilo de las referencias
+function DotMatrix({ className = "" }: { className?: string }) {
+  return (
+    <div className={`grid grid-cols-3 gap-1 w-5 h-5 ${className}`}>
+      {[...Array(9)].map((_, i) => (
+        <span key={i} className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-80" />
+      ))}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
-  const { t, locale } = useI18n();
-  const landingCopy = {
-    featureTags: locale === 'es' ? ["Rutinas", "Progreso", "Stats"] : ["Routines", "Progress", "Stats"],
-    tickerWords: locale === 'es'
-      ? ["FUERZA", "DISCIPLINA", "RUTINAS", "PROGRESO", "ENTRENAMIENTOS", "RESULTADOS", "CONSTANCIA", "EVOLUCIÓN"]
-      : ["STRENGTH", "DISCIPLINE", "ROUTINES", "PROGRESS", "WORKOUTS", "RESULTS", "CONSISTENCY", "EVOLUTION"],
-    whyChooseUs: locale === 'es' ? 'Por qué elegirnos' : 'Why choose us',
-    whatMakesUsDifferent1: locale === 'es' ? 'Lo que nos hace' : 'What makes us',
-    whatMakesUsDifferent2: locale === 'es' ? 'diferente' : 'different',
-    learnMore: locale === 'es' ? 'Saber más' : 'Learn more',
-    process: locale === 'es' ? 'El proceso' : 'The process',
-    socialProof1: locale === 'es' ? 'Más de' : 'More than',
-    socialProof2: locale === 'es' ? 'atletas' : 'athletes',
-    socialProof3: locale === 'es' ? 'ya están entrenando' : 'are already training',
-    reviews: locale === 'es' ? '5.0 · 2,400 reseñas' : '5.0 · 2,400 reviews',
-    startFree: locale === 'es' ? 'Empieza gratis' : 'Start free',
-    ctaNow: locale === 'es' ? '✦ El momento es ahora ✦' : '✦ The time is now ✦',
-    noCreditCard: locale === 'es' ? 'Sin tarjeta de crédito · Gratis para siempre' : 'No credit card · Free forever',
-    privacy: locale === 'es' ? 'Privacidad' : 'Privacy',
-    terms: locale === 'es' ? 'Términos' : 'Terms',
-    contact: locale === 'es' ? 'Contacto' : 'Contact',
-    heroTitle1: locale === 'es' ? 'ENTRENA' : 'TRAIN',
-    heroTitle2: locale === 'es' ? 'MÁS DURO' : 'HARDER',
-    heroTitle3: locale === 'es' ? 'CADA DÍA' : 'EVERY DAY',
-    activeUsers: locale === 'es' ? 'Usuarios activos' : 'Active users',
-    exercises: locale === 'es' ? 'Ejercicios' : 'Exercises',
-    satisfaction: locale === 'es' ? 'Satisfacción' : 'Satisfaction',
+  const { locale } = useI18n();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterEnviado, setNewsletterEnviado] = useState(false);
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newsletterEmail.trim()) {
+      setNewsletterEnviado(true);
+      setTimeout(() => setNewsletterEnviado(false), 4000);
+      setNewsletterEmail("");
+    }
   };
 
   useGSAP(
     () => {
+      // Entrada del Hero
       const tl = gsap.timeline();
-      tl.from(".hero-badge", {
-        y: 20,
+      tl.from(".hero-word", {
+        y: 60,
         opacity: 0,
-        duration: 0.8,
-        ease: "power3.out",
+        duration: 0.9,
+        stagger: 0.18,
+        ease: "power4.out",
       })
         .from(
-          ".hero-title",
-          { y: 40, opacity: 0, duration: 1.0, ease: "power4.out" },
+          ".hero-subcontent",
+          { y: 25, opacity: 0, duration: 0.8, ease: "power3.out" },
           "-=0.4"
         )
         .from(
-          ".hero-subtitle",
-          { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" },
-          "-=0.5"
-        )
-        .from(
-          ".hero-ctas",
-          { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" },
-          "-=0.4"
-        )
-        .from(
-          ".hero-stats",
-          { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" },
-          "-=0.3"
+          ".hero-visual-card",
+          { scale: 0.95, opacity: 0, duration: 1.0, ease: "power3.out" },
+          "-=0.6"
         );
 
-      gsap.to(".hero-icon", {
-        y: -18,
-        rotation: 6,
-        duration: 3.5,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-
-      gsap.to(".btn-pulse", {
-        boxShadow: "0 0 0 12px rgba(219, 240, 89, 0)",
-        duration: 1.4,
-        repeat: -1,
-        ease: "power2.out",
-      });
-
-      gsap.to(".orb-1", {
-        x: 60,
-        y: -40,
-        scale: 1.15,
-        duration: 7,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-      gsap.to(".orb-2", {
-        x: -50,
-        y: 50,
-        scale: 0.85,
-        duration: 9,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-      gsap.to(".orb-3", {
-        x: 30,
-        y: 60,
-        scale: 1.2,
-        duration: 6,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-
-      // Ticker tape
+      // Ticker tape continuo
       gsap.to(".ticker-inner", {
         x: "-50%",
-        duration: 18,
+        duration: 22,
         repeat: -1,
         ease: "none",
       });
 
-      gsap.utils.toArray<Element>(".feature-card").forEach((el, i) => {
+      // Animación de las tarjetas bento y atletas
+      gsap.utils.toArray<Element>(".animate-on-scroll").forEach((el) => {
         gsap.from(el, {
           scrollTrigger: {
             trigger: el,
             start: "top 88%",
             toggleActions: "play none none reverse",
           },
-          y: 60,
-          opacity: 0,
-          duration: 0.9,
-          ease: "power3.out",
-          delay: i * 0.12,
-        });
-      });
-
-      gsap.from(".steps-track", {
-        scrollTrigger: {
-          trigger: ".steps-section",
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-        opacity: 0,
-        x: -40,
-        duration: 1,
-        ease: "power3.out",
-      });
-
-      gsap.utils.toArray<Element>(".step-item").forEach((el, i) => {
-        gsap.from(el, {
-          scrollTrigger: {
-            trigger: ".steps-section",
-            start: "top 78%",
-            toggleActions: "play none none reverse",
-          },
           y: 40,
           opacity: 0,
-          duration: 0.7,
-          ease: "back.out(1.7)",
-          delay: 0.1 + i * 0.18,
-        });
-      });
-
-      gsap.from(".cta-container", {
-        scrollTrigger: {
-          trigger: ".cta-section",
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
-        scale: 0.92,
-        opacity: 0,
-        duration: 1.1,
-        ease: "elastic.out(1, 0.6)",
-      });
-
-      gsap.utils.toArray<Element>(".stat-num").forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        gsap.from(htmlEl, {
-          scrollTrigger: { trigger: htmlEl, start: "top 85%" },
-          textContent: 0,
-          duration: 1.8,
-          ease: "power2.out",
-          snap: { textContent: 1 },
-          onUpdate() {
-            htmlEl.textContent =
-              Math.round(parseFloat(htmlEl.textContent || "0")).toString() +
-              (htmlEl.dataset.suffix || "");
-          },
+          duration: 0.8,
+          ease: "power3.out",
         });
       });
     },
     { scope: container }
   );
 
-  const features = [
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      ),
-      title: t.landing.feature1CardTitle,
-      desc: t.landing.feature1CardDesc,
-      tag: landingCopy.featureTags[0],
-    },
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-            d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-      title: t.landing.feature2CardTitle,
-      desc: t.landing.feature2CardDesc,
-      tag: landingCopy.featureTags[1],
-    },
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-      title: t.landing.feature3CardTitle,
-      desc: t.landing.feature3CardDesc,
-      tag: landingCopy.featureTags[2],
-    },
-  ];
-
-  const tickerWords = landingCopy.tickerWords;
+  const tickerWords = locale === "es"
+    ? [
+        "DAILYSET",
+        "DISCIPLINA",
+        "SOBRECARGA PROGRESIVA",
+        "FUERZA REAL",
+        "RENDIMIENTO",
+        "RUTINAS IA",
+        "MÉTRICAS PRECISAS",
+        "CONSTANCIA",
+      ]
+    : [
+        "DAILYSET",
+        "DISCIPLINE",
+        "PROGRESSIVE OVERLOAD",
+        "REAL STRENGTH",
+        "PERFORMANCE",
+        "AI ROUTINES",
+        "ACCURATE METRICS",
+        "CONSISTENCY",
+      ];
 
   return (
-    <div ref={container} className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)" }}>
-
-      {/* ─── HEADER ─── */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-4 md:px-10"
-        style={{ background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, transparent 100%)", backdropFilter: "blur(12px)" }}>
-        <Logo size="lg" />
-        <Link to="/login">
-          <button
-            className="btn-pulse relative overflow-hidden px-5 py-2.5 md:px-7 md:py-3 rounded-full font-bold text-sm transition-all"
-            style={{
-              backgroundColor: "var(--color-primary)",
-              color: "var(--color-black)",
-              fontFamily: "'Montserrat', sans-serif",
-              boxShadow: "0 0 20px var(--color-primary-glow)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--color-primary-hover)";
-              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--color-primary)";
-              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-            }}
-          >
-            {t.landing.ctaStartAlt}
-          </button>
-        </Link>
-      </header>
-
-      {/* ─── HERO ─── */}
-      <section className="relative flex flex-col items-center justify-center text-center min-h-screen pt-24 pb-16 px-5 overflow-hidden">
-
-        {/* Background image */}
-        <div className="absolute inset-0 z-0">
-          <img src={fondoLanding} alt="" className="w-full h-full object-cover opacity-25" />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.5) 0%, rgba(5,5,5,0.2) 40%, rgba(5,5,5,0.95) 100%)" }} />
+    <div
+      ref={container}
+      className="min-h-screen selection:bg-[var(--color-primary)] selection:text-black overflow-x-hidden font-sans"
+      style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)" }}
+    >
+      {/* ─── 1. BARRA SUPERIOR EDITORIAL ─── */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 sm:px-8 md:px-12 py-4"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 80%, transparent 100%)",
+          backdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="flex items-center gap-8">
+          <Logo size="md" />
+          <nav className="hidden md:flex items-center gap-6 text-xs font-black uppercase tracking-widest text-neutral-400">
+            <a href="#filosofia" className="hover:text-white transition-colors">
+              {locale === "es" ? "Filosofía" : "Philosophy"}
+            </a>
+            <a href="#en-movimiento" className="hover:text-white transition-colors">
+              {locale === "es" ? "En Movimiento" : "In Motion"}
+            </a>
+            <a href="#atletas" className="hover:text-white transition-colors">
+              {locale === "es" ? "Atletas" : "Athletes"}
+            </a>
+            <a href="#comenzar" className="hover:text-white transition-colors">
+              {locale === "es" ? "Comenzar" : "Start"}
+            </a>
+          </nav>
         </div>
 
-        {/* Animated orbs */}
-        <div className="orb-1 absolute top-24 -left-20 w-96 h-96 rounded-full blur-[130px] opacity-30" style={{ backgroundColor: "var(--color-primary)" }} />
-        <div className="orb-2 absolute bottom-10 -right-20 w-80 h-80 rounded-full blur-[120px] opacity-25" style={{ backgroundColor: "var(--color-accent)" }} />
-        <div className="orb-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[100px] opacity-15" style={{ backgroundColor: "var(--color-primary)" }} />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/login"
+            className="text-xs font-black uppercase tracking-widest text-neutral-300 hover:text-white px-3 py-2 transition-colors"
+          >
+            {locale === "es" ? "Entrar" : "Login"}
+          </Link>
+          <Link to="/registro">
+            <button
+              className="group px-5 py-2.5 rounded-full font-black text-xs uppercase tracking-widest text-black transition-all flex items-center gap-1.5 cursor-pointer shadow-lg hover:scale-105 active:scale-95"
+              style={{ backgroundColor: "var(--color-primary)" }}
+            >
+              <span>{locale === "es" ? "Empezar Gratis" : "Start Free"}</span>
+              <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </button>
+          </Link>
+        </div>
+      </header>
 
-        {/* Noise grain overlay */}
-        <div className="absolute inset-0 z-[1] opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundSize: "200px" }} />
+      {/* ─── 2. HERO: ESTRUCTURA "MOTION. DISCIPLINE. RESULT." (REFERENCIA 3) ─── */}
+      <section className="relative min-h-[92vh] flex flex-col justify-between pt-28 pb-12 px-5 sm:px-8 md:px-12 overflow-hidden">
+        {/* Fondo sutil con gradiente */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--color-primary)]/10 blur-[160px] pointer-events-none -z-10" />
 
-        <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
+        {/* Encabezado tres columnas "Motion. Discipline. Result." */}
+        <div className="max-w-7xl mx-auto w-full pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 md:gap-8 items-baseline border-b border-white/10 pb-8">
+            <div className="hero-word">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-none">
+                Motion.
+              </h1>
+              <p className="text-xs text-neutral-400 font-medium mt-3 max-w-xs leading-relaxed">
+                {locale === "es"
+                  ? "Entrena con precisión en cada repetición y cada serie."
+                  : "Train with absolute precision on every rep and set."}
+              </p>
+            </div>
 
-          {/* Icon */}
-          <div className="hero-icon w-24 h-24 md:w-32 md:h-32 flex items-center justify-center mb-6 mx-auto">
-            <img src={mancuerna} alt="Mancuerna" className="w-full h-full object-contain"
-              style={{ filter: "brightness(0) invert(1) drop-shadow(0 0 24px rgba(255,255,255,0.5))" }} />
-          </div>
-
-          {/* Title */}
-          <h1 className="hero-title text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-6"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}>
-            <span style={{ display: "block" }}>{landingCopy.heroTitle1}</span>
-            <span style={{ display: "block", WebkitTextStroke: "2px var(--color-primary)", WebkitTextFillColor: "transparent" }}>
-              {landingCopy.heroTitle2}
-            </span>
-            <span style={{ display: "block" }}>{landingCopy.heroTitle3}</span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="hero-subtitle text-base md:text-lg mb-8 max-w-lg leading-relaxed"
-            style={{ color: "var(--color-neutral-3000)" }}>
-            {t.landing.heroSubtitleAlt}
-          </p>
-
-          {/* CTAs */}
-          <div className="hero-ctas flex flex-col sm:flex-row items-center gap-3 mb-12">
-            <Link to="/login">
-              <button
-                className="btn-pulse relative px-9 py-4 rounded-full font-black text-sm uppercase tracking-wider transition-all"
-                style={{
-                  backgroundColor: "var(--color-primary)",
-                  color: "var(--color-black)",
-                  fontFamily: "'Montserrat', sans-serif",
-                  boxShadow: "0 0 30px var(--color-primary-glow)",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLButtonElement;
-                  el.style.transform = "scale(1.05)";
-                  el.style.boxShadow = "0 0 40px var(--color-primary-glow)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLButtonElement;
-                  el.style.transform = "scale(1)";
-                  el.style.boxShadow = "0 0 30px var(--color-primary-glow)";
-                }}
+            <div className="hero-word">
+              <h1
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none"
+                style={{ color: "var(--color-primary)" }}
               >
-                {t.landing.ctaStartAlt} →
-              </button>
-            </Link>
+                Discipline.
+              </h1>
+              <p className="text-xs text-neutral-400 font-medium mt-3 max-w-xs leading-relaxed">
+                {locale === "es"
+                  ? "Supera tus marcas con disciplina y métricas inquebrantables."
+                  : "Break your records with discipline and unbreakable focus."}
+              </p>
+            </div>
 
+            <div className="hero-word flex flex-col md:items-end md:text-right">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-none">
+                Result.
+              </h1>
+              <p className="text-xs text-neutral-400 font-medium mt-3 max-w-xs leading-relaxed">
+                {locale === "es"
+                  ? "Récords personales reales documentados semana a semana."
+                  : "Measurable personal records documented week after week."}
+              </p>
+            </div>
           </div>
 
-          {/* Stats row */}
-          <div className="hero-stats flex items-center gap-8 md:gap-14">
-            {[
-              { num: "10", suffix: "K+", label: landingCopy.activeUsers },
-              { num: "500", suffix: "+", label: landingCopy.exercises },
-              { num: "98", suffix: "%", label: landingCopy.satisfaction },
-            ].map((s) => (
-              <div key={s.label} className="flex flex-col items-center">
-                <span className="stat-num text-2xl md:text-3xl font-black" data-target={s.num} data-suffix={s.suffix}
-                  style={{ fontFamily: "'Montserrat', sans-serif", color: "var(--color-primary)" }}>
-                  {s.num}{s.suffix}
+          {/* Fila intermedia: Badges flotantes y Fotografía Deportiva Hero */}
+          <div className="hero-visual-card relative mt-8 rounded-3xl overflow-hidden border border-white/10 bg-neutral-950 aspect-[16/9] md:aspect-[21/9] max-h-[540px]">
+            <img
+              src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1600&auto=format&fit=crop"
+              alt="Atleta entrenando fuerza"
+              className="w-full h-full object-cover object-center opacity-70 filter grayscale contrast-125"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+
+            {/* Widget flotante esquina inferior izquierda */}
+            <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4 max-w-xs">
+              <DotMatrix />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                  {locale === "es" ? "Tu Centro de Entrenamiento" : "Your Workout Hub"}
                 </span>
-                <span className="text-xs mt-1 tracking-wide uppercase" style={{ color: "var(--color-neutral-3000)" }}>{s.label}</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xl font-black text-white">4.9 ★</span>
+                  <span className="text-xs text-neutral-400">
+                    {locale === "es" ? "2.8k Atletas activos" : "2.8k Active Athletes"}
+                  </span>
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Botón flotante esquina inferior derecha */}
+            <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8">
+              <Link to="/registro">
+                <button
+                  className="px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                >
+                  <span>{locale === "es" ? "EMPEZAR HOY" : "START TODAY"}</span>
+                  <ArrowUpRight size={16} />
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── TICKER ─── */}
-      <div className="relative overflow-hidden py-4 border-y" style={{ borderColor: "rgba(255,255,255,0.06)", backgroundColor: "rgba(219,240,89,0.04)" }}>
+      {/* ─── 3. BANNER EDITORIAL DE RESISTENCIA Y FRANJA AMARILLA (REFERENCIA 1) ─── */}
+      <section id="filosofia" className="relative py-20 px-5 sm:px-8 md:px-12 bg-black overflow-hidden border-t border-white/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+          {/* Imagen deportiva en blanco y negro con la franja horizontal atravesando */}
+          <div className="lg:col-span-7 relative rounded-3xl overflow-hidden border border-white/10 aspect-[4/3] sm:aspect-[16/10]">
+            <img
+              src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=1200&auto=format&fit=crop"
+              alt="Corredor en asfalto"
+              className="w-full h-full object-cover grayscale contrast-125 brightness-90"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+
+            {/* Franja horizontal amarillo flúor cortando la imagen (idéntica a la referencia 1) */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 left-0 right-0 py-4 px-6 sm:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl z-10"
+              style={{ backgroundColor: "var(--color-primary)", color: "var(--color-black)" }}
+            >
+              <div className="space-y-0.5">
+                <span className="font-black text-lg sm:text-xl tracking-tighter uppercase font-mono">
+                  DAILYSET™
+                </span>
+                <p className="text-[11px] sm:text-xs font-bold max-w-sm leading-tight text-black/90">
+                  {locale === "es"
+                    ? "Celebramos a los atletas que no persiguen atajos, sino la constancia diaria como filosofía innegociable."
+                    : "We celebrate athletes who don't chase shortcuts, but build consistency as an uncompromising mindset."}
+                </p>
+              </div>
+
+              <Link to="/registro" className="shrink-0">
+                <button className="bg-black hover:bg-neutral-900 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95">
+                  {locale === "es" ? "REGÍSTRATE AHORA +" : "REGISTER NOW +"}
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Tipografía editorial de impacto a la derecha (Referencia 1) */}
+          <div className="lg:col-span-5 space-y-6 lg:pl-6">
+            <div className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
+                {locale === "es" ? "FILOSOFÍA 365" : "PHILOSOPHY 365"}
+              </span>
+              <h2 className="text-4xl sm:text-5xl xl:text-6xl font-black uppercase tracking-tight text-white leading-[0.95]">
+                365 {locale === "es" ? "días de foco," : "days of focus,"}{" "}
+                <span className="bg-white text-black px-2 py-0.5 inline-block my-1">
+                  {locale === "es" ? "constancia y" : "breath, and"}
+                </span>{" "}
+                {locale === "es" ? "fuerza pura." : "controlled energy."}
+              </h2>
+            </div>
+
+            <p className="text-sm text-neutral-400 leading-relaxed">
+              {locale === "es"
+                ? "Diseñado para quienes compiten contra sus propias marcas, no contra el reloj. Entra, encuentra tu ritmo y empuja cada serie un paso más allá."
+                : "Designed for athletes who race against themselves, not the clock. Step in, find your rhythm, and push past your limit one set at a time."}
+            </p>
+
+            <div className="pt-2 flex items-center gap-4 text-xs font-bold text-neutral-300">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
+                <span>{locale === "es" ? "Sobrecarga Progresiva" : "Progressive Overload"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-white" />
+                <span>{locale === "es" ? "Métricas Reales" : "Real Metrics"}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─── 4. TICKER INFINITO TAPE MARQUEE ─── */}
+      <div
+        className="relative overflow-hidden py-4 border-y border-white/10"
+        style={{ backgroundColor: "rgba(212,251,52,0.06)" }}
+      >
         <div className="ticker-inner flex whitespace-nowrap" style={{ width: "max-content" }}>
           {[...tickerWords, ...tickerWords, ...tickerWords, ...tickerWords].map((word, i) => (
-            <span key={i} className="inline-flex items-center gap-4 px-6 text-xs font-black tracking-widest uppercase"
-              style={{ fontFamily: "'Montserrat', sans-serif", color: i % 3 === 0 ? "var(--color-primary)" : "var(--color-neutral-3000)" }}>
-              {word} <span style={{ color: "var(--color-primary)", opacity: 0.4 }}>✦</span>
+            <span
+              key={i}
+              className="inline-flex items-center gap-4 px-6 text-xs sm:text-sm font-black tracking-widest uppercase font-mono"
+              style={{
+                color: i % 2 === 0 ? "var(--color-primary)" : "var(--color-white)",
+              }}
+            >
+              {word} <span style={{ color: "var(--color-primary)", opacity: 0.6 }}>✦</span>
             </span>
           ))}
         </div>
       </div>
 
-      {/* ─── FEATURES ─── */}
-      <section className="features-section py-20 md:py-32 px-5 md:px-10">
-        <div className="max-w-6xl mx-auto">
+      {/* ─── 5. "DAILYSET EN MOVIMIENTO" & NÚMERO GRÁFICO (REFERENCIA 2) ─── */}
+      <section id="en-movimiento" className="relative py-24 px-5 sm:px-8 md:px-12 bg-neutral-950 overflow-hidden">
+        {/* Número gráfico gigante amarillo flúor recortado en el fondo (como el "42" de la ref 2) */}
+        <div
+          className="absolute -right-10 top-0 text-[260px] sm:text-[360px] md:text-[460px] font-black leading-none select-none pointer-events-none opacity-20 -z-0 font-mono tracking-tighter"
+          style={{ color: "var(--color-primary)" }}
+        >
+          01
+        </div>
 
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
-            <div>
-              <p className="text-xs font-black tracking-widest uppercase mb-3" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-                {landingCopy.whyChooseUs}
-              </p>
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 1.0 }}>
-                {landingCopy.whatMakesUsDifferent1}<br />
-                <span style={{ WebkitTextStroke: "1.5px var(--color-primary)", WebkitTextFillColor: "transparent" }}>{landingCopy.whatMakesUsDifferent2}</span>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+
+            {/* Columna Izquierda: Texto y Botón "VER TODAS" */}
+            <div className="lg:col-span-4 space-y-5">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
+                {locale === "es" ? "PROGRAMAS & RUTINAS" : "PROGRAMS & ROUTINES"}
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+                {locale === "es" ? "DailySet en Movimiento" : "DailySet in Motion"}
               </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                {locale === "es"
+                  ? "Cada serie cuenta una historia. Un vistazo a la energía, el foco y el esfuerzo diario que definen la excelencia atlética."
+                  : "Every stride tells a story. A look back at the energy, focus, and grit that defined endurance."}
+              </p>
+              <Link to="/registro">
+                <button className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-xs uppercase tracking-widest transition-all cursor-pointer">
+                  {locale === "es" ? "VER TODAS LAS RUTINAS" : "VIEW ALL ROUTINES"}
+                </button>
+              </Link>
             </div>
-            <p className="text-sm max-w-xs leading-relaxed" style={{ color: "var(--color-neutral-3000)" }}>
-              {t.landing.featuresSubtitle}
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="feature-card group relative rounded-2xl p-7 cursor-default overflow-hidden transition-all duration-400"
-                style={{
-                  backgroundColor: "var(--color-neutral-800)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.borderColor = "rgba(219,240,89,0.35)";
-                  el.style.backgroundColor = "var(--color-neutral-700)";
-                  el.style.transform = "translateY(-6px)";
-                  el.style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(219,240,89,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.borderColor = "rgba(255,255,255,0.06)";
-                  el.style.backgroundColor = "var(--color-neutral-800)";
-                  el.style.transform = "";
-                  el.style.boxShadow = "";
-                }}
-              >
-                {/* Subtle corner accent */}
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "radial-gradient(circle at top right, rgba(219,240,89,0.12), transparent 70%)" }} />
-
-                <div className="flex items-start justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: "rgba(219,240,89,0.1)", color: "var(--color-primary)" }}>
-                    {f.icon}
-                  </div>
-                  <span className="text-xs font-black tracking-widest uppercase px-3 py-1 rounded-full"
-                    style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "var(--color-neutral-3000)", fontFamily: "'Montserrat', sans-serif" }}>
-                    {f.tag}
+            {/* Columna Derecha: Tarjetas horizontales de entrenamiento */}
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Tarjeta 1 */}
+              <div className="group rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/60 p-4 space-y-3 transition-all hover:border-[var(--color-primary)]/40 hover:-translate-y-1">
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
+                  <img
+                    src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop"
+                    alt="Fuerza y Powerlifting"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-white">
+                    {locale === "es" ? "Fuerza Pura" : "Pure Strength"}
                   </span>
                 </div>
-
-                <h4 className="font-black text-lg mb-2 tracking-tight"
-                  style={{ fontFamily: "'Montserrat', sans-serif", color: "var(--color-white)" }}>
-                  {f.title}
-                </h4>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--color-neutral-3000)" }}>
-                  {f.desc}
-                </p>
-
-                <div className="mt-5 flex items-center gap-1 text-xs font-bold uppercase tracking-wider transition-colors"
-                  style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-                  {landingCopy.learnMore} <span className="ml-1">→</span>
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <h4 className="font-black text-white text-base">Power & Hypertrophy</h4>
+                    <p className="text-xs text-neutral-400">4 {locale === "es" ? "días / sem · RIR progresivo" : "days/wk · progressive RIR"}</p>
+                  </div>
+                  <span className="text-xs font-black font-mono text-[var(--color-primary)]">
+                    95% {locale === "es" ? "éxito" : "success"}
+                  </span>
                 </div>
               </div>
-            ))}
+
+              {/* Tarjeta 2 */}
+              <div className="group rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/60 p-4 space-y-3 transition-all hover:border-[var(--color-primary)]/40 hover:-translate-y-1">
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
+                  <img
+                    src="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop"
+                    alt="Acondicionamiento y movilidad"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-white">
+                    {locale === "es" ? "Resistencia & HIIT" : "Endurance & HIIT"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <h4 className="font-black text-white text-base">Conditioning Pro</h4>
+                    <p className="text-xs text-neutral-400">5 {locale === "es" ? "días / sem · Alta intensidad" : "days/wk · High intensity"}</p>
+                  </div>
+                  <span className="text-xs font-black font-mono text-[var(--color-primary)]">
+                    98% {locale === "es" ? "éxito" : "success"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ─── STEPS ─── */}
-      <section className="steps-section py-20 md:py-32 px-5 md:px-10 relative overflow-hidden">
-        {/* Background accents */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(219,240,89,0.2), transparent)" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(219,240,89,0.2), transparent)" }} />
-        </div>
+      {/* ─── 6. BENTO ATLETAS: "TRAIN LIKE A PRO" (REFERENCIA 3) ─── */}
+      <section id="atletas" className="py-24 px-5 sm:px-8 md:px-12 bg-black border-t border-white/5">
+        <div className="max-w-7xl mx-auto space-y-10">
 
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-black tracking-widest uppercase mb-3" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-              {landingCopy.process}
-            </p>
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-              {t.landing.howItWorks}
-            </h2>
-          </div>
-
-          <div className="steps-track relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-8 left-1/2 -translate-x-1/2 w-2/3 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(219,240,89,0.3) 20%, rgba(219,240,89,0.3) 80%, transparent)" }} />
-
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-0 md:justify-between max-w-2xl mx-auto">
-              {[
-                { num: "01", label: t.landing.step1 },
-                { num: "02", label: t.landing.step2 },
-                { num: "03", label: t.landing.step3 },
-              ].map((step, i) => (
-                <div key={i} className="step-item flex flex-col items-center text-center relative z-10 px-6">
-                  <div
-                    className="relative w-16 h-16 rounded-2xl flex items-center justify-center font-black text-lg mb-5 transition-transform duration-300"
-                    style={{
-                      backgroundColor: "var(--color-primary)",
-                      color: "var(--color-black)",
-                      fontFamily: "'Montserrat', sans-serif",
-                      boxShadow: "0 0 30px rgba(219,240,89,0.3)",
-                    }}
-                  >
-                    {step.num}
-                    <div className="absolute inset-0 rounded-2xl opacity-50"
-                      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)" }} />
-                  </div>
-                  <p className="font-black text-sm uppercase tracking-wide max-w-[120px]"
-                    style={{ fontFamily: "'Montserrat', sans-serif", color: "var(--color-white)" }}>
-                    {step.label}
-                  </p>
-                </div>
-              ))}
+          {/* Encabezado con matriz de puntos y Swipe indicator */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <DotMatrix />
+                <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+                  {locale === "es" ? "Metodología de Élite" : "Elite Coaching"}
+                </span>
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
+                TRAIN LIKE A PRO
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-primary)]">
+              <span>{locale === "es" ? "DISCIPLINA DIARIA" : "DAILY DISCIPLINE"}</span>
+              <ChevronRight size={16} />
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ─── SOCIAL PROOF STRIP ─── */}
-      <section className="py-14 px-5 md:px-10" style={{ backgroundColor: "var(--color-neutral-800)" }}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <p className="text-xl md:text-2xl font-black uppercase tracking-tight text-center md:text-left"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}>
-            {landingCopy.socialProof1} <span style={{ color: "var(--color-primary)" }}>10,000</span> {landingCopy.socialProof2}<br />
-            {landingCopy.socialProof3}
-          </p>
-          <div className="flex items-center gap-3">
-            {[...Array(5)].map((_, i) => (
-              <svg key={i} className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" style={{ color: "var(--color-primary)" }}>
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-            <span className="text-sm font-bold ml-1" style={{ color: "var(--color-neutral-3000)" }}>{landingCopy.reviews}</span>
+          {/* Grid de Atletas y Rutinas de Élite */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Atleta 1 */}
+            <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/80 p-6 sm:p-8 flex flex-col justify-between aspect-[16/10] sm:aspect-[16/9] group">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=900&auto=format&fit=crop"
+                alt="Coach Max Davis"
+                className="absolute inset-0 w-full h-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+
+              <div className="relative z-10 flex items-start justify-between">
+                <DotMatrix />
+                <Link to="/registro">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[var(--color-primary)] flex items-center gap-1 hover:underline">
+                    {locale === "es" ? "VER PROGRAMA ↗" : "BOOK A SESSION ↗"}
+                  </span>
+                </Link>
+              </div>
+
+              <div className="relative z-10 flex items-end justify-between gap-4 pt-12">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white uppercase">
+                    Max Davis
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    {locale === "es" ? "Especialista en Hipertrofia & Fuerza Máxima" : "Hypertrophy & Strength Coach"}
+                  </p>
+                </div>
+                <div className="text-right font-mono">
+                  <span className="text-xl sm:text-2xl font-black text-white block">9.000h</span>
+                  <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">
+                    {locale === "es" ? "+700 atletas" : "+700 students"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Atleta 2 */}
+            <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/80 p-6 sm:p-8 flex flex-col justify-between aspect-[16/10] sm:aspect-[16/9] group">
+              <img
+                src="https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?q=80&w=900&auto=format&fit=crop"
+                alt="Coach Alex Mercer"
+                className="absolute inset-0 w-full h-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+
+              <div className="relative z-10 flex items-start justify-between">
+                <DotMatrix />
+                <Link to="/registro">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[var(--color-primary)] flex items-center gap-1 hover:underline">
+                    {locale === "es" ? "VER PROGRAMA ↗" : "BOOK A SESSION ↗"}
+                  </span>
+                </Link>
+              </div>
+
+              <div className="relative z-10 flex items-end justify-between gap-4 pt-12">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white uppercase">
+                    Alex Mercer
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    {locale === "es" ? "Acondicionamiento Físico & Resistencia" : "Conditioning & Endurance Coach"}
+                  </p>
+                </div>
+                <div className="text-right font-mono">
+                  <span className="text-xl sm:text-2xl font-black text-white block">5.200h</span>
+                  <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">
+                    {locale === "es" ? "+450 atletas" : "+450 students"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
-          <Link to="/login">
-            <button
-              className="px-7 py-3 rounded-full font-black text-sm uppercase tracking-wider transition-all"
-              style={{
-                backgroundColor: "var(--color-primary)",
-                color: "var(--color-black)",
-                fontFamily: "'Montserrat', sans-serif",
-                boxShadow: "0 0 20px var(--color-primary-glow)",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
-            >
-              {landingCopy.startFree}
-            </button>
-          </Link>
+
+          {/* Banner tipográfico inferior "ELEVATE YOUR WORKOUT GAME" */}
+          <div className="relative rounded-3xl overflow-hidden border border-white/10 p-8 sm:p-12 text-center bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950">
+            <h3 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-tight">
+              <span style={{ color: "var(--color-primary)" }}>Elevate</span>{" "}
+              <span className="text-white">Your</span>{" "}
+              <span style={{ color: "var(--color-primary)" }}>Training</span>{" "}
+              <span className="text-white">Game</span>
+            </h3>
+            <p className="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto mt-3">
+              {locale === "es"
+                ? "Una plataforma diseñada para quienes no se conforman con entrenar sin datos. Domina tu progreso."
+                : "A platform built for those who never settle for training in the dark. Master your discipline."}
+            </p>
+          </div>
+
         </div>
       </section>
 
-      {/* ─── CTA FINAL ─── */}
-      <section className="cta-section relative py-20 md:py-36 px-5 md:px-10 overflow-hidden">
-        <div className="orb-1 absolute -top-20 right-0 w-[500px] h-[500px] rounded-full blur-[140px] opacity-20 pointer-events-none"
-          style={{ backgroundColor: "var(--color-primary)" }} />
-        <div className="orb-2 absolute -bottom-20 left-0 w-[400px] h-[400px] rounded-full blur-[120px] opacity-15 pointer-events-none"
-          style={{ backgroundColor: "var(--color-accent)" }} />
+      {/* ─── 7. CITA DE PRENSA Y LOGOS PATROCINADORES (REFERENCIA 4) ─── */}
+      <section className="py-20 px-5 sm:px-8 md:px-12 bg-neutral-950 border-t border-white/5 text-center">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 font-mono">
+            {locale === "es" ? "LO QUE DICEN DE NOSOTROS" : "THEY WRITE ABOUT US"}
+          </span>
 
-        <div className="cta-container relative max-w-3xl mx-auto text-center">
-          <p className="text-xs font-black tracking-widest uppercase mb-5" style={{ color: "var(--color-primary)", fontFamily: "'Montserrat', sans-serif" }}>
-            {landingCopy.ctaNow}
-          </p>
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6"
-            style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.95 }}>
-            {t.landing.ctaFinalTitleAlt}
-          </h2>
-          <p className="mb-10 text-sm md:text-base max-w-md mx-auto leading-relaxed" style={{ color: "var(--color-neutral-3000)" }}>
-            {t.landing.ctaFinalSubAlt}
+          <h3 className="text-xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight">
+            &ldquo;
+            {locale === "es"
+              ? "REVOLUCIONANDO EL ENTRENAMIENTO DE FUERZA CON MÉTRICAS EN TIEMPO REAL, INTELIGENCIA ARTIFICIAL Y UNA DISCIPLINA INQUEBRANTABLE."
+              : "REVOLUTIONIZING FITNESS TRAINING WITH AI INSIGHTS, PROGRESSIVE OVERLOAD, AND A THRIVING DISCIPLINE."}
+            &rdquo;
+          </h3>
+
+          <p className="text-xs text-[var(--color-primary)] font-mono font-bold tracking-widest">
+            — DailySet Endurance & Fitness Weekly
           </p>
 
-          <Link to="/login">
-            <button
-              className="inline-flex items-center gap-3 px-10 py-5 rounded-full font-black text-base uppercase tracking-wider transition-all"
-              style={{
-                backgroundColor: "var(--color-primary)",
-                color: "var(--color-black)",
-                fontFamily: "'Montserrat', sans-serif",
-                boxShadow: "0 0 50px var(--color-primary-glow), 0 8px 32px rgba(0,0,0,0.4)",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.transform = "scale(1.05) translateY(-2px)";
-                el.style.boxShadow = "0 0 60px var(--color-primary-glow), 0 16px 40px rgba(0,0,0,0.5)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.transform = "scale(1)";
-                el.style.boxShadow = "0 0 50px var(--color-primary-glow), 0 8px 32px rgba(0,0,0,0.4)";
-              }}
-            >
-              {t.landing.ctaFinalBtnAlt}
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </button>
-          </Link>
-
-          <p className="mt-5 text-xs" style={{ color: "var(--color-neutral-2000)" }}>
-            {landingCopy.noCreditCard}
-          </p>
-        </div>
-      </section>
-
-      {/* ─── FOOTER ─── */}
-      <footer style={{ backgroundColor: "var(--color-neutral-800)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <Logo size="md" />
-          <p className="text-xs text-center" style={{ color: "var(--color-neutral-2000)" }}>
-            &copy; {t.landing.footerText}
-          </p>
-          <div className="flex items-center gap-5 text-xs font-semibold" style={{ color: "var(--color-neutral-3000)" }}>
-            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.privacy}</a>
-            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.terms}</a>
-            <a href="#" className="hover:opacity-80 transition-opacity">{landingCopy.contact}</a>
+          {/* Marcas / Medios de prensa de referencia */}
+          <div className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-50 grayscale hover:grayscale-0 transition-all text-xs sm:text-sm font-black tracking-widest uppercase font-mono text-neutral-400">
+            <span>Men&apos;sHealth</span>
+            <span>RUNNER&apos;S WORLD</span>
+            <span>IRONMAN</span>
+            <span>TRIATHLETE</span>
+            <span>FITNESS PRO</span>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* ─── 8. SECCIÓN DIVIDIDA: "DA EL PRIMER PASO HOY" (REFERENCIA 4) ─── */}
+      <section id="comenzar" className="py-20 px-5 sm:px-8 md:px-12 bg-black border-t border-white/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+
+          {/* Columna Izquierda: Atleta con iluminación de alto contraste */}
+          <div className="rounded-3xl overflow-hidden border border-white/10 aspect-[4/3] sm:aspect-auto sm:min-h-[420px]">
+            <img
+              src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1200&auto=format&fit=crop"
+              alt="Ciclista y atleta"
+              className="w-full h-full object-cover grayscale contrast-125"
+            />
+          </div>
+
+          {/* Columna Derecha: Tarjeta oscura con tipografía y CTA flúor */}
+          <div className="rounded-3xl border border-white/10 bg-neutral-900/60 p-8 sm:p-12 flex flex-col justify-center space-y-6">
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
+              {locale === "es" ? "EL MOMENTO ES HOY" : "THE MOMENT IS NOW"}
+            </span>
+
+            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+              {locale === "es"
+                ? "DA EL PRIMER PASO HOY — ELIGE TU PROGRAMA Y COMIENZA A ENTRENAR!"
+                : "TAKE THE FIRST STEP TODAY — CHOOSE YOUR PROGRAM AND START TRAINING!"}
+            </h2>
+
+            <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-md">
+              {locale === "es"
+                ? "Crea rutinas personalizadas, registra cada carga y lleva tu cuerpo al siguiente escalón de rendimiento."
+                : "Create custom workouts, track every single set, and elevate your physique to the next level."}
+            </p>
+
+            <div>
+              <Link to="/registro">
+                <button
+                  className="px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest text-black transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                >
+                  {locale === "es" ? "COMENZAR GRATIS" : "GET STARTED"}
+                </button>
+              </Link>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─── 9. EL GRAN BLOQUE AMARILLO FLÚOR CORPORATIVO (REFERENCIA 4) ─── */}
+      <section
+        className="w-full py-16 sm:py-20 px-5 sm:px-8 md:px-14 select-none"
+        style={{ backgroundColor: "var(--color-primary)", color: "var(--color-black)" }}
+      >
+        <div className="max-w-7xl mx-auto space-y-12">
+
+          {/* Fila superior: Titular impactante a la izquierda y Suscripción a la derecha */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter text-black leading-none">
+                {locale === "es"
+                  ? "TU CAMINO HACIA LA MAESTRÍA COMIENZA AQUÍ Y AHORA"
+                  : "YOUR JOURNEY TO MASTERY STARTS HERE AND NOW"}
+              </h2>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link to="/registro">
+                  <button className="px-6 py-2.5 rounded-full bg-black text-white font-black text-xs uppercase tracking-widest hover:bg-neutral-900 transition-all cursor-pointer">
+                    {locale === "es" ? "Crear Cuenta Gratis" : "Create Free Account"}
+                  </button>
+                </Link>
+                <Link to="/login">
+                  <button className="px-6 py-2.5 rounded-full border-2 border-black text-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-all cursor-pointer">
+                    {locale === "es" ? "Iniciar Sesión" : "Login"}
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Newsletter box (idéntico a la referencia 4) */}
+            <div className="lg:col-span-5 space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-black block">
+                {locale === "es"
+                  ? "SUSCRÍBETE PARA CONSEJOS Y PROGRAMAS EXCLUSIVOS"
+                  : "SUBSCRIBE FOR EXCLUSIVE TRAINING TIPS AND UPDATES"}
+              </span>
+
+              <form onSubmit={handleNewsletterSubmit} className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="email"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder={locale === "es" ? "Introduce tu email" : "Enter your email"}
+                    required
+                    className="w-full bg-black/10 border border-black/20 rounded-full px-4 py-2.5 text-black placeholder:text-black/60 text-xs font-bold outline-none focus:border-black transition-all"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-full bg-black text-white font-black text-xs uppercase tracking-wider hover:bg-neutral-900 transition-all cursor-pointer shrink-0"
+                >
+                  {locale === "es" ? "Suscribirse" : "Subscribe"}
+                </button>
+              </form>
+
+              {newsletterEnviado && (
+                <p className="text-xs font-bold text-black flex items-center gap-1 mt-1">
+                  <CheckCircle2 size={13} />
+                  <span>{locale === "es" ? "¡Gracias por unirte a DailySet!" : "Thanks for joining DailySet!"}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Enlaces de navegación en columnas */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-black/15 text-xs font-black uppercase tracking-wider text-black/80">
+            <div className="space-y-2">
+              <p className="text-black font-black text-sm">{locale === "es" ? "Plataforma" : "Platform"}</p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Mis Rutinas" : "My Routines"}</Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Ejercicios" : "Exercises"}</Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Entrenamiento" : "Workout"}</Link></p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-black font-black text-sm">{locale === "es" ? "Utilidades" : "Utilities"}</p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Temporizador" : "Timer"}</Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Cronómetro" : "Stopwatch"}</Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Podómetro" : "Pedometer"}</Link></p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-black font-black text-sm">{locale === "es" ? "Comunidad" : "Community"}</p>
+              <p><a href="#atletas" className="hover:underline">{locale === "es" ? "Atletas" : "Athletes"}</a></p>
+              <p><a href="#filosofia" className="hover:underline">{locale === "es" ? "Filosofía" : "Philosophy"}</a></p>
+              <p><a href="#comenzar" className="hover:underline">{locale === "es" ? "Guía Pro" : "Pro Guide"}</a></p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-black font-black text-sm">{locale === "es" ? "Legal" : "Legal"}</p>
+              <p><a href="#" className="hover:underline">{locale === "es" ? "Privacidad" : "Privacy"}</a></p>
+              <p><a href="#" className="hover:underline">{locale === "es" ? "Términos" : "Terms"}</a></p>
+              <p><a href="#" className="hover:underline">{locale === "es" ? "Cookies" : "Cookies"}</a></p>
+            </div>
+          </div>
+
+          {/* TIPOGRAFÍA CONDENSADA GIGANTE A ANCHO COMPLETO: "DAILYSET" (REFERENCIA 4) */}
+          <div className="pt-6 border-t border-black/15 overflow-hidden text-center">
+            <h1
+              className="text-[16vw] font-black leading-none tracking-tighter uppercase text-black select-none pointer-events-none"
+              style={{ fontFamily: "'Bebas Neue', 'Montserrat', sans-serif" }}
+            >
+              DAILYSET
+            </h1>
+          </div>
+
+          {/* Barra final de Copyright */}
+          <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-black/70 pt-2 border-t border-black/10 gap-2">
+            <span>© 2026 DailySet. All Rights Reserved.</span>
+            <span>Terms and conditions · Privacy policy · Cookies</span>
+          </div>
+
+        </div>
+      </section>
     </div>
   );
 }
