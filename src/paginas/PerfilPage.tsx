@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AppLayout } from "../componentes";
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -18,9 +18,11 @@ import {
   TrendingUp,
   Calendar,
   CheckCircle2,
+  ArrowLeft,
 } from 'lucide-react';
+import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
 
-interface NivelConfig {
+export interface NivelConfig {
   nivel: number;
   nombreEs: string;
   nombreEn: string;
@@ -131,12 +133,14 @@ const NIVELES: NivelConfig[] = [
 
 export default function PerfilPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout, updateUser } = useAuth();
   const { locale, t } = useI18n();
   const { sesiones, metricas } = useHistorial();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [seccionGamificacion, setSeccionGamificacion] = useState<'racha' | 'camino' | 'insignias'>('racha');
+  const esVistaRacha = location.pathname.includes('/racha');
+
   const [subiendoFoto, setSubiendoFoto] = useState(false);
 
   // Avatar local para cambio instantáneo
@@ -409,6 +413,12 @@ export default function PerfilPage() {
       esRojo: false,
     },
     {
+      nombre: (locale === 'es' ? 'Racha de constancia' : 'Consistency Streak').toUpperCase(),
+      ruta: '/perfil/racha',
+      flecha: true,
+      esRojo: false,
+    },
+    {
       nombre: t.profile.logout.toUpperCase(),
       ruta: null,
       flecha: false,
@@ -428,6 +438,80 @@ export default function PerfilPage() {
       navigate(opcion.ruta);
     }
   };
+
+  if (esVistaRacha) {
+    return (
+      <AppLayout>
+        <div className="space-y-6 pb-12 max-w-4xl mx-auto w-full">
+          {/* Volver al perfil */}
+          <div>
+            <Link
+              to="/perfil"
+              className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider cursor-pointer group py-2 px-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+            >
+              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1 text-[var(--color-primary)]" />
+              <span>{locale === 'es' ? 'Volver al Perfil' : 'Back to Profile'}</span>
+            </Link>
+          </div>
+
+          {/* Tarjeta resumen rápida de Racha/Nivel en la subpágina */}
+          <div className="card p-6 md:p-7 backdrop-blur-2xl flex flex-col sm:flex-row items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full border-2 border-white/15 bg-neutral-900 overflow-hidden flex items-center justify-center shrink-0 shadow-lg">
+                {displayAvatar ? (
+                  <img src={displayAvatar} alt={user?.nombre ?? 'Avatar'} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-black text-white italic">{iniciales || 'U'}</span>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-black text-[10px] tracking-[0.25em] uppercase italic text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--color-primary)]/20">
+                    {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-black text-white italic uppercase tracking-tight">
+                  {user?.nombre ?? (locale === 'es' ? 'Atleta DailySet' : 'DailySet Athlete')}
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-center">
+              <div className="flex-1 sm:flex-initial bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 text-center min-w-[110px]">
+                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-widest block mb-0.5">
+                  {locale === 'es' ? 'Racha Actual' : 'Current Streak'}
+                </span>
+                <span className="font-black text-xl text-amber-400 flex items-center justify-center gap-1.5 font-mono">
+                  <Flame size={18} className="animate-pulse" /> {streakData.rachaActual} <span className="text-xs font-sans font-bold text-neutral-400">{locale === 'es' ? 'días' : 'days'}</span>
+                </span>
+              </div>
+              <div className="flex-1 sm:flex-initial bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 text-center min-w-[110px]">
+                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-widest block mb-0.5">
+                  {locale === 'es' ? 'Récord Histórico' : 'Best Streak'}
+                </span>
+                <span className="font-black text-xl text-white font-mono">
+                  {streakData.bestStreak} <span className="text-xs font-sans font-bold text-neutral-400">{locale === 'es' ? 'días' : 'days'}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <GamificacionRacha
+            locale={locale}
+            streakData={streakData}
+            nivelActual={nivelActual}
+            siguienteNivel={siguienteNivel}
+            progresoNivel={progresoNivel}
+            entrenamientosFaltantes={entrenamientosFaltantes}
+            totalSesiones={totalSesiones}
+            badges={badges}
+            niveles={NIVELES}
+            onIniciarEntrenamiento={() => navigate('/mis-rutinas')}
+          />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -497,13 +581,23 @@ export default function PerfilPage() {
             {/* Información del usuario y nivel actual */}
             <div className="text-center md:text-left flex-1 min-w-0">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
-                <span className="font-black text-[10px] tracking-[0.3em] uppercase italic text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--color-primary)]/20">
+                <button
+                  type="button"
+                  onClick={() => navigate('/perfil/racha')}
+                  className="font-black text-[10px] tracking-[0.3em] uppercase italic text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--color-primary)]/20 cursor-pointer hover:bg-[var(--color-primary)]/20 transition-colors"
+                  title={locale === 'es' ? 'Ver detalles de racha y niveles' : 'View streak and levels details'}
+                >
                   {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
-                </span>
+                </button>
                 {streakData.rachaActual >= 3 && (
-                  <span className="font-bold text-[10px] tracking-wider uppercase bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/perfil/racha')}
+                    className="font-bold text-[10px] tracking-wider uppercase bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                    title={locale === 'es' ? 'Ver detalles de racha' : 'View streak details'}
+                  >
                     <Flame size={12} /> {streakData.rachaActual} {locale === 'es' ? 'DÍAS RACHA' : 'DAYS STREAK'}
-                  </span>
+                  </button>
                 )}
               </div>
 
@@ -549,7 +643,12 @@ export default function PerfilPage() {
           {/* Stats resumidos de perfil */}
           <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-white/10">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center border-r border-white/5 last:border-r-0 px-2">
+              <div
+                key={i}
+                onClick={stat.etiqueta.includes('RACHA') ? () => navigate('/perfil/racha') : undefined}
+                className={`text-center border-r border-white/5 last:border-r-0 px-2 ${stat.etiqueta.includes('RACHA') ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                title={stat.etiqueta.includes('RACHA') ? (locale === 'es' ? 'Ver detalles de racha' : 'View streak details') : undefined}
+              >
                 <div className={`font-black text-base sm:text-lg md:text-xl italic leading-none flex items-center justify-center gap-1.5 ${stat.destacado ? 'text-[var(--color-primary)]' : 'text-white'}`}>
                   {stat.icono}
                   <span>{stat.valor}</span>
@@ -560,404 +659,6 @@ export default function PerfilPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* ── APARTADO DE GAMIFICACIÓN: SISTEMA DE RACHA & SUBIDA DE NIVEL ── */}
-        <div className="space-y-4">
-          
-          {/* Cabecera de la sección con tabs de navegación */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  <Flame size={16} />
-                </span>
-                <h2 className="text-lg font-black text-white uppercase italic tracking-wide">
-                  {locale === 'es' ? 'Racha de Constancia' : 'Consistency Streak'}
-                </h2>
-              </div>
-              <p className="text-neutral-400 text-xs mt-0.5">
-                {locale === 'es'
-                  ? 'Sube de nivel cumpliendo con los días programados en tus rutinas.'
-                  : 'Level up by sticking to your scheduled routine days.'}
-              </p>
-            </div>
-
-            {/* Selector de pestañas */}
-            <div className="flex p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold self-start sm:self-auto">
-              <button
-                onClick={() => setSeccionGamificacion('racha')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  seccionGamificacion === 'racha'
-                    ? 'bg-white/10 text-white shadow-sm'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                <Flame size={13} className={seccionGamificacion === 'racha' ? 'text-amber-400' : ''} />
-                <span>{locale === 'es' ? 'Racha' : 'Streak'}</span>
-              </button>
-              <button
-                onClick={() => setSeccionGamificacion('camino')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  seccionGamificacion === 'camino'
-                    ? 'bg-white/10 text-white shadow-sm'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                <TrendingUp size={13} className={seccionGamificacion === 'camino' ? 'text-[var(--color-primary)]' : ''} />
-                <span>{locale === 'es' ? 'Niveles' : 'Levels'}</span>
-              </button>
-              <button
-                onClick={() => setSeccionGamificacion('insignias')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  seccionGamificacion === 'insignias'
-                    ? 'bg-white/10 text-white shadow-sm'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                <Award size={13} className={seccionGamificacion === 'insignias' ? 'text-sky-400' : ''} />
-                <span>{locale === 'es' ? 'Insignias' : 'Badges'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 1. PESTAÑA RACHA */}
-          {seccionGamificacion === 'racha' && (
-            <div className="space-y-4">
-              
-              {/* Tarjeta Hero de Racha */}
-              <div className="card p-6 md:p-8 backdrop-blur-xl relative overflow-hidden">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  
-                  {/* Fuego con contador */}
-                  <div className="flex items-center gap-5 text-center md:text-left">
-                    <div className="relative">
-                      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all ${
-                        streakData.rachaActual > 0
-                          ? 'bg-amber-500/10 border-2 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)]'
-                          : 'bg-white/5 border border-white/10 text-neutral-500'
-                      }`}>
-                        <Flame
-                          size={44}
-                          className={`${
-                            streakData.rachaActual > 0
-                              ? 'text-amber-400 animate-pulse drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                              : 'text-neutral-600'
-                          }`}
-                        />
-                      </div>
-                      {streakData.rachaActual > 0 && (
-                        <span className="absolute -bottom-2 -right-2 bg-amber-400 text-black font-black text-[11px] px-2 py-0.5 rounded-full shadow-md font-mono">
-                          {streakData.rachaActual}
-                        </span>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2 justify-center md:justify-start">
-                        <span className="font-mono text-3xl md:text-4xl font-black text-white italic tracking-tight">
-                          {streakData.rachaActual} {locale === 'es' ? 'DÍAS' : 'DAYS'}
-                        </span>
-                      </div>
-                      <p className="text-xs uppercase font-bold tracking-widest text-neutral-400 mt-0.5">
-                        {locale === 'es' ? 'Racha de Asistencia Activa' : 'Active Attendance Streak'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Estado y Call To Action según si entrenó hoy */}
-                  <div className="w-full md:w-auto md:max-w-xs text-center md:text-right">
-                    {streakData.trainedToday ? (
-                      <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-[var(--color-primary)] text-xs font-bold">
-                        <CheckCircle2 size={14} />
-                        <span>{locale === 'es' ? '¡Racha protegida hoy!' : 'Streak protected today!'}</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-                          <Flame size={14} />
-                          <span>{locale === 'es' ? 'Entrena hoy para mantenerla' : 'Train today to keep it'}</span>
-                        </div>
-                        <div>
-                          <button
-                            onClick={() => navigate('/mis-rutinas')}
-                            className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 transition-all cursor-pointer shadow-md"
-                          >
-                            {locale === 'es' ? 'Iniciar Entrenamiento' : 'Start Workout'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Tracker de los últimos 7 días */}
-                <div className="mt-6 pt-6 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                      {locale === 'es' ? 'Últimos 7 días' : 'Last 7 days'}
-                    </span>
-                    <span className="text-xs text-neutral-400 font-mono">
-                      {locale === 'es'
-                        ? `Récord de racha: ${streakData.bestStreak} días`
-                        : `Best streak: ${streakData.bestStreak} days`}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-2">
-                    {streakData.last7Days.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
-                          item.hasTrained
-                            ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/40 shadow-sm'
-                            : item.isToday
-                            ? 'bg-white/5 border-white/30'
-                            : 'bg-white/[0.02] border-white/5'
-                        }`}
-                      >
-                        <span className="text-[10px] font-bold text-neutral-400 mb-1">
-                          {item.dayName}
-                        </span>
-                        <div className="my-1 flex items-center justify-center h-5">
-                          {item.hasTrained ? (
-                            <Flame size={16} className="text-amber-400" />
-                          ) : (
-                            <div className={`w-2 h-2 rounded-full ${item.isToday ? 'bg-amber-400 animate-ping' : 'bg-neutral-700'}`} />
-                          )}
-                        </div>
-                        <span className={`text-[10px] font-mono mt-1 ${item.isToday ? 'font-bold text-white' : 'text-neutral-400'}`}>
-                          {item.dayNum}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Métricas clave de asistencia */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center gap-2 text-neutral-400 text-xs mb-1">
-                      <Flame size={14} className="text-amber-400" />
-                      <span>{locale === 'es' ? 'Racha Actual' : 'Current Streak'}</span>
-                    </div>
-                    <p className="text-lg font-black text-white font-mono">
-                      {streakData.rachaActual} {locale === 'es' ? 'días' : 'days'}
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center gap-2 text-neutral-400 text-xs mb-1">
-                      <Trophy size={14} className="text-[var(--color-primary)]" />
-                      <span>{locale === 'es' ? 'Mejor Racha' : 'Best Streak'}</span>
-                    </div>
-                    <p className="text-lg font-black text-white font-mono">
-                      {streakData.bestStreak} {locale === 'es' ? 'días' : 'days'}
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center gap-2 text-neutral-400 text-xs mb-1">
-                      <Calendar size={14} className="text-sky-400" />
-                      <span>{locale === 'es' ? 'Días Entrenados' : 'Days Trained'}</span>
-                    </div>
-                    <p className="text-lg font-black text-white font-mono">
-                      {streakData.uniqueDaysCount} {locale === 'es' ? 'días' : 'days'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* 2. PESTAÑA NIVELES (Camino de progresión por asistencia) */}
-          {seccionGamificacion === 'camino' && (
-            <div className="space-y-4">
-              
-              {/* Tarjeta de Nivel Actual */}
-              <div className="card p-6 backdrop-blur-xl">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--color-primary)]">
-                      {locale === 'es' ? 'TU RANGO ACTUAL' : 'YOUR CURRENT RANK'}
-                    </span>
-                    <h3 className="text-2xl font-black text-white italic uppercase tracking-tight mt-0.5">
-                      NIVEL {nivelActual.nivel} · {locale === 'es' ? nivelActual.nombreEs : nivelActual.nombreEn}
-                    </h3>
-                    <p className="text-xs text-neutral-400 mt-1 max-w-lg">
-                      {locale === 'es' ? nivelActual.descEs : nivelActual.descEn}
-                    </p>
-                  </div>
-
-                  <div className="px-4 py-2.5 rounded-2xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-[var(--color-primary)] text-center self-stretch sm:self-auto">
-                    <span className="text-xs uppercase font-bold tracking-widest block">
-                      {locale === 'es' ? 'Progreso' : 'Progress'}
-                    </span>
-                    <span className="text-2xl font-black font-mono">
-                      {totalSesiones} {siguienteNivel ? `/ ${siguienteNivel.minSesiones}` : 'MAX'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Barra de progreso */}
-                <div className="mt-5">
-                  <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
-                    <div
-                      className="h-full rounded-full transition-all duration-700 shadow-[0_0_12px_var(--color-primary-glow)]"
-                      style={{
-                        width: `${progresoNivel}%`,
-                        backgroundColor: 'var(--color-primary)',
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center text-[11px] text-neutral-400 mt-2 font-mono">
-                    <span>{nivelActual.minSesiones} {locale === 'es' ? 'entrenos' : 'sessions'}</span>
-                    <span>
-                      {siguienteNivel
-                        ? (locale === 'es' ? `Faltan ${entrenamientosFaltantes} para Nivel ${siguienteNivel.nivel}` : `${entrenamientosFaltantes} left to Level ${siguienteNivel.nivel}`)
-                        : (locale === 'es' ? '¡Nivel Máximo!' : 'Max Level!')}
-                    </span>
-                    <span>{siguienteNivel ? `${siguienteNivel.minSesiones} entrenos` : '100+'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lista secuencial de todos los niveles */}
-              <div className="space-y-2.5">
-                {NIVELES.map((lvl) => {
-                  const superado = totalSesiones >= lvl.maxSesiones && lvl.nivel < NIVELES.length;
-                  const enCurso = lvl.nivel === nivelActual.nivel;
-                  const bloqueado = totalSesiones < lvl.minSesiones;
-
-                  return (
-                    <div
-                      key={lvl.nivel}
-                      className={`card p-4 backdrop-blur-xl transition-all flex items-center justify-between gap-4 ${
-                        enCurso
-                          ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary)]/[0.04] shadow-[0_0_20px_rgba(212,251,52,0.06)]'
-                          : bloqueado
-                          ? 'opacity-60 bg-white/[0.01]'
-                          : 'bg-white/[0.03]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-sm ${
-                          superado
-                            ? 'bg-[var(--color-primary)] text-black'
-                            : enCurso
-                            ? 'bg-[var(--color-primary)]/20 border border-[var(--color-primary)] text-[var(--color-primary)]'
-                            : 'bg-white/5 border border-white/10 text-neutral-400'
-                        }`}>
-                          {superado ? '✓' : `L${lvl.nivel}`}
-                        </div>
-
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-white italic tracking-tight uppercase text-sm truncate">
-                              {locale === 'es' ? lvl.nombreEs : lvl.nombreEn}
-                            </span>
-                            {enCurso && (
-                              <span className="text-[9px] font-black uppercase tracking-wider bg-[var(--color-primary)] text-black px-2 py-0.5 rounded-full">
-                                {locale === 'es' ? 'ACTUAL' : 'CURRENT'}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-neutral-400 truncate mt-0.5">
-                            {locale === 'es' ? lvl.beneficioEs : lvl.beneficioEn}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="font-mono text-xs text-neutral-400 block font-bold">
-                          {lvl.minSesiones}{lvl.nivel === NIVELES.length ? '+' : ` - ${lvl.maxSesiones}`} {locale === 'es' ? 'sesiones' : 'sessions'}
-                        </span>
-                        <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest mt-0.5 block">
-                          {superado ? (
-                            <span className="text-[var(--color-primary)] font-bold">{locale === 'es' ? 'Superado' : 'Completed'}</span>
-                          ) : enCurso ? (
-                            <span className="text-[var(--color-primary)]">{progresoNivel}% {locale === 'es' ? 'completado' : 'done'}</span>
-                          ) : (
-                            <span><Lock size={10} className="inline mr-1" />{locale === 'es' ? 'Bloqueado' : 'Locked'}</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-            </div>
-          )}
-
-          {/* 3. PESTAÑA INSIGNIAS */}
-          {seccionGamificacion === 'insignias' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {badges.map((b) => {
-                const pct = Math.min(100, Math.round((b.progresoActual / b.progresoMeta) * 100));
-
-                return (
-                  <div
-                    key={b.id}
-                    className={`card p-4.5 backdrop-blur-xl transition-all flex flex-col justify-between gap-3 ${
-                      b.unlocked
-                        ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/[0.02]'
-                        : 'opacity-70 bg-white/[0.02]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3.5">
-                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                        b.unlocked
-                          ? 'bg-[var(--color-primary)]/15 border border-[var(--color-primary)]/40 shadow-sm'
-                          : 'bg-white/5 border-white/10 text-neutral-600'
-                      }`}>
-                        {b.icon}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-bold text-white text-sm truncate">
-                            {b.titulo}
-                          </h4>
-                          {b.unlocked ? (
-                            <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 px-2 py-0.5 rounded-full">
-                              {locale === 'es' ? 'Conseguida' : 'Unlocked'}
-                            </span>
-                          ) : (
-                            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Lock size={9} /> {pct}%
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-neutral-400 mt-1">
-                          {b.desc}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Barra de progreso de la insignia */}
-                    <div className="space-y-1 pt-1">
-                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            backgroundColor: b.unlocked ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)',
-                          }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] text-neutral-400 font-mono">
-                        <span>{locale === 'es' ? 'Progreso' : 'Progress'}</span>
-                        <span>{b.progresoActual.toLocaleString()} / {b.progresoMeta.toLocaleString()} {b.unidad}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
         </div>
 
         {/* ── Menú de opciones de perfil ────────────────────────────────────── */}

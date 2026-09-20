@@ -72,6 +72,7 @@ function App() {
                   <Route path="/ejercicios/:id" element={<ProtectedRoute><EjercicioDetallePage /></ProtectedRoute>} />
                   <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
                   <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+                  <Route path="/perfil/racha" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
                   <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
                   <Route path="/perfil/datos" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
                   <Route path="/utilidades" element={<ProtectedRoute><UtilidadesPage /></ProtectedRoute>} />
