@@ -1,6 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import Logo from "../shared/Logo";
 import { useI18n } from "../../context/I18nContext";
+import {
+  LayoutDashboard,
+  Dumbbell,
+  ListFilter,
+  Calendar,
+  BarChart2,
+  Timer,
+  User,
+} from "lucide-react";
 
 interface SidebarProps {
   abierto: boolean;
@@ -12,13 +21,13 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
   const { t, locale } = useI18n();
 
   const menuItems = [
-    { nombre: t.nav.dashboard, ruta: "/dashboard" },
-    { nombre: t.nav.myRoutines, ruta: "/mis-rutinas" },
-    { nombre: t.nav.exercises, ruta: "/ejercicios" },
-    { nombre: t.nav.history, ruta: "/historial" },
-    { nombre: t.nav.statistics, ruta: "/estadisticas" },
-    { nombre: locale === 'es' ? 'Utilidades' : 'Utilities', ruta: "/utilidades" },
-    { nombre: t.nav.profile, ruta: "/perfil" },
+    { nombre: t.nav.dashboard, ruta: "/dashboard", icon: <LayoutDashboard size={18} /> },
+    { nombre: t.nav.myRoutines, ruta: "/mis-rutinas", icon: <Dumbbell size={18} /> },
+    { nombre: t.nav.exercises, ruta: "/ejercicios", icon: <ListFilter size={18} /> },
+    { nombre: t.nav.history, ruta: "/historial", icon: <Calendar size={18} /> },
+    { nombre: t.nav.statistics, ruta: "/estadisticas", icon: <BarChart2 size={18} /> },
+    { nombre: locale === 'es' ? 'Utilidades' : 'Utilities', ruta: "/utilidades", icon: <Timer size={18} /> },
+    { nombre: t.nav.profile, ruta: "/perfil", icon: <User size={18} /> },
   ];
 
   return (
@@ -63,7 +72,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                 key={item.ruta}
                 to={item.ruta}
                 onClick={onCerrar}
-                className="block py-2 px-3 rounded-lg text-base sm:text-lg font-medium transition-all"
+                className="flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-sm sm:text-base font-bold transition-all"
                 aria-current={isActive ? 'page' : undefined}
                 style={
                   isActive
@@ -83,7 +92,8 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                   }
                 }}
               >
-                {item.nombre}
+                <span className="shrink-0">{item.icon}</span>
+                <span>{item.nombre}</span>
               </Link>
             );
           })}
