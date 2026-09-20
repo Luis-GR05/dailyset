@@ -9,7 +9,8 @@ import { useHistorial } from '../context/HistorialContext';
 
 type EntrenamientoLocationState = {
     nombre?: string;
-    rutinaId?: number;
+    rutinaId?: number | string;
+    ejerciciosIds?: number[];
 } | null;
 
 interface SerieUI {
@@ -92,7 +93,9 @@ export default function EntrenamientoPage() {
     const nombreRutinaState = state?.nombre;
 
     const rutina = useMemo(() => {
-        if (typeof rutinaId === 'number') return rutinas.find(r => r.id === rutinaId);
+        if (rutinaId !== undefined && rutinaId !== null) {
+            return rutinas.find(r => r.id === Number(rutinaId) || String(r.id) === String(rutinaId));
+        }
         if (nombreRutinaState) return rutinas.find(r => r.nombre === nombreRutinaState);
         return undefined;
     }, [rutinaId, nombreRutinaState, rutinas]);
@@ -100,13 +103,18 @@ export default function EntrenamientoPage() {
     const nombreRutina = rutina?.nombre || nombreRutinaState || (locale === 'es' ? "Entrenamiento" : "Training");
 
     const ejerciciosDeRutina = useMemo(() => {
-        const ids = rutina?.ejerciciosIds ?? [];
+        const ids = (rutina?.ejerciciosIds && rutina.ejerciciosIds.length > 0)
+            ? rutina.ejerciciosIds
+            : (state?.ejerciciosIds ?? []);
         const map = new Map(catalogoEjercicios.map(e => [e.id, e] as const));
-        return ids
-            .map(id => map.get(id))
-            .filter(Boolean)
-            .map(e => ({ id: e!.id, nombre: e!.nombre }));
-    }, [rutina?.ejerciciosIds, catalogoEjercicios]);
+        return ids.map(id => {
+            const found = map.get(id);
+            return {
+                id,
+                nombre: found?.nombre || (locale === 'es' ? `Ejercicio #${id}` : `Exercise #${id}`),
+            };
+        });
+    }, [rutina?.ejerciciosIds, state?.ejerciciosIds, catalogoEjercicios, locale]);
 
     const [ejerciciosUI, setEjerciciosUI] = useState<EjercicioUI[]>([]);
     const [empezado, setEmpezado] = useState(false);
@@ -116,6 +124,7 @@ export default function EntrenamientoPage() {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
     useEffect(() => {
+        if (empezado) return;
         // Inicializar ejercicios/series desde la rutina real
         const base = (ejerciciosDeRutina.length > 0 ? ejerciciosDeRutina : []).map((ej) => ({
             id: ej.id,
@@ -126,7 +135,7 @@ export default function EntrenamientoPage() {
             ],
         }));
         setEjerciciosUI(base);
-    }, [ejerciciosDeRutina]);
+    }, [ejerciciosDeRutina, empezado]);
 
     useEffect(() => {
         if (!empezado || !startedAtMs) return;
@@ -285,11 +294,12 @@ export default function EntrenamientoPage() {
                 {/* Listado de Ejercicios */}
                 <div className="space-y-6">
                     {ejerciciosUI.length > 0 ? (
-                                const infoEj = catalogoEjercicios.find(e => e.id === ejercicio.id);
-                                const imagenUrl = infoEj?.imagenInicio || infoEj?.imagenFinal;
+                        ejerciciosUI.map((ejercicio) => {
+                            const infoEj = catalogoEjercicios.find(e => e.id === ejercicio.id);
+                            const imagenUrl = infoEj?.imagenInicio || infoEj?.imagenFinal;
 
-                                return (
-                                    <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
+                            return (
+                                <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
                                         <div className="flex justify-between items-start mb-6">
                                             <div className="flex items-center gap-4">
                                                 <Link
@@ -434,8 +444,9 @@ export default function EntrenamientoPage() {
                                     </div>
                                 </div>
                             </Card>
-                        ))
-                    ) : (
+                        );
+                    })
+                ) : (
                         <div className="text-center py-20 bg-neutral-900/50 rounded-3xl border border-dashed border-neutral-800">
                             <p className="text-neutral-500 italic">{t.routines.noExercisesInRoutine}</p>
                         </div>

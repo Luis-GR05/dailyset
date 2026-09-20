@@ -6,7 +6,6 @@ import {
   Zap,
   CheckCircle2,
   Target,
-  ShieldCheck,
   Crown,
   Lock,
 } from 'lucide-react';

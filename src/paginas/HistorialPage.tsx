@@ -15,7 +15,6 @@ import {
   ArrowRight,
   Activity,
   X,
-  Sparkles,
 } from 'lucide-react';
 
 export default function HistorialPage() {

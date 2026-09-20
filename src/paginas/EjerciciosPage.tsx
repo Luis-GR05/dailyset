@@ -4,13 +4,11 @@ import { AppLayout, TituloPagina, Input, BotonPrimario, Loading } from "../compo
 import { useEjercicios } from '../context/EjerciciosContext';
 import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
-import { Pencil, Trash2, X, Dumbbell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dumbbell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 
 type Modal =
   | { tipo: 'crear' }
-  | { tipo: 'editar'; ejercicio: Ejercicio }
-  | { tipo: 'confirmarEliminar'; ejercicio: Ejercicio }
   | null;
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -75,7 +73,7 @@ const MIN_EXERCISES_PER_CATEGORY = 2;
 const normalizeCategory = (cat?: string) => (cat === 'general' ? 'all' : (cat ?? 'all'));
 
 export default function EjerciciosPage() {
-  const { ejercicios, cargando, error, agregarEjercicio, editarEjercicio, eliminarEjercicio } = useEjercicios();
+  const { ejercicios, cargando, error, agregarEjercicio } = useEjercicios();
   const { t, locale } = useI18n();
 
   const [filtroCategoria, setFiltroCategoria] = useState<string>('all');
@@ -179,15 +177,6 @@ export default function EjerciciosPage() {
   const handleGuardar = async (data: Omit<Ejercicio, 'id'>) => {
     if (modal?.tipo === 'crear') {
       await agregarEjercicio(data);
-    } else if (modal?.tipo === 'editar') {
-      await editarEjercicio({ ...data, id: modal.ejercicio.id });
-    }
-    setModal(null);
-  };
-
-  const handleEliminar = async () => {
-    if (modal?.tipo === 'confirmarEliminar') {
-      await eliminarEjercicio(modal.ejercicio.id);
     }
     setModal(null);
   };
@@ -372,28 +361,6 @@ export default function EjerciciosPage() {
                       </div>
                     </div>
                   </Link>
-
-                  {/* Acciones hover (solo si es del usuario) */}
-                  {!ejercicio.esPublico || ejercicio.externalId === undefined ? null : null}
-                  <div
-                    className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ zIndex: 10 }}
-                  >
-                    <button
-                      className="card-action-btn"
-                      title={t.exercises.editExercise}
-                      onClick={(e) => { e.preventDefault(); setModal({ tipo: 'editar', ejercicio }); }}
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      className="card-action-btn danger"
-                      title={t.exercises.deleteExercise}
-                      onClick={(e) => { e.preventDefault(); setModal({ tipo: 'confirmarEliminar', ejercicio }); }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
                 </div>
               ))
             ) : (
@@ -447,41 +414,13 @@ export default function EjerciciosPage() {
         )}
       </div>
 
-      {/* Modal: Crear / Editar */}
-      {(modal?.tipo === 'crear' || modal?.tipo === 'editar') && (
+      {/* Modal: Crear */}
+      {modal?.tipo === 'crear' && (
         <FormularioEjercicio
-          ejercicio={modal.tipo === 'editar' ? modal.ejercicio : null}
+          ejercicio={null}
           onGuardar={handleGuardar}
           onCerrar={() => setModal(null)}
         />
-      )}
-
-      {/* Modal: Confirmar eliminación */}
-      {modal?.tipo === 'confirmarEliminar' && (
-        <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="text-lg font-bold" style={{ color: 'var(--color-white)' }}>{t.exercises.deleteExercise}</h2>
-              <button className="modal-close-btn" onClick={() => setModal(null)}><X size={16} /></button>
-            </div>
-            <div className="modal-form">
-              <p className="text-sm" style={{ color: 'var(--color-neutral-3000)' }}>
-                ¿Seguro que quieres eliminar <strong style={{ color: 'var(--color-white)' }}>"{modal.ejercicio.nombre}"</strong>?
-                {` ${t.exercises.confirmDeleteDesc}`}
-              </p>
-              <div className="modal-actions">
-                <button className="btn btn-secondary" onClick={() => setModal(null)}>{t.exercises.cancel}</button>
-                <button
-                  className="btn"
-                  style={{ background: '#ef4444', color: 'white' }}
-                  onClick={handleEliminar}
-                >
-                  {t.exercises.delete}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </AppLayout>
   );

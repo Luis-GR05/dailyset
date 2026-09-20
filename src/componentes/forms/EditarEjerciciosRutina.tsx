@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useEjercicios } from '../../context/EjerciciosContext';
 import type { Rutina } from '../../context/RutinasContext';
-import { X, Plus, Eye, ExternalLink } from 'lucide-react';
+import { X, Plus, Eye } from 'lucide-react';
 
 interface EditarEjerciciosRutinaProps {
     rutina: Rutina;

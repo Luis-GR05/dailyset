@@ -94,13 +94,16 @@ function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], loca
         if (relaxLevel === 0 && answers.nivel) { if (e.dificultad?.toLowerCase() !== answers.nivel) return false; }
         return true;
     }
+    // Deduplicar pool por ID para asegurar que no haya repetidos
+    const uniquePool = Array.from(new Map(pool.map(e => [e.id, e])).values());
     let filtered: Ejercicio[] = [];
     for (let relax = 0; relax <= 3; relax++) {
-        filtered = pool.filter(e => matches(e, relax));
+        filtered = uniquePool.filter(e => matches(e, relax));
         if (filtered.length >= n) break;
     }
-    if (filtered.length < n) filtered = [...pool];
-    const selected = [...filtered].sort(() => Math.random() - 0.5).slice(0, n);
+    if (filtered.length < n) filtered = [...uniquePool];
+    const uniqueFiltered = Array.from(new Map(filtered.map(e => [e.id, e])).values());
+    const selected = [...uniqueFiltered].sort(() => Math.random() - 0.5).slice(0, n);
     const lblObjetivo: Record<string,string> = { ganar_musculo: locale==='es'?'Ganar Músculo':'Build Muscle', perder_peso: locale==='es'?'Perder Peso':'Fat Loss', resistencia: locale==='es'?'Resistencia':'Endurance', flexibilidad: locale==='es'?'Flexibilidad':'Flexibility' };
     const lblZona: Record<string,string> = { completo: locale==='es'?'Cuerpo Completo':'Full Body', superior: locale==='es'?'Tren Superior':'Upper Body', inferior: locale==='es'?'Tren Inferior':'Lower Body', core: 'Core' };
     const lblNivel: Record<string,string> = { principiante: locale==='es'?'Principiante':'Beginner', intermedio: locale==='es'?'Intermedio':'Intermediate', avanzado: locale==='es'?'Avanzado':'Advanced' };
@@ -456,7 +459,7 @@ export default function MisRutinasPage() {
                                                     {totalEjercicios > 0 && (
                                                         <Link
                                                             to="/mis-rutinas/entrenamiento"
-                                                            state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
+                                                            state={{ nombre: rutina.nombre, rutinaId: rutina.id, ejerciciosIds: rutina.ejerciciosIds }}
                                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 cursor-pointer"
                                                             style={{
                                                                 background: 'var(--color-primary)',

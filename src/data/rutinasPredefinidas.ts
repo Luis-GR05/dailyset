@@ -185,5 +185,116 @@ export const RUTINAS_PREDEFINIDAS: RutinaTemplate[] = [
       { id: 1055, nombre: 'Estiramiento de aductores asistido, tumbado de lado' },
       { id: 1228, nombre: 'Estiramiento, con manos en la pared, gemelo' }
     ]
+  },
+  {
+    id: 'movilidad-cadera-inferior',
+    nombre: 'Movilidad de Cadera y Tren Inferior',
+    nombreEn: 'Hip & Lower Body Mobility',
+    categoria: 'Movilidad',
+    duracion: 25,
+    nivel: 'Intermedio',
+    descripcion: 'Desbloquea la pelvis, alivia caderas rígidas y gana rango articular en glúteos, aductores e isquios.',
+    descripcionEn: 'Unlock the pelvis, relieve tight hips and expand joint range of motion in glutes, adductors and hamstrings.',
+    color: '#10b981',
+    ejerciciosIds: [1591, 1593, 1055, 1631, 1549],
+    ejercicios: [
+      { id: 1591, nombre: 'Estiramiento, roller cadera' },
+      { id: 1593, nombre: 'Estiramiento del piriforme, sentado' },
+      { id: 1055, nombre: 'Estiramiento de aductores asistido, tumbado de lado' },
+      { id: 1631, nombre: 'Estiramiento, isquiotibial' },
+      { id: 1549, nombre: 'Estiramiento en fitball, cadera flexor' }
+    ]
+  },
+  {
+    id: 'movilidad-columna-espalda',
+    nombre: 'Movilidad de Columna y Postura',
+    nombreEn: 'Spine Mobility & Posture',
+    categoria: 'Movilidad',
+    duracion: 20,
+    nivel: 'Principiante',
+    descripcion: 'Alivia la tensión acumulada en la espalda, mejora la postura y descomprime la columna lumbar y dorsal.',
+    descripcionEn: 'Relieve accumulated back tension, improve posture and decompress lumbar and thoracic spine.',
+    color: '#34d399',
+    ejerciciosIds: [1956, 1700, 1720, 1724],
+    ejercicios: [
+      { id: 1956, nombre: 'Estiramiento, columna' },
+      { id: 1700, nombre: 'Estiramiento, de rodillas, dorsal' },
+      { id: 1720, nombre: 'Estiramiento, sentado, inferior espalda' },
+      { id: 1724, nombre: 'Estiramiento, de pie, lateral' }
+    ]
+  },
+  {
+    id: 'movilidad-hombro-pecho',
+    nombre: 'Apertura Torácica y Hombros',
+    nombreEn: 'Thoracic Opening & Shoulders',
+    categoria: 'Movilidad',
+    duracion: 20,
+    nivel: 'Intermedio',
+    descripcion: 'Apertura de pecho y rotación escapular para liberar los hombros y contrarrestar la postura sentada.',
+    descripcionEn: 'Chest opening and scapular rotation to free up shoulders and counter prolonged sitting.',
+    color: '#2dd4bf',
+    ejerciciosIds: [1828, 1430, 1776, 1752],
+    ejercicios: [
+      { id: 1828, nombre: 'Estiramiento dinámico de pecho' },
+      { id: 1430, nombre: 'Estiramiento de deltoides posterior' },
+      { id: 1776, nombre: 'Estiramiento, frontal, pecho hombro' },
+      { id: 1752, nombre: 'Estiramiento, tras la nuca, pecho' }
+    ]
+  },
+  {
+    id: 'cardio-tabata-salto',
+    nombre: 'Cardio Tabata & Salto Intenso',
+    nombreEn: 'Cardio Tabata & Explosive Jumps',
+    categoria: 'Cardio',
+    duracion: 20,
+    nivel: 'Avanzado',
+    descripcion: 'Ráfagas cortas a máxima frecuencia cardíaca con comba y saltos pliométricos para disparar la potencia.',
+    descripcionEn: 'Short maximum-effort bursts with jump rope and plyometric jumps to spike explosive power.',
+    color: '#ef4444',
+    ejerciciosIds: [1281, 1280, 1282, 1576, 1279],
+    ejercicios: [
+      { id: 1281, nombre: 'Comba' },
+      { id: 1280, nombre: 'Salto, jack' },
+      { id: 1282, nombre: 'Escalador' },
+      { id: 1576, nombre: 'Zancada, jump' },
+      { id: 1279, nombre: 'Burpee, jack' }
+    ]
+  },
+  {
+    id: 'cardio-bajo-impacto',
+    nombre: 'Cardio Aeróbico Sin Impacto',
+    nombreEn: 'Low-Impact Aerobic Cardio',
+    categoria: 'Cardio',
+    duracion: 35,
+    nivel: 'Principiante',
+    descripcion: 'Cardio continuo protegiendo rodillas y articulaciones con elíptica, stepmill y ritmo moderado.',
+    descripcionEn: 'Continuous cardio protecting knees and joints with elliptical, stepmill and steady moderate pace.',
+    color: '#38bdf8',
+    ejerciciosIds: [1275, 1298, 1292, 1288],
+    ejercicios: [
+      { id: 1275, nombre: 'Bicicleta elíptica' },
+      { id: 1298, nombre: 'Andando en stepmill' },
+      { id: 1292, nombre: 'Bicicleta estática, correr' },
+      { id: 1288, nombre: 'Carrera a zancada corta' }
+    ]
+  },
+  {
+    id: 'cardio-burn-funcional',
+    nombre: 'Cardio Burn Funcional & Core',
+    nombreEn: 'Functional Cardio Burn & Core',
+    categoria: 'Cardio',
+    duracion: 30,
+    nivel: 'Intermedio',
+    descripcion: 'Agilidad de pies, saltos dinámicos y picos de pulso combinados con estabilizadores de core.',
+    descripcionEn: 'Foot agility, dynamic jumps and heart rate peaks combined with core stabilizers.',
+    color: '#f59e0b',
+    ejerciciosIds: [1282, 1286, 1278, 1287, 1291],
+    ejercicios: [
+      { id: 1282, nombre: 'Escalador' },
+      { id: 1286, nombre: 'Saltos, scissor' },
+      { id: 1278, nombre: 'Rodilla contra pared, alto' },
+      { id: 1287, nombre: 'Sentadilla, semi jump' },
+      { id: 1291, nombre: 'Salto, star' }
+    ]
   }
 ];

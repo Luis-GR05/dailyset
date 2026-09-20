@@ -173,7 +173,7 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
 
     if (error) throw error;
 
-    const ejerciciosIniciales = r.ejerciciosIds || [];
+    const ejerciciosIniciales = [...new Set(r.ejerciciosIds || [])];
     if (ejerciciosIniciales.length > 0) {
       const inserciones = ejerciciosIniciales.map((ejercicioId, indice) => ({
         rutina_id: data.id,
@@ -243,8 +243,9 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
 
     if (deleteError) throw deleteError;
 
-    if (ejerciciosIds.length > 0) {
-      const inserciones = ejerciciosIds.map((ejercicioId, indice) => ({
+    const idsUnicos = [...new Set(ejerciciosIds || [])];
+    if (idsUnicos.length > 0) {
+      const inserciones = idsUnicos.map((ejercicioId, indice) => ({
         rutina_id: rutinaId,
         ejercicio_id: ejercicioId,
         indice_orden: indice,
@@ -258,7 +259,7 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     }
 
     setRutinas(prev =>
-      prev.map(r => (r.id === rutinaId ? { ...r, ejerciciosIds } : r))
+      prev.map(r => (r.id === rutinaId ? { ...r, ejerciciosIds: idsUnicos } : r))
     );
   };
 
