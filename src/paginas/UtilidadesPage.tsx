@@ -80,6 +80,9 @@ export default function UtilidadesPage() {
   const [tempFinalizado, setTempFinalizado] = useState(false);
   const [sonidoActivado, setSonidoActivado] = useState(true);
 
+  const tempTargetEndRef = useRef<number>(0);
+  const tempRestanteRef = useRef<number>(60);
+
   // Presets rápidos para descanso entre series
   const presetsTemporizador = [
     { label: '30s', seg: 30 },
@@ -93,40 +96,70 @@ export default function UtilidadesPage() {
 
   useEffect(() => {
     let interval: any = null;
-    if (tempCorriendo && tiempoRestante > 0) {
-      interval = setInterval(() => {
-        setTiempoRestante((prev) => {
-          if (prev <= 1) {
-            setTempCorriendo(false);
-            setTempFinalizado(true);
-            if (sonidoActivado) {
-              playBeep(920, 0.3, 3);
-            }
-            if ('vibrate' in navigator) {
-              navigator.vibrate([300, 150, 300]);
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+
+    const syncTimer = () => {
+      if (!tempCorriendo) return;
+      const ahora = Date.now();
+      const diffMs = tempTargetEndRef.current - ahora;
+      const rem = Math.max(0, Math.ceil(diffMs / 1000));
+
+      setTiempoRestante(rem);
+
+      if (diffMs <= 0) {
+        setTempCorriendo(false);
+        setTempFinalizado(true);
+        setTiempoRestante(0);
+        if (sonidoActivado) {
+          playBeep(920, 0.3, 3);
+        }
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate([300, 150, 300]);
+        }
+      }
+    };
+
+    if (tempCorriendo) {
+      syncTimer();
+      interval = setInterval(syncTimer, 250);
     }
-    return () => clearInterval(interval);
-  }, [tempCorriendo, tiempoRestante, sonidoActivado]);
+
+    const handleVisibility = () => {
+      if (tempCorriendo) {
+        syncTimer();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
+  }, [tempCorriendo, sonidoActivado]);
 
   const toggleTemporizador = () => {
     if (tempFinalizado) {
+      tempTargetEndRef.current = Date.now() + segundosTotales * 1000;
       setTiempoRestante(segundosTotales);
       setTempFinalizado(false);
       setTempCorriendo(true);
+    } else if (!tempCorriendo) {
+      tempTargetEndRef.current = Date.now() + tiempoRestante * 1000;
+      setTempCorriendo(true);
     } else {
-      setTempCorriendo(!tempCorriendo);
+      const rem = Math.max(0, Math.ceil((tempTargetEndRef.current - Date.now()) / 1000));
+      setTiempoRestante(rem);
+      tempRestanteRef.current = rem;
+      setTempCorriendo(false);
     }
   };
 
   const reiniciarTemporizador = () => {
     setTempCorriendo(false);
     setTiempoRestante(segundosTotales);
+    tempRestanteRef.current = segundosTotales;
     setTempFinalizado(false);
   };
 
@@ -135,11 +168,20 @@ export default function UtilidadesPage() {
     setTempFinalizado(false);
     setSegundosTotales(seg);
     setTiempoRestante(seg);
+    tempRestanteRef.current = seg;
   };
 
   const agregarSegundos = (seg: number) => {
-    setTiempoRestante((prev) => Math.max(0, prev + seg));
-    setSegundosTotales((prev) => Math.max(0, prev + seg));
+    if (tempCorriendo) {
+      tempTargetEndRef.current += seg * 1000;
+      const rem = Math.max(0, Math.ceil((tempTargetEndRef.current - Date.now()) / 1000));
+      setTiempoRestante(rem);
+      setSegundosTotales((prev) => Math.max(prev, rem));
+    } else {
+      setTiempoRestante((prev) => Math.max(0, prev + seg));
+      setSegundosTotales((prev) => Math.max(0, prev + seg));
+      tempRestanteRef.current = Math.max(0, tempRestanteRef.current + seg);
+    }
   };
 
   const formatTiempo = (seg: number) => {
