@@ -121,7 +121,7 @@ function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], loca
 }
 
 export default function MisRutinasPage() {
-    const { rutinas, cargando, error, carga, refrescar, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
+    const { rutinas, cargando, error, carga, refrescar, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina, togglePrivacidad } = useRutinas();
     const { t, locale } = useI18n();
 
     // Pestaña principal: 'mis_rutinas' o 'preestablecidas'
@@ -153,6 +153,7 @@ export default function MisRutinasPage() {
     const [rutinaIA, setRutinaIA] = useState<RutinaGeneradaIA | null>(null);
     const [guardandoIA, setGuardandoIA] = useState(false);
     const [exitoIA, setExitoIA] = useState(false);
+    const [isPublicIA, setIsPublicIA] = useState(false);
 
     const categoriasPredefinidas = useMemo(() => {
         return ['Todas', 'Fuerza', 'Cardio', 'Calistenia', 'Core', 'Movilidad'];
@@ -216,7 +217,7 @@ export default function MisRutinasPage() {
         setModal(null);
     };
 
-    // Adoptar una rutina predefinida
+    // Adoptar una rutina predefinida (por defecto PRIVADA)
     const handleCogerRutina = async (plantilla: RutinaTemplate) => {
         setAdoptandoId(plantilla.id);
         try {
@@ -225,6 +226,7 @@ export default function MisRutinasPage() {
                 categoria: plantilla.categoria,
                 duracion: plantilla.duracion,
                 ejerciciosIds: plantilla.ejerciciosIds,
+                is_public: false, // 100% privada por defecto: el usuario decide si compartirla
             });
             setMensajeExito(
                 locale === 'es'
@@ -466,21 +468,25 @@ export default function MisRutinasPage() {
                                                                 {rutina.categoria}
                                                             </span>
                                                             {rutina.is_public ? (
-                                                                <span
-                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
-                                                                    title={locale === 'es' ? 'Rutina pública: visible en el feed social' : 'Public routine: visible on social feed'}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => togglePrivacidad(rutina.id)}
+                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm hover:bg-emerald-500/25 transition-all cursor-pointer"
+                                                                    title={locale === 'es' ? 'Rutina pública (visible en la comunidad). Haz clic para hacerla privada.' : 'Public routine. Click to make private.'}
                                                                 >
                                                                     <Globe size={10} />
                                                                     {locale === 'es' ? 'Pública' : 'Public'}
-                                                                </span>
+                                                                </button>
                                                             ) : (
-                                                                <span
-                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-neutral-800 text-neutral-400 border border-neutral-700/60 shadow-sm"
-                                                                    title={locale === 'es' ? 'Rutina privada: solo visible por ti' : 'Private routine: only visible by you'}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => togglePrivacidad(rutina.id)}
+                                                                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 bg-neutral-800 text-neutral-400 border border-neutral-700/60 shadow-sm hover:border-[var(--color-primary)] hover:text-white transition-all cursor-pointer"
+                                                                    title={locale === 'es' ? 'Rutina privada (solo tú la ves). Haz clic para hacerla pública.' : 'Private routine. Click to make public.'}
                                                                 >
                                                                     <Lock size={10} />
                                                                     {locale === 'es' ? 'Privada' : 'Private'}
-                                                                </span>
+                                                                </button>
                                                             )}
                                                         </div>
                                                         <p className="text-neutral-400 text-xs mt-1">
@@ -1090,6 +1096,57 @@ export default function MisRutinasPage() {
                                     ))}
                                 </div>
 
+                                {/* Selector de privacidad para la rutina IA (Por defecto PRIVADA) */}
+                                <div className="p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-2 mt-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            {isPublicIA ? (
+                                                <Globe size={16} className="text-emerald-400" />
+                                            ) : (
+                                                <Lock size={16} className="text-neutral-400" />
+                                            )}
+                                            <span className="text-xs font-bold text-white">
+                                                {locale === 'es' ? 'Control de Privacidad' : 'Privacy Control'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 p-1 bg-neutral-950 rounded-xl border border-neutral-800 self-start sm:self-auto">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPublicIA(false)}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                                                    !isPublicIA
+                                                        ? 'bg-neutral-800 text-white shadow-sm'
+                                                        : 'text-neutral-400 hover:text-white'
+                                                }`}
+                                            >
+                                                <Lock size={12} />
+                                                <span>{locale === 'es' ? 'Privada (Por defecto)' : 'Private (Default)'}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPublicIA(true)}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                                                    isPublicIA
+                                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                        : 'text-neutral-400 hover:text-white'
+                                                }`}
+                                            >
+                                                <Globe size={12} />
+                                                <span>{locale === 'es' ? 'Pública' : 'Public'}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px] text-neutral-400 leading-relaxed">
+                                        {isPublicIA
+                                            ? locale === 'es'
+                                                ? 'Visible para toda la comunidad en la sección Social para que otros atletas puedan verla y guardarla.'
+                                                : 'Visible to everyone in the Social community section.'
+                                            : locale === 'es'
+                                            ? 'Solo tú podrás ver y entrenar esta rutina (recomendado por defecto). Puedes hacerla pública en cualquier momento.'
+                                            : 'Only you will be able to see and train this routine (default). You can make it public at any time.'}
+                                    </p>
+                                </div>
+
                                 {/* Save actions */}
                                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                                     <button
@@ -1102,13 +1159,15 @@ export default function MisRutinasPage() {
                                                     categoria: rutinaIA.categoria,
                                                     duracion: rutinaIA.duracion,
                                                     ejerciciosIds: rutinaIA.ejercicios.map(e => e.id),
+                                                    is_public: isPublicIA, // Por defecto false (privada)
                                                 });
                                                 setExitoIA(true);
-                                                setMensajeExito(locale === 'es' ? `¡Rutina "${rutinaIA.nombre}" guardada!` : `Routine "${rutinaIA.nombre}" saved!`);
+                                                setMensajeExito(locale === 'es' ? `¡Rutina "${rutinaIA.nombre}" guardada como ${isPublicIA ? 'pública' : 'privada'}!` : `Routine "${rutinaIA.nombre}" saved!`);
                                                 setTimeout(() => {
                                                     setTabActiva('mis_rutinas');
                                                     setRutinaIA(null); setPasoIA(0);
                                                     setWizardAnswers({ objetivo:'', nivel:'', dias:0, duracion:0, equipamiento:'', zona:'' });
+                                                    setIsPublicIA(false);
                                                     setMensajeExito(null);
                                                 }, 2000);
                                             } catch { /* ignore */ }
@@ -1122,7 +1181,7 @@ export default function MisRutinasPage() {
                                         {guardandoIA ? (locale === 'es' ? 'Guardando…' : 'Saving…') : exitoIA ? '✓ Guardado' : (locale === 'es' ? 'Guardar en Mis Rutinas' : 'Save to My Routines')}
                                     </button>
                                     <button
-                                        onClick={() => { setRutinaIA(null); setPasoIA(0); setWizardAnswers({ objetivo:'', nivel:'', dias:0, duracion:0, equipamiento:'', zona:'' }); setExitoIA(false); }}
+                                        onClick={() => { setRutinaIA(null); setPasoIA(0); setWizardAnswers({ objetivo:'', nivel:'', dias:0, duracion:0, equipamiento:'', zona:'' }); setExitoIA(false); setIsPublicIA(false); }}
                                         className="px-5 py-3 rounded-xl font-bold text-sm text-neutral-400 hover:text-white transition-colors"
                                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                                     >
