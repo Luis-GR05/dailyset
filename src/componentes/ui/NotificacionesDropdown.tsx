@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -10,22 +10,23 @@ import {
   Trash2,
   X,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  UserPlus,
+  Heart,
+  Copy,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../context/I18nContext';
 import { useHistorial } from '../../context/HistorialContext';
-
-export interface NotificacionItem {
-  id: string;
-  tipo: 'nivel' | 'racha' | 'record' | 'entrenamiento' | 'sistema';
-  titulo: string;
-  mensaje: string;
-  tiempo: string;
-  timestamp: number;
-  leida: boolean;
-  enlace?: string;
-}
+import type { NotificacionItem, TipoNotificacion } from '../../types/social';
+import {
+  getNotificaciones,
+  marcarComoLeida as apiMarcarComoLeida,
+  marcarTodasComoLeidas as apiMarcarTodasComoLeidas,
+  eliminarNotificacion as apiEliminarNotificacion,
+  limpiarNotificaciones as apiLimpiarNotificaciones,
+  NOTIFICATION_EVENT,
+} from '../../lib/notificacionesService';
 
 export default function NotificacionesDropdown() {
   const { user } = useAuth();
@@ -34,10 +35,11 @@ export default function NotificacionesDropdown() {
   const navigate = useNavigate();
 
   const [abierto, setAbierto] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<NotificacionItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Clave de almacenamiento local por usuario
-  const storageKey = `dailyset_notifs_${user?.id || 'default'}`;
+  const userId = user?.id || 'anonimo';
+  const storageKey = `dailyset_notifs_${userId}`;
 
   // Calcular estadísticas reales del usuario
   const totalSesiones = sesiones.length;
@@ -70,7 +72,7 @@ export default function NotificacionesDropdown() {
       items.push({
         id: `notif-nivel-${nivel}`,
         tipo: 'nivel',
-        titulo: locale === 'es' ? `¡Ascenso a ${nombres.es}!` : `Level Up to ${nombres.en}!`,
+        titulo: locale === 'es' ? `Ascenso a ${nombres.es}` : `Level Up to ${nombres.en}`,
         mensaje: locale === 'es'
           ? `Has completado ${totalSesiones} entrenamientos. Tu constancia ha desbloqueado un nuevo rango en tu perfil.`
           : `You completed ${totalSesiones} workouts. Your dedication unlocked a new profile rank.`,
@@ -83,7 +85,7 @@ export default function NotificacionesDropdown() {
       items.push({
         id: 'notif-nivel-1',
         tipo: 'nivel',
-        titulo: locale === 'es' ? '¡Iniciaste tu camino: Nivel 1!' : 'Journey started: Level 1!',
+        titulo: locale === 'es' ? 'Iniciaste tu camino: Nivel 1' : 'Journey started: Level 1',
         mensaje: locale === 'es'
           ? 'Estás en Nivel 1 (Chispa Inicial). Completa 3 entrenamientos para ascender a Fuego Constante.'
           : 'You are at Level 1 (Initial Spark). Complete 3 workouts to ascend to Steady Flame.',
@@ -98,7 +100,7 @@ export default function NotificacionesDropdown() {
     items.push({
       id: 'notif-racha',
       tipo: 'racha',
-      titulo: locale === 'es' ? '¡Protege tu Racha Diaria!' : 'Protect your Daily Streak!',
+      titulo: locale === 'es' ? 'Protege tu Racha Diaria' : 'Protect your Daily Streak',
       mensaje: locale === 'es'
         ? 'Completa tu sesión diaria para no perder el fuego de racha y sumar experiencia.'
         : 'Complete your daily session to keep your streak burning and gain XP.',
@@ -113,10 +115,10 @@ export default function NotificacionesDropdown() {
       items.push({
         id: 'notif-record',
         tipo: 'record',
-        titulo: locale === 'es' ? `¡Nuevo Récord Personal (${maxKg} kg)!` : `New Personal PR (${maxKg} kg)!`,
+        titulo: locale === 'es' ? `Nuevo Récord Personal (${maxKg} kg)` : `New Personal PR (${maxKg} kg)`,
         mensaje: locale === 'es'
-          ? `Has superado tu mejor marca histórica levantando ${maxKg} kg. ¡Sigue rompiendo límites!`
-          : `You beat your historic record by lifting ${maxKg} kg. Keep crushing it!`,
+          ? `Has superado tu mejor marca histórica levantando ${maxKg} kg. Sigue progresando.`
+          : `You beat your historic record by lifting ${maxKg} kg. Keep crushing it.`,
         tiempo: locale === 'es' ? 'Ayer' : 'Yesterday',
         timestamp: now - 1000 * 60 * 60 * 24,
         leida: true,
@@ -128,7 +130,7 @@ export default function NotificacionesDropdown() {
     items.push({
       id: 'notif-bienvenida',
       tipo: 'sistema',
-      titulo: locale === 'es' ? '¡Bienvenido a DailySet Elite!' : 'Welcome to DailySet Elite!',
+      titulo: locale === 'es' ? 'Bienvenido a DailySet' : 'Welcome to DailySet',
       mensaje: locale === 'es'
         ? 'Explora las rutinas predefinidas o crea las tuyas propias para comenzar a progresar.'
         : 'Explore pre-built routines or create your custom plans to start progressing.',
@@ -141,27 +143,40 @@ export default function NotificacionesDropdown() {
     return items;
   }, [totalSesiones, maxKg, locale]);
 
-  // Estado de las notificaciones
-  const [notificaciones, setNotificaciones] = useState<NotificacionItem[]>(() => {
+  // Cargar notificaciones (locales + servidor)
+  const cargarNotificaciones = useCallback(async () => {
     try {
-      const guardadas = localStorage.getItem(storageKey);
-      if (guardadas) {
-        return JSON.parse(guardadas);
+      const items = await getNotificaciones(userId);
+      if (items.length > 0) {
+        setNotificaciones(items);
+      } else {
+        // Sembrar con notificaciones base si la bandeja está completamente vacía
+        setNotificaciones(notificacionesBase);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(storageKey, JSON.stringify(notificacionesBase));
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error cargando notificaciones:', e);
+      setNotificaciones(notificacionesBase);
     }
-    return notificacionesBase;
-  });
+  }, [userId, storageKey, notificacionesBase]);
 
-  // Guardar en localStorage cada vez que cambien
   useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(notificaciones));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [notificaciones, storageKey]);
+    cargarNotificaciones();
+
+    const handleUpdate = () => {
+      cargarNotificaciones();
+    };
+
+    window.addEventListener(NOTIFICATION_EVENT, handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener(NOTIFICATION_EVENT, handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, [cargarNotificaciones]);
 
   // Cerrar al hacer click fuera
   useEffect(() => {
@@ -182,31 +197,53 @@ export default function NotificacionesDropdown() {
   const sinLeerCount = notificaciones.filter((n) => !n.leida).length;
 
   // Marcar todas como leídas
-  const marcarTodasComoLeidas = () => {
+  const handleMarcarTodasComoLeidas = async () => {
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+    await apiMarcarTodasComoLeidas(userId);
   };
 
   // Marcar una como leída
-  const marcarComoLeida = (id: string) => {
+  const handleMarcarComoLeida = async (id: string) => {
     setNotificaciones((prev) =>
       prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
     );
+    await apiMarcarComoLeida(userId, id);
   };
 
   // Eliminar una notificación
-  const eliminarNotificacion = (e: React.MouseEvent, id: string) => {
+  const handleEliminarNotificacion = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setNotificaciones((prev) => prev.filter((n) => n.id !== id));
+    await apiEliminarNotificacion(userId, id);
   };
 
   // Vaciar todas
-  const limpiarTodas = () => {
+  const handleLimpiarTodas = async () => {
     setNotificaciones([]);
+    await apiLimpiarNotificaciones(userId);
   };
 
   // Obtener icono según el tipo
-  const getIcono = (tipo: NotificacionItem['tipo']) => {
+  const getIcono = (tipo: TipoNotificacion) => {
     switch (tipo) {
+      case 'seguidor':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center shrink-0 border border-violet-500/30">
+            <UserPlus size={16} />
+          </div>
+        );
+      case 'reaccion':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+            <Heart size={16} className="fill-rose-400" />
+          </div>
+        );
+      case 'clonacion':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <Copy size={16} />
+          </div>
+        );
       case 'nivel':
         return (
           <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] flex items-center justify-center shrink-0 border border-[var(--color-primary)]/30">
@@ -242,7 +279,7 @@ export default function NotificacionesDropdown() {
   };
 
   const handleItemClick = (item: NotificacionItem) => {
-    marcarComoLeida(item.id);
+    handleMarcarComoLeida(item.id);
     if (item.enlace) {
       setAbierto(false);
       navigate(item.enlace);
@@ -297,7 +334,7 @@ export default function NotificacionesDropdown() {
 
             {sinLeerCount > 0 && (
               <button
-                onClick={marcarTodasComoLeidas}
+                onClick={handleMarcarTodasComoLeidas}
                 title={locale === 'es' ? 'Marcar todas como leídas' : 'Mark all as read'}
                 className="text-xs text-neutral-400 hover:text-[var(--color-primary)] transition-colors flex items-center gap-1 font-semibold cursor-pointer"
               >
@@ -318,7 +355,7 @@ export default function NotificacionesDropdown() {
                   {locale === 'es' ? 'Sin notificaciones' : 'No notifications'}
                 </p>
                 <p className="text-xs text-neutral-400">
-                  {locale === 'es' ? 'Estás al día con todos tus entrenamientos.' : "You're all caught up with your workouts."}
+                  {locale === 'es' ? 'Estás al día con todos tus eventos y entrenamientos.' : "You're all caught up with your events and workouts."}
                 </p>
               </div>
             ) : (
@@ -366,7 +403,7 @@ export default function NotificacionesDropdown() {
 
                     <button
                       type="button"
-                      onClick={(e) => eliminarNotificacion(e, item.id)}
+                      onClick={(e) => handleEliminarNotificacion(e, item.id)}
                       title={locale === 'es' ? 'Eliminar' : 'Delete'}
                       className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-red-400 transition-all rounded-md mt-auto"
                     >
@@ -382,7 +419,8 @@ export default function NotificacionesDropdown() {
           {notificaciones.length > 0 && (
             <div className="p-2.5 bg-black/40 border-t border-white/10 flex items-center justify-between text-xs">
               <button
-                onClick={limpiarTodas}
+                type="button"
+                onClick={handleLimpiarTodas}
                 className="text-[11px] text-neutral-400 hover:text-red-400 transition-colors flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-white/5 cursor-pointer"
               >
                 <Trash2 size={12} />
@@ -390,6 +428,7 @@ export default function NotificacionesDropdown() {
               </button>
 
               <button
+                type="button"
                 onClick={() => setAbierto(false)}
                 className="text-[11px] text-neutral-400 hover:text-white transition-colors px-2.5 py-1 rounded-lg hover:bg-white/5 cursor-pointer font-semibold"
               >

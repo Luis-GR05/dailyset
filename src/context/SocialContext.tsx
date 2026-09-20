@@ -17,6 +17,7 @@ import {
   bloquearUsuario as apiBloquearUsuario,
   desbloquearUsuario as apiDesbloquearUsuario,
   reportarContenido as apiReportarContenido,
+  toggleReaccionRutina,
 } from '../lib/socialService';
 
 interface SocialContextType {
@@ -37,6 +38,7 @@ interface SocialContextType {
   refrescarFeed: () => Promise<void>;
   clonarRutinaSocial: (rutinaId: number) => Promise<number | null>;
   togglePrivacidadRutina: (rutinaId: number, estadoActual: boolean) => Promise<boolean>;
+  reaccionarRutina: (rutinaId: number, autorRutinaId: string, nombreRutina: string) => Promise<boolean>;
   bloqueadosIds: string[];
   estaBloqueado: (userId: string) => boolean;
   bloquearAtleta: (userId: string) => Promise<boolean>;
@@ -268,6 +270,58 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return nuevoEstado;
   };
 
+  // 11. Reaccionar a una rutina pública
+  const reaccionarRutina = async (
+    rutinaId: number,
+    autorRutinaId: string,
+    nombreRutina: string
+  ): Promise<boolean> => {
+    if (!user) throw new Error('Debes iniciar sesión para reaccionar');
+
+    // Optimistic UI update
+    setFeed(prev =>
+      prev.map(r => {
+        if (r.id === rutinaId) {
+          const yaLikeada = Boolean(r.esLikeada);
+          const currentCount = r.likesCount || 0;
+          return {
+            ...r,
+            esLikeada: !yaLikeada,
+            likesCount: yaLikeada ? Math.max(0, currentCount - 1) : currentCount + 1,
+          };
+        }
+        return r;
+      })
+    );
+
+    try {
+      const res = await toggleReaccionRutina({
+        rutinaId,
+        usuarioId: user.id,
+        autorRutinaId,
+        nombreRutina,
+      });
+      return res.liked;
+    } catch (err) {
+      // Revertir si hay error
+      setFeed(prev =>
+        prev.map(r => {
+          if (r.id === rutinaId) {
+            const yaLikeada = Boolean(r.esLikeada);
+            const currentCount = r.likesCount || 0;
+            return {
+              ...r,
+              esLikeada: !yaLikeada,
+              likesCount: yaLikeada ? Math.max(0, currentCount - 1) : currentCount + 1,
+            };
+          }
+          return r;
+        })
+      );
+      throw err;
+    }
+  };
+
   return (
     <SocialContext.Provider
       value={{
@@ -288,6 +342,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         refrescarFeed: cargarFeed,
         clonarRutinaSocial,
         togglePrivacidadRutina,
+        reaccionarRutina,
         bloqueadosIds,
         estaBloqueado,
         bloquearAtleta,

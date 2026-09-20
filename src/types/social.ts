@@ -35,6 +35,8 @@ export interface RutinaPublica {
   ejercicios?: EjercicioSimple[];
   ejerciciosCount: number;
   ejerciciosIds?: number[];
+  likesCount?: number;
+  esLikeada?: boolean;
 }
 
 export interface FollowRelationship {
@@ -71,4 +73,37 @@ export interface ReporteContenido {
   descripcion?: string;
   created_at?: string;
 }
+
+export interface ReaccionRutina {
+  id?: string;
+  rutina_id: number;
+  usuario_id: string;
+  created_at?: string;
+}
+
+export type TipoNotificacion =
+  | 'nivel'
+  | 'racha'
+  | 'record'
+  | 'entrenamiento'
+  | 'sistema'
+  | 'seguidor'
+  | 'reaccion'
+  | 'clonacion';
+
+export interface NotificacionItem {
+  id: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  tiempo: string;
+  timestamp: number;
+  leida: boolean;
+  enlace?: string;
+  actorId?: string;
+  actorNombre?: string;
+  actorAvatar?: string | null;
+  rutinaId?: number;
+}
+
 

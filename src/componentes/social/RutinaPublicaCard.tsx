@@ -24,6 +24,7 @@ import {
   Loader2,
   Globe,
   Flag,
+  Heart,
 } from 'lucide-react';
 
 interface RutinaPublicaCardProps {
@@ -34,7 +35,7 @@ interface RutinaPublicaCardProps {
 
 export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false }: RutinaPublicaCardProps) {
   const { user } = useAuth();
-  const { clonarRutinaSocial } = useSocial();
+  const { clonarRutinaSocial, reaccionarRutina } = useSocial();
   const { refrescar: refrescarMisRutinas } = useRutinas();
   const { locale } = useI18n();
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
   const [clonadoExitoso, setClonadoExitoso] = useState(false);
   const [copiadoLink, setCopiadoLink] = useState(false);
   const [mostrarReporte, setMostrarReporte] = useState(false);
+  const [reaccionando, setReaccionando] = useState(false);
 
   const esMiRutina = user?.id === rutina.usuario_id;
   const perfil = rutina.perfil;
@@ -80,6 +82,18 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
       await navigator.clipboard.writeText(url);
       setCopiadoLink(true);
       setTimeout(() => setCopiadoLink(false), 2500);
+    }
+  };
+
+  const handleReaccionar = async () => {
+    if (!user || reaccionando) return;
+    setReaccionando(true);
+    try {
+      await reaccionarRutina(rutina.id, rutina.usuario_id, rutina.nombre);
+    } catch (err) {
+      console.error('Error al reaccionar a rutina:', err);
+    } finally {
+      setReaccionando(false);
     }
   };
 
@@ -296,6 +310,39 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
               {locale === 'es' ? 'Tu rutina compartida' : 'Your shared routine'}
             </span>
           )}
+
+          {/* Botón Me Gusta / Reacción */}
+          <button
+            type="button"
+            onClick={handleReaccionar}
+            disabled={reaccionando}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+              rutina.esLikeada
+                ? isLight
+                  ? 'bg-rose-50 text-rose-600 border border-rose-200 shadow-sm'
+                  : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                : isLight
+                ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600 border border-neutral-200'
+                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700'
+            }`}
+            title={
+              rutina.esLikeada
+                ? locale === 'es'
+                  ? 'Quitar reacción'
+                  : 'Remove reaction'
+                : locale === 'es'
+                ? 'Reaccionar'
+                : 'React'
+            }
+          >
+            <Heart
+              size={13}
+              className={rutina.esLikeada ? 'fill-rose-500 text-rose-500' : ''}
+            />
+            <span className="font-mono text-[11px] font-bold">
+              {rutina.likesCount || 0}
+            </span>
+          </button>
 
           {/* Botón Compartir enlace */}
           <button

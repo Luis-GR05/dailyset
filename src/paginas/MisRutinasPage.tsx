@@ -1177,8 +1177,8 @@ export default function MisRutinasPage() {
                                         className="flex-1 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60"
                                         style={{ background: exitoIA ? '#34d399' : rutinaIA.color, color: '#000' }}
                                     >
-                                        <Dumbbell size={15} />
-                                        {guardandoIA ? (locale === 'es' ? 'Guardando…' : 'Saving…') : exitoIA ? '✓ Guardado' : (locale === 'es' ? 'Guardar en Mis Rutinas' : 'Save to My Routines')}
+                                        {exitoIA ? <Check size={15} /> : <Dumbbell size={15} />}
+                                        {guardandoIA ? (locale === 'es' ? 'Guardando…' : 'Saving…') : exitoIA ? (locale === 'es' ? 'Guardado' : 'Saved') : (locale === 'es' ? 'Guardar en Mis Rutinas' : 'Save to My Routines')}
                                     </button>
                                     <button
                                         onClick={() => { setRutinaIA(null); setPasoIA(0); setWizardAnswers({ objetivo:'', nivel:'', dias:0, duracion:0, equipamiento:'', zona:'' }); setExitoIA(false); setIsPublicIA(false); }}

@@ -1,15 +1,16 @@
 // src/lib/socialService.ts
-// Servicio de datos para el módulo Social (Supabase Client) con soporte de moderación, bloqueos, invitaciones y sugerencias
+// Servicio de datos para el módulo Social con soporte de moderación, bloqueos, invitaciones, sugerencias y notificaciones de eventos
 
 import { supabase } from './supabaseClient';
 import type { PerfilPublico, RutinaPublica, EjercicioSimple, ReporteContenido } from '../types/social';
+import { crearNotificacion } from './notificacionesService';
 
 const LOCAL_BLOQUEOS_KEY = (userId: string) => `dailyset_bloqueos_${userId}`;
 const LOCAL_REPORTES_KEY = 'dailyset_reportes_locales';
+const LOCAL_REACCIONES_KEY = 'dailyset_reacciones_locales';
 
 /**
- * Obtiene el feed de rutinas públicas.
- * Puede filtrar opcionalmente por una lista de IDs de usuarios seguidos y excluye bloqueados.
+ * Obtiene el feed de rutinas públicas con ejercicios, estado de seguimiento y reacciones.
  */
 export async function getFeedPublico({
   currentUserId,
@@ -48,7 +49,6 @@ export async function getFeedPublico({
       .order('created_at', { ascending: false })
       .limit(limite + (bloqueadosIds.length > 0 ? 10 : 0));
 
-    // Si el usuario quiere ver solo de las personas a las que sigue
     if (soloSeguidos) {
       if (!seguidosIds || seguidosIds.length === 0) {
         return [];
@@ -58,21 +58,19 @@ export async function getFeedPublico({
 
     const { data, error } = await query;
 
-    // Si la relación foránea automática falla por nomenclatura del schema, intentamos consulta fallback
     if (error) {
       return await getFeedPublicoFallback({ currentUserId, soloSeguidos, seguidosIds, bloqueadosIds, limite });
     }
 
     if (!data || data.length === 0) return [];
 
-    // Excluir publicaciones de usuarios bloqueados
     const rutinasFiltradas = data.filter((r: any) => !bloqueadosIds.includes(r.usuario_id));
     const rutinaIds = rutinasFiltradas.map((r: any) => r.id);
 
-    // Obtenemos los ejercicios asociados a estas rutinas públicas y los seguidos por el usuario
-    const [ejerciciosPorRutina, seguidosPorMi] = await Promise.all([
+    const [ejerciciosPorRutina, seguidosPorMi, reaccionesMap] = await Promise.all([
       getEjerciciosDeRutinas(rutinaIds),
       currentUserId ? getIdsSeguidos(currentUserId) : Promise.resolve([]),
+      getReaccionesRutinasMap(rutinaIds, currentUserId),
     ]);
 
     return rutinasFiltradas.slice(0, limite).map((r: any) => {
@@ -87,6 +85,8 @@ export async function getFeedPublico({
       };
       perfilObj.esSeguido = seguidosPorMi.includes(r.usuario_id);
 
+      const reacc = reaccionesMap[r.id] || { count: 0, userLiked: false };
+
       return {
         id: r.id,
         usuario_id: r.usuario_id,
@@ -99,6 +99,8 @@ export async function getFeedPublico({
         ejercicios,
         ejerciciosCount: ejercicios.length,
         ejerciciosIds: ejercicios.map(e => e.id),
+        likesCount: reacc.count,
+        esLikeada: reacc.userLiked,
       };
     });
   } catch (err) {
@@ -141,10 +143,11 @@ async function getFeedPublicoFallback({
   const userIds = [...new Set(rutinasFiltradas.map((r: any) => r.usuario_id).filter(Boolean))];
   const rutinaIds = rutinasFiltradas.map((r: any) => r.id);
 
-  const [perfilesMap, ejerciciosPorRutina, seguidosPorMi] = await Promise.all([
+  const [perfilesMap, ejerciciosPorRutina, seguidosPorMi, reaccionesMap] = await Promise.all([
     getPerfilesMap(userIds as string[]),
     getEjerciciosDeRutinas(rutinaIds),
     currentUserId ? getIdsSeguidos(currentUserId) : Promise.resolve([]),
+    getReaccionesRutinasMap(rutinaIds, currentUserId),
   ]);
 
   return rutinasFiltradas.slice(0, limite).map((r: any) => {
@@ -157,6 +160,7 @@ async function getFeedPublicoFallback({
     };
     perfil.esSeguido = seguidosPorMi.includes(r.usuario_id);
     const ejercicios = ejerciciosPorRutina[r.id] || [];
+    const reacc = reaccionesMap[r.id] || { count: 0, userLiked: false };
 
     return {
       id: r.id,
@@ -170,6 +174,8 @@ async function getFeedPublicoFallback({
       ejercicios,
       ejerciciosCount: ejercicios.length,
       ejerciciosIds: ejercicios.map(e => e.id),
+      likesCount: reacc.count,
+      esLikeada: reacc.userLiked,
     };
   });
 }
@@ -254,7 +260,6 @@ async function getPerfilesMap(userIds: string[]): Promise<Record<string, PerfilP
 
 /**
  * Comprueba si un nombre de usuario está disponible (no existe en la base de datos).
- * Insensible a mayúsculas/minúsculas.
  */
 export async function esNombreUsuarioDisponible(
   nombreUsuario: string,
@@ -275,7 +280,6 @@ export async function esNombreUsuarioDisponible(
 
     const { data, error } = await query.limit(1);
     if (error) {
-      console.warn('Error comprobando disponibilidad de nombre_usuario:', error.message);
       return true;
     }
 
@@ -316,7 +320,6 @@ export async function buscarUsuarios(
 
     if (!data || data.length === 0) return [];
 
-    // Filtrar si es_publico es false, si es el usuario actual, o si está bloqueado
     const perfilesFiltrados = data.filter((p: any) => {
       if (p.es_publico === false) return false;
       if (currentUserId && p.id === currentUserId) return false;
@@ -376,7 +379,7 @@ export async function getPerfilPorNombreUsuario(
 }
 
 /**
- * Obtiene atletas registrados sugeridos para explorar con categorización inteligente (popular, activo, nuevo, recomendado)
+ * Obtiene atletas registrados sugeridos para explorar con categorización inteligente
  */
 export async function getUsuariosSugeridos(
   currentUserId?: string,
@@ -423,7 +426,6 @@ export async function getUsuariosSugeridos(
       const rutCount = rutinasMap[p.id] || 0;
       const esSeguido = seguidosPorMi.includes(p.id);
 
-      // Determinación de etiqueta de sugerencia
       let tipoSugerencia: PerfilPublico['tipoSugerencia'] = 'recomendado';
       if (rutCount >= 3) {
         tipoSugerencia = 'creador_activo';
@@ -448,7 +450,6 @@ export async function getUsuariosSugeridos(
       };
     });
 
-    // Ordenar: primero los que tienen rutinas o seguidores, luego el resto
     perfilesCompletos.sort((a, b) => {
       const scoreA = (a.rutinasCount || 0) * 2 + (a.seguidoresCount || 0);
       const scoreB = (b.rutinasCount || 0) * 2 + (b.seguidoresCount || 0);
@@ -513,7 +514,10 @@ export async function getPerfilPublico(
 /**
  * Obtiene las rutinas públicas de un usuario específico
  */
-export async function getRutinasPublicasDeUsuario(usuarioId: string): Promise<RutinaPublica[]> {
+export async function getRutinasPublicasDeUsuario(
+  usuarioId: string,
+  currentUserId?: string
+): Promise<RutinaPublica[]> {
   try {
     const { data, error } = await supabase
       .from('rutinas')
@@ -525,10 +529,14 @@ export async function getRutinasPublicasDeUsuario(usuarioId: string): Promise<Ru
     if (error || !data) return [];
 
     const rutinaIds = data.map((r: any) => r.id);
-    const ejerciciosPorRutina = await getEjerciciosDeRutinas(rutinaIds);
+    const [ejerciciosPorRutina, reaccionesMap] = await Promise.all([
+      getEjerciciosDeRutinas(rutinaIds),
+      getReaccionesRutinasMap(rutinaIds, currentUserId),
+    ]);
 
     return data.map((r: any) => {
       const ejercicios = ejerciciosPorRutina[r.id] || [];
+      const reacc = reaccionesMap[r.id] || { count: 0, userLiked: false };
       return {
         id: r.id,
         usuario_id: r.usuario_id,
@@ -540,6 +548,8 @@ export async function getRutinasPublicasDeUsuario(usuarioId: string): Promise<Ru
         ejercicios,
         ejerciciosCount: ejercicios.length,
         ejerciciosIds: ejercicios.map(e => e.id),
+        likesCount: reacc.count,
+        esLikeada: reacc.userLiked,
       };
     });
   } catch (err) {
@@ -566,7 +576,7 @@ export async function getIdsSeguidos(followerId: string): Promise<string[]> {
 }
 
 /**
- * Acción de seguir a un usuario
+ * Acción de seguir a un usuario con disparo de notificación social
  */
 export async function seguirUsuario(followerId: string, followingId: string): Promise<boolean> {
   if (followerId === followingId) return false;
@@ -581,6 +591,28 @@ export async function seguirUsuario(followerId: string, followingId: string): Pr
     if (error && error.code !== '23505') {
       throw error;
     }
+
+    // Notificar al usuario seguido
+    try {
+      const { data: seguidorPerfil } = await supabase
+        .from('perfiles')
+        .select('nombre_usuario')
+        .eq('id', followerId)
+        .maybeSingle();
+
+      const nombreSeguidor = seguidorPerfil?.nombre_usuario || 'Un atleta';
+      await crearNotificacion({
+        usuarioId: followingId,
+        tipo: 'seguidor',
+        titulo: 'Nuevo seguidor',
+        mensaje: `@${nombreSeguidor} ha comenzado a seguirte.`,
+        enlace: `/social?perfil=${followerId}`,
+        actorId: followerId,
+      });
+    } catch (notifErr) {
+      console.warn('Error enviando notificacion de seguidor:', notifErr);
+    }
+
     return true;
   } catch (err) {
     console.error('Error al seguir usuario:', err);
@@ -631,7 +663,7 @@ export async function toggleVisibilidadRutina(
 }
 
 /**
- * Clona una rutina pública al perfil del usuario actual (por defecto la copia es privada)
+ * Clona una rutina pública al perfil del usuario actual y envía notificación al creador original
  */
 export async function clonarRutina(
   rutinaOriginalId: number,
@@ -681,6 +713,30 @@ export async function clonarRutina(
       await supabase.from('ejercicios_rutina').insert(inserts);
     }
 
+    // Notificar al autor original si no es el mismo usuario
+    if (rutinaOriginal.usuario_id && rutinaOriginal.usuario_id !== targetUserId) {
+      try {
+        const { data: clonerPerfil } = await supabase
+          .from('perfiles')
+          .select('nombre_usuario')
+          .eq('id', targetUserId)
+          .maybeSingle();
+
+        const nombreCloner = clonerPerfil?.nombre_usuario || 'Un atleta';
+        await crearNotificacion({
+          usuarioId: rutinaOriginal.usuario_id,
+          tipo: 'clonacion',
+          titulo: 'Rutina clonada',
+          mensaje: `@${nombreCloner} ha guardado y clonado tu rutina "${rutinaOriginal.nombre}".`,
+          enlace: `/social?perfil=${targetUserId}`,
+          actorId: targetUserId,
+          rutinaId: rutinaOriginalId,
+        });
+      } catch (notifErr) {
+        console.warn('Error enviando notificacion de clonacion:', notifErr);
+      }
+    }
+
     return nuevaRutina.id;
   } catch (err) {
     console.error('Error al clonar rutina:', err);
@@ -689,16 +745,172 @@ export async function clonarRutina(
 }
 
 // ------------------------------------------------------------------------------
-// MODERACIÓN: BLOQUEO DE USUARIOS
+// REACCIONES (LIKES) EN RUTINAS PÚBLICAS
 // ------------------------------------------------------------------------------
 
 /**
- * Obtiene los IDs de los usuarios bloqueados por el usuario actual
+ * Obtiene el mapa de reacciones (conteo total y si el usuario actual ha reaccionado)
  */
+export async function getReaccionesRutinasMap(
+  rutinaIds: number[],
+  currentUserId?: string
+): Promise<Record<number, { count: number; userLiked: boolean }>> {
+  if (!rutinaIds || rutinaIds.length === 0) return {};
+  const map: Record<number, { count: number; userLiked: boolean }> = {};
+  rutinaIds.forEach(id => {
+    map[id] = { count: 0, userLiked: false };
+  });
+
+  // 1. Intentar desde Supabase
+  try {
+    const { data, error } = await supabase
+      .from('social_reacciones')
+      .select('rutina_id, usuario_id')
+      .in('rutina_id', rutinaIds);
+
+    if (!error && data) {
+      data.forEach((row: any) => {
+        const rid = Number(row.rutina_id);
+        if (!map[rid]) map[rid] = { count: 0, userLiked: false };
+        map[rid].count += 1;
+        if (currentUserId && row.usuario_id === currentUserId) {
+          map[rid].userLiked = true;
+        }
+      });
+      return map;
+    }
+  } catch {
+    // Continuar a respaldo local
+  }
+
+  // 2. Respaldo local
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(LOCAL_REACCIONES_KEY);
+      if (raw) {
+        const localReaccs: { rutina_id: number; usuario_id: string }[] = JSON.parse(raw);
+        localReaccs.forEach(item => {
+          const rid = Number(item.rutina_id);
+          if (map[rid]) {
+            map[rid].count += 1;
+            if (currentUserId && item.usuario_id === currentUserId) {
+              map[rid].userLiked = true;
+            }
+          }
+        });
+      }
+    } catch {
+      // Ignorar
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Da o quita reacción a una rutina pública y notifica al autor
+ */
+export async function toggleReaccionRutina({
+  rutinaId,
+  usuarioId,
+  autorRutinaId,
+  nombreRutina,
+}: {
+  rutinaId: number;
+  usuarioId: string;
+  autorRutinaId: string;
+  nombreRutina: string;
+}): Promise<{ liked: boolean; countDelta: number }> {
+  if (!usuarioId || !rutinaId) return { liked: false, countDelta: 0 };
+
+  let currentlyLiked = false;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(LOCAL_REACCIONES_KEY);
+      const list: { rutina_id: number; usuario_id: string }[] = raw ? JSON.parse(raw) : [];
+      currentlyLiked = list.some(r => r.rutina_id === rutinaId && r.usuario_id === usuarioId);
+    } catch {
+      // Ignorar
+    }
+  }
+
+  if (currentlyLiked) {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(LOCAL_REACCIONES_KEY);
+        const list: { rutina_id: number; usuario_id: string }[] = raw ? JSON.parse(raw) : [];
+        const filtrada = list.filter(r => !(r.rutina_id === rutinaId && r.usuario_id === usuarioId));
+        localStorage.setItem(LOCAL_REACCIONES_KEY, JSON.stringify(filtrada));
+      } catch {
+        // Ignorar
+      }
+    }
+
+    try {
+      await supabase
+        .from('social_reacciones')
+        .delete()
+        .eq('rutina_id', rutinaId)
+        .eq('usuario_id', usuarioId);
+    } catch {
+      // Ignorar
+    }
+
+    return { liked: false, countDelta: -1 };
+  } else {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(LOCAL_REACCIONES_KEY);
+        const list: { rutina_id: number; usuario_id: string }[] = raw ? JSON.parse(raw) : [];
+        list.push({ rutina_id: rutinaId, usuario_id: usuarioId });
+        localStorage.setItem(LOCAL_REACCIONES_KEY, JSON.stringify(list));
+      } catch {
+        // Ignorar
+      }
+    }
+
+    try {
+      await supabase
+        .from('social_reacciones')
+        .insert({ rutina_id: rutinaId, usuario_id: usuarioId });
+    } catch {
+      // Ignorar
+    }
+
+    if (autorRutinaId && autorRutinaId !== usuarioId) {
+      try {
+        const { data: usuarioPerfil } = await supabase
+          .from('perfiles')
+          .select('nombre_usuario')
+          .eq('id', usuarioId)
+          .maybeSingle();
+
+        const nombreUsuario = usuarioPerfil?.nombre_usuario || 'Un atleta';
+        await crearNotificacion({
+          usuarioId: autorRutinaId,
+          tipo: 'reaccion',
+          titulo: 'Reacción a tu rutina',
+          mensaje: `@${nombreUsuario} ha reaccionado a tu rutina "${nombreRutina}".`,
+          enlace: `/social?perfil=${usuarioId}`,
+          actorId: usuarioId,
+          rutinaId,
+        });
+      } catch (e) {
+        console.warn('Error enviando notificacion de reaccion:', e);
+      }
+    }
+
+    return { liked: true, countDelta: 1 };
+  }
+}
+
+// ------------------------------------------------------------------------------
+// MODERACIÓN: BLOQUEO DE USUARIOS
+// ------------------------------------------------------------------------------
+
 export async function getUsuariosBloqueadosIds(userId: string): Promise<string[]> {
   if (!userId) return [];
 
-  // 1. Intentar desde Supabase
   try {
     const { data, error } = await supabase
       .from('social_bloqueos')
@@ -707,17 +919,15 @@ export async function getUsuariosBloqueadosIds(userId: string): Promise<string[]
 
     if (!error && data) {
       const ids = data.map((b: any) => b.bloqueado_id);
-      // Sincronizar con almacenamiento local
       if (typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_BLOQUEOS_KEY(userId), JSON.stringify(ids));
       }
       return ids;
     }
   } catch {
-    // Si la tabla no existe aún en Supabase, recurrir a localStorage
+    // Fallback local
   }
 
-  // 2. Fallback a almacenamiento local
   if (typeof window !== 'undefined') {
     try {
       const cached = localStorage.getItem(LOCAL_BLOQUEOS_KEY(userId));
@@ -729,9 +939,6 @@ export async function getUsuariosBloqueadosIds(userId: string): Promise<string[]
   return [];
 }
 
-/**
- * Obtiene los perfiles completos de todos los usuarios bloqueados
- */
 export async function getPerfilesBloqueados(userId: string): Promise<PerfilPublico[]> {
   const ids = await getUsuariosBloqueadosIds(userId);
   if (ids.length === 0) return [];
@@ -761,13 +968,9 @@ export async function getPerfilesBloqueados(userId: string): Promise<PerfilPubli
   }
 }
 
-/**
- * Bloquea a un usuario: rompe relaciones de follow y guarda el bloqueo en BD y local
- */
 export async function bloquearUsuario(bloqueadorId: string, bloqueadoId: string): Promise<boolean> {
   if (!bloqueadorId || !bloqueadoId || bloqueadorId === bloqueadoId) return false;
 
-  // 1. Romper follows en ambas direcciones
   try {
     await Promise.allSettled([
       supabase.from('follows').delete().eq('follower_id', bloqueadorId).eq('following_id', bloqueadoId),
@@ -777,17 +980,15 @@ export async function bloquearUsuario(bloqueadorId: string, bloqueadoId: string)
     // Continuar
   }
 
-  // 2. Insertar en tabla de bloqueos en Supabase
   try {
     await supabase.from('social_bloqueos').insert({
       bloqueador_id: bloqueadorId,
       bloqueado_id: bloqueadoId,
     });
   } catch (err) {
-    console.warn('Inserción en social_bloqueos falló (usando respaldo local):', err);
+    console.warn('Inserción en social_bloqueos falló:', err);
   }
 
-  // 3. Guardar en almacenamiento local
   if (typeof window !== 'undefined') {
     try {
       const cached = localStorage.getItem(LOCAL_BLOQUEOS_KEY(bloqueadorId));
@@ -804,13 +1005,9 @@ export async function bloquearUsuario(bloqueadorId: string, bloqueadoId: string)
   return true;
 }
 
-/**
- * Desbloquea a un usuario previamente bloqueado
- */
 export async function desbloquearUsuario(bloqueadorId: string, bloqueadoId: string): Promise<boolean> {
   if (!bloqueadorId || !bloqueadoId) return false;
 
-  // 1. Eliminar de Supabase
   try {
     await supabase
       .from('social_bloqueos')
@@ -821,7 +1018,6 @@ export async function desbloquearUsuario(bloqueadorId: string, bloqueadoId: stri
     console.warn('Eliminación en social_bloqueos falló:', err);
   }
 
-  // 2. Eliminar de almacenamiento local
   if (typeof window !== 'undefined') {
     try {
       const cached = localStorage.getItem(LOCAL_BLOQUEOS_KEY(bloqueadorId));
@@ -842,9 +1038,6 @@ export async function desbloquearUsuario(bloqueadorId: string, bloqueadoId: stri
 // MODERACIÓN: REPORTES DE CONTENIDO
 // ------------------------------------------------------------------------------
 
-/**
- * Envía un reporte sobre un usuario o rutina
- */
 export async function reportarContenido(reporte: ReporteContenido): Promise<boolean> {
   const payload = {
     reportador_id: reporte.reportador_id,
@@ -859,7 +1052,6 @@ export async function reportarContenido(reporte: ReporteContenido): Promise<bool
   try {
     const { error } = await supabase.from('social_reportes').insert(payload);
     if (error) {
-      console.warn('Inserción en social_reportes falló, guardando en registro local:', error.message);
       guardarReporteLocalmente(payload);
     }
   } catch {

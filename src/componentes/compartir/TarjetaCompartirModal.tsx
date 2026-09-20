@@ -303,7 +303,7 @@ export default function TarjetaCompartirModal({
     ctx.fillStyle = '#DBF059';
     ctx.font = '900 32px Inter, system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🔥 CON DISCIPLINA CADA SERIE CUENTA', 140, rachaY + 65);
+    ctx.fillText('CON DISCIPLINA CADA SERIE CUENTA', 140, rachaY + 65);
 
     ctx.fillStyle = '#D4D4D8';
     ctx.font = '500 24px Inter, system-ui, -apple-system, sans-serif';
@@ -389,7 +389,7 @@ export default function TarjetaCompartirModal({
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             title: `Entrenamiento DailySet - ${datos.nombreRutina}`,
-            text: `¡Entrenamiento completado en DailySet! ${Math.round(datos.volumenKg)} kg levantados en ${datos.duracionMin} min 🔥 #DailySet`,
+            text: `¡Entrenamiento completado en DailySet! ${Math.round(datos.volumenKg)} kg levantados en ${datos.duracionMin} min #DailySet`,
             files: [file],
           });
           setCompartido(true);
@@ -398,7 +398,7 @@ export default function TarjetaCompartirModal({
           // Fallback a texto si el navegador no permite compartir archivos
           await navigator.share({
             title: `Entrenamiento DailySet - ${datos.nombreRutina}`,
-            text: `¡Entrenamiento completado en DailySet! ${Math.round(datos.volumenKg)} kg levantados en ${datos.duracionMin} min 🔥 #DailySet`,
+            text: `¡Entrenamiento completado en DailySet! ${Math.round(datos.volumenKg)} kg levantados en ${datos.duracionMin} min #DailySet`,
             url: window.location.origin,
           });
           setCompartido(true);

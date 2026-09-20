@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Lightbulb } from 'lucide-react';
 import { Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';
@@ -133,7 +134,7 @@ export default function RegistroConfirmacionPage() {
         {/* Instrucciones */}
         <div className="bg-neutral-800/50 border border-white/5 rounded-2xl p-4 sm:p-5 mb-8 text-left">
           <div className="flex items-start gap-3">
-            <span className="text-lg leading-none" role="img" aria-label="info">💡</span>
+            <Lightbulb size={18} className="text-amber-400 shrink-0 mt-0.5" />
             <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed">
               {t.auth.checkInboxInstructions}
             </p>
