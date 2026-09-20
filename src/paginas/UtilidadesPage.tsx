@@ -15,6 +15,16 @@ import {
   Clock,
   Sparkles,
   Zap,
+  Dumbbell,
+  Calculator,
+  Target,
+  Percent,
+  TrendingUp,
+  Info,
+  Sliders,
+  Layers,
+  Award,
+  Pencil,
 } from 'lucide-react';
 
 // Sonido sintético con Web Audio API (funciona en cualquier navegador sin dependencias externas)
@@ -41,7 +51,7 @@ function playBeep(frequency = 880, duration = 0.2, count = 1) {
   }
 }
 
-type TabUtilidad = 'temporizador' | 'cronometro' | 'pasos';
+type TabUtilidad = 'temporizador' | 'cronometro' | 'pasos' | '1rm';
 
 interface VueltaItem {
   numero: number;
@@ -286,6 +296,66 @@ export default function UtilidadesPage() {
   const minEstimados = Math.round(pasosHoy / 100);
   const pctPasos = Math.min(100, Math.round((pasosHoy / objetivoPasos) * 100));
 
+  // ─────────────────────────────────────────────────────────────
+  // 4. CALCULADORA DE 1RM (ONE REP MAX)
+  // ─────────────────────────────────────────────────────────────
+  const [peso1RM, setPeso1RM] = useState<number>(80);
+  const [reps1RM, setReps1RM] = useState<number>(5);
+  const [unidad1RM, setUnidad1RM] = useState<'kg' | 'lbs'>('kg');
+  const [formula1RM, setFormula1RM] = useState<'promedio' | 'epley' | 'brzycki' | 'lander' | 'lombardi'>('promedio');
+  const [ejercicio1RM, setEjercicio1RM] = useState<string>('Press de Banca');
+
+  const calcular1RM = (peso: number, reps: number, formula: string) => {
+    if (!peso || peso <= 0 || !reps || reps <= 0) return 0;
+    if (reps === 1) return peso;
+
+    const epley = peso * (1 + reps / 30);
+    const brzycki = peso * (36 / (37 - reps));
+    const lander = (100 * peso) / (101.3 - 2.67123 * reps);
+    const lombardi = peso * Math.pow(reps, 0.10);
+
+    let val = 0;
+    switch (formula) {
+      case 'epley':
+        val = epley;
+        break;
+      case 'brzycki':
+        val = brzycki;
+        break;
+      case 'lander':
+        val = lander;
+        break;
+      case 'lombardi':
+        val = lombardi;
+        break;
+      case 'promedio':
+      default:
+        val = (epley + brzycki + lander + lombardi) / 4;
+        break;
+    }
+    return Math.round(val * 10) / 10;
+  };
+
+  const rmCalculado = calcular1RM(peso1RM, reps1RM, formula1RM);
+  const rmEpley = calcular1RM(peso1RM, reps1RM, 'epley');
+  const rmBrzycki = calcular1RM(peso1RM, reps1RM, 'brzycki');
+  const rmLander = calcular1RM(peso1RM, reps1RM, 'lander');
+  const rmLombardi = calcular1RM(peso1RM, reps1RM, 'lombardi');
+
+  // Tabla de porcentajes estándar de entrenamiento
+  const tablaPorcentajes = [
+    { pct: 100, reps: '1 rep', desc: locale === 'es' ? 'Fuerza Máxima (Récord)' : 'Max Strength (PR)', zona: 'max' },
+    { pct: 95, reps: '2 reps', desc: locale === 'es' ? 'Fuerza Pura / Potencia' : 'Pure Strength / Power', zona: 'max' },
+    { pct: 90, reps: '3 - 4 reps', desc: locale === 'es' ? 'Fuerza Pesada' : 'Heavy Strength', zona: 'max' },
+    { pct: 85, reps: '5 - 6 reps', desc: locale === 'es' ? 'Fuerza e Hipertrofia' : 'Strength & Hypertrophy', zona: 'hiper' },
+    { pct: 80, reps: '7 - 8 reps', desc: locale === 'es' ? 'Hipertrofia Óptima' : 'Optimal Hypertrophy', zona: 'hiper' },
+    { pct: 75, reps: '9 - 10 reps', desc: locale === 'es' ? 'Hipertrofia y Volumen' : 'Hypertrophy & Volume', zona: 'hiper' },
+    { pct: 70, reps: '11 - 12 reps', desc: locale === 'es' ? 'Capacidad de Trabajo' : 'Work Capacity', zona: 'resist' },
+    { pct: 65, reps: '13 - 15 reps', desc: locale === 'es' ? 'Resistencia Muscular' : 'Muscular Endurance', zona: 'resist' },
+    { pct: 60, reps: '16 - 20 reps', desc: locale === 'es' ? 'Bombeo y Descarga' : 'Pump & Deload', zona: 'resist' },
+    { pct: 50, reps: '20+ reps', desc: locale === 'es' ? 'Calentamiento / Activación' : 'Warm-up / Activation', zona: 'resist' },
+  ];
+
   return (
     <AppLayout>
       <div className="space-y-6 pb-12 max-w-4xl mx-auto">
@@ -297,6 +367,7 @@ export default function UtilidadesPage() {
             { id: 'temporizador', label: locale === 'es' ? 'Temporizador' : 'Timer', icon: <Timer size={16} /> },
             { id: 'cronometro', label: locale === 'es' ? 'Cronómetro' : 'Stopwatch', icon: <Watch size={16} /> },
             { id: 'pasos', label: locale === 'es' ? 'Cuenta Pasos' : 'Step Counter', icon: <Footprints size={16} /> },
+            { id: '1rm', label: locale === 'es' ? 'Calculadora 1RM' : '1RM Calculator', icon: <Dumbbell size={16} /> },
           ].map((item) => {
             const isActive = tabActiva === item.id;
             return (
@@ -587,7 +658,10 @@ export default function UtilidadesPage() {
                         className="text-xs font-bold text-neutral-400 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
                         title={locale === 'es' ? 'Cambiar meta diaria' : 'Edit daily goal'}
                       >
-                        / {objetivoPasos.toLocaleString()} {locale === 'es' ? 'meta ✎' : 'goal ✎'}
+                        <span className="inline-flex items-center gap-1">
+                          / {objetivoPasos.toLocaleString()} {locale === 'es' ? 'meta' : 'goal'}
+                          <Pencil size={11} className="inline" />
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -680,6 +754,405 @@ export default function UtilidadesPage() {
                 </div>
               </div>
             </Card>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            4. PESTAÑA: CALCULADORA DE 1RM (ONE REP MAX)
+           ───────────────────────────────────────────────────────────── */}
+        {tabActiva === '1rm' && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Cabecera explicativa de la calculadora */}
+            <div className="bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900 border border-white/5 rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                      <Calculator size={20} />
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                      {locale === 'es' ? 'Calculadora de 1RM' : '1RM Calculator'}
+                    </h2>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 max-w-xl">
+                    {locale === 'es'
+                      ? 'Calcula tu Repetición Máxima (1RM) a partir del peso y repeticiones de una serie pesada, utilizando fórmulas científicas estandarizadas sin necesidad de llegar al fallo absoluto.'
+                      : 'Calculate your One Rep Max (1RM) from weight and repetitions using standardized scientific formulas.'}
+                  </p>
+                </div>
+
+                {/* Toggle de Unidad (KG / LBS) */}
+                <div className="flex items-center gap-1 p-1 bg-black/40 border border-white/10 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setUnidad1RM('kg')}
+                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                      unidad1RM === 'kg'
+                        ? 'bg-[var(--color-primary)] text-black shadow-sm'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    KG
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnidad1RM('lbs')}
+                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                      unidad1RM === 'lbs'
+                        ? 'bg-[var(--color-primary)] text-black shadow-sm'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    LBS
+                  </button>
+                </div>
+              </div>
+
+              {/* Chips de ejercicios populares */}
+              <div className="flex items-center gap-2 overflow-x-auto pt-4 no-scrollbar">
+                <span className="text-xs text-neutral-500 font-bold shrink-0 flex items-center gap-1">
+                  <Dumbbell size={13} />
+                  {locale === 'es' ? 'Ejercicio:' : 'Exercise:'}
+                </span>
+                {[
+                  'Press de Banca',
+                  'Sentadilla',
+                  'Peso Muerto',
+                  'Press Militar',
+                  'Dominadas',
+                  'Otro',
+                ].map((ej) => (
+                  <button
+                    key={ej}
+                    type="button"
+                    onClick={() => setEjercicio1RM(ej)}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${
+                      ejercicio1RM === ej
+                        ? 'bg-neutral-800 border-neutral-600 text-white shadow-sm'
+                        : 'bg-white/[0.02] border-white/5 text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    {ej}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid principal: Formulario de entrada + Resultado Destacado */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              {/* Tarjeta de Entrada de Datos */}
+              <Card className="p-5 sm:p-6 md:col-span-7 space-y-6" hoverable={false}>
+                <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Sliders size={16} className="text-[var(--color-primary)]" />
+                  <span>{locale === 'es' ? 'Datos del levantamiento' : 'Lift Data'}</span>
+                </h3>
+
+                {/* Input: Peso Levantado */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                      <Target size={14} className="text-neutral-400" />
+                      <span>{locale === 'es' ? 'Peso levantado' : 'Weight lifted'}</span>
+                    </label>
+                    <span className="text-xs font-mono font-bold text-white">
+                      {peso1RM} {unidad1RM}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={600}
+                      step={0.5}
+                      value={peso1RM || ''}
+                      onChange={(e) => setPeso1RM(Math.max(0, Number(e.target.value)))}
+                      className="input py-2.5 text-base font-mono font-bold bg-neutral-950 border-neutral-800 text-white rounded-xl w-full"
+                    />
+                    <span className="text-xs font-bold text-neutral-400 uppercase shrink-0 px-2">
+                      {unidad1RM}
+                    </span>
+                  </div>
+
+                  {/* Steppers rápidos de peso */}
+                  <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+                    {[-10, -2.5, +2.5, +5, +10].map((delta) => (
+                      <button
+                        key={delta}
+                        type="button"
+                        onClick={() => setPeso1RM((prev) => Math.max(1, prev + delta))}
+                        className="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/5 transition-colors cursor-pointer shrink-0"
+                      >
+                        {delta > 0 ? `+${delta}` : delta}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input: Repeticiones Realizadas */}
+                <div className="space-y-2 pt-2 border-t border-neutral-800/80">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                      <TrendingUp size={14} className="text-neutral-400" />
+                      <span>{locale === 'es' ? 'Repeticiones completadas' : 'Reps completed'}</span>
+                    </label>
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-[var(--color-primary)]">
+                      {reps1RM} {reps1RM === 1 ? 'rep' : 'reps'}
+                    </span>
+                  </div>
+
+                  {/* Slider visual de repeticiones */}
+                  <input
+                    type="range"
+                    min={1}
+                    max={15}
+                    step={1}
+                    value={reps1RM}
+                    onChange={(e) => setReps1RM(Number(e.target.value))}
+                    className="w-full accent-[var(--color-primary)] cursor-pointer h-2 bg-neutral-800 rounded-lg"
+                  />
+
+                  {/* Botones de repeticiones frecuentes */}
+                  <div className="grid grid-cols-6 gap-1.5 pt-1">
+                    {[1, 3, 5, 8, 10, 12].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setReps1RM(r)}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                          reps1RM === r
+                            ? 'bg-[var(--color-primary)] text-black border-[var(--color-primary)] shadow-sm'
+                            : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Selector de Fórmula de Cálculo */}
+                <div className="space-y-2 pt-2 border-t border-neutral-800/80">
+                  <label className="text-xs font-bold text-neutral-300 block">
+                    {locale === 'es' ? 'Fórmula de cálculo' : 'Calculation formula'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'promedio', label: locale === 'es' ? 'Promedio' : 'Average', sub: locale === 'es' ? 'Más fiable' : 'Most reliable' },
+                      { id: 'epley', label: 'Epley', sub: 'Estándar fuerza' },
+                      { id: 'brzycki', label: 'Brzycki', sub: '1 - 10 reps' },
+                      { id: 'lander', label: 'Lander', sub: 'Precisión media' },
+                      { id: 'lombardi', label: 'Lombardi', sub: 'No lineal' },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFormula1RM(f.id as any)}
+                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                          formula1RM === f.id
+                            ? 'bg-neutral-800 border-neutral-600 text-white shadow-sm'
+                            : 'bg-neutral-950/40 border-neutral-800/80 text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        <span className="text-xs font-bold block">{f.label}</span>
+                        <span className="text-[10px] text-neutral-500 font-medium block">{f.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Tarjeta de Visualización de 1RM */}
+              <div className="md:col-span-5 flex flex-col gap-4">
+                <Card className="p-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-gradient-to-b from-neutral-900 to-neutral-950 border-neutral-800 flex-1 shadow-xl" hoverable={false}>
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--color-primary)]/5 blur-[80px] pointer-events-none" />
+
+                  <span className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-1">
+                    {locale === 'es' ? 'Tu 1RM Estimado' : 'Your Estimated 1RM'}
+                  </span>
+
+                  {ejercicio1RM && (
+                    <span className="text-xs font-bold text-neutral-300 mb-3 px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                      {ejercicio1RM}
+                    </span>
+                  )}
+
+                  {/* Display gigante de 1RM */}
+                  <div className="my-2">
+                    <span className="text-6xl sm:text-7xl font-black font-mono tracking-tight text-white drop-shadow-[0_0_25px_rgba(219,240,89,0.2)]">
+                      {rmCalculado}
+                    </span>
+                    <span className="text-xl sm:text-2xl font-extrabold text-[var(--color-primary)] ml-2">
+                      {unidad1RM}
+                    </span>
+                  </div>
+
+                  {/* Insignia de fiabilidad del cálculo */}
+                  <div className="mt-3">
+                    {reps1RM <= 5 ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
+                        <Award size={13} />
+                        <span>{locale === 'es' ? 'Alta fiabilidad (1-5 reps)' : 'High accuracy (1-5 reps)'}</span>
+                      </span>
+                    ) : reps1RM <= 10 ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold">
+                        <Info size={13} />
+                        <span>{locale === 'es' ? 'Fiabilidad moderada (6-10 reps)' : 'Moderate accuracy (6-10 reps)'}</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700 text-xs font-bold">
+                        <Info size={13} />
+                        <span>{locale === 'es' ? 'Referencial (>10 reps)' : 'Approximate (>10 reps)'}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Comparación rápida de las 4 fórmulas */}
+                  <div className="grid grid-cols-2 gap-2 w-full mt-6 pt-4 border-t border-neutral-800/80">
+                    <div className="p-2 rounded-xl bg-neutral-950/60 border border-neutral-800/60 text-left">
+                      <span className="text-[10px] text-neutral-500 font-bold block">Epley</span>
+                      <span className="text-xs font-mono font-black text-white">{rmEpley} {unidad1RM}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-950/60 border border-neutral-800/60 text-left">
+                      <span className="text-[10px] text-neutral-500 font-bold block">Brzycki</span>
+                      <span className="text-xs font-mono font-black text-white">{rmBrzycki} {unidad1RM}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-950/60 border border-neutral-800/60 text-left">
+                      <span className="text-[10px] text-neutral-500 font-bold block">Lander</span>
+                      <span className="text-xs font-mono font-black text-white">{rmLander} {unidad1RM}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-neutral-950/60 border border-neutral-800/60 text-left">
+                      <span className="text-[10px] text-neutral-500 font-bold block">Lombardi</span>
+                      <span className="text-xs font-mono font-black text-white">{rmLombardi} {unidad1RM}</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* ── TABLA DE PORCENTAJES DE CARGA Y REPETICIONES OBJETIVO ── */}
+            <Card className="p-5 sm:p-6 space-y-4" hoverable={false}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                    <Percent size={17} className="text-[var(--color-primary)]" />
+                    <span>{locale === 'es' ? 'Tabla de Porcentajes de Carga' : 'Training Load Percentages'}</span>
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {locale === 'es'
+                      ? 'Pesos calculados para programar tus series de fuerza, hipertrofia o calentamiento.'
+                      : 'Calculated weights to program your strength, hypertrophy, or warm-up sets.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tabla Responsive de Porcentajes */}
+              <div className="overflow-x-auto rounded-xl border border-neutral-800">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-neutral-950/80 border-b border-neutral-800 text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
+                      <th className="p-3">{locale === 'es' ? 'Porcentaje' : 'Percentage'}</th>
+                      <th className="p-3">{locale === 'es' ? 'Peso Estimado' : 'Estimated Weight'}</th>
+                      <th className="p-3">{locale === 'es' ? 'Reps Estimadas' : 'Estimated Reps'}</th>
+                      <th className="p-3">{locale === 'es' ? 'Objetivo de Entrenamiento' : 'Training Objective'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60">
+                    {tablaPorcentajes.map((fila) => {
+                      const pesoFila = Math.round((rmCalculado * (fila.pct / 100)) * 10) / 10;
+                      return (
+                        <tr
+                          key={fila.pct}
+                          className={`hover:bg-white/[0.02] transition-colors ${
+                            fila.pct === 100 ? 'bg-[var(--color-primary)]/[0.04]' : ''
+                          }`}
+                        >
+                          <td className="p-3 font-mono font-black text-white flex items-center gap-1.5">
+                            {fila.pct === 100 && (
+                              <Target size={13} className="text-[var(--color-primary)]" />
+                            )}
+                            <span>{fila.pct}%</span>
+                          </td>
+                          <td className="p-3 font-mono font-black text-[var(--color-primary)] text-sm">
+                            {pesoFila} {unidad1RM}
+                          </td>
+                          <td className="p-3 font-bold text-neutral-300">
+                            {fila.reps}
+                          </td>
+                          <td className="p-3 text-neutral-400">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                fila.zona === 'max'
+                                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  : fila.zona === 'hiper'
+                                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'
+                                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                              }`}
+                            >
+                              {fila.desc}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* ── GUÍA RÁPIDA DE ZONAS DE ENTRENAMIENTO ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-red-500/10 text-red-400">
+                    <Target size={16} />
+                  </span>
+                  <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                    {locale === 'es' ? 'Fuerza Máxima' : 'Max Strength'}
+                  </h4>
+                </div>
+                <span className="text-[11px] font-mono text-red-400 font-bold block">85% - 100% 1RM</span>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {locale === 'es'
+                    ? 'Orientado a adaptaciones neuromusculares y potencia máxima (1 a 5 repeticiones). Descansos largos de 3 a 5 minutos.'
+                    : 'Targeted at neuromuscular adaptations and maximum power (1-5 reps). Rest 3-5 minutes.'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                    <TrendingUp size={16} />
+                  </span>
+                  <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                    {locale === 'es' ? 'Hipertrofia' : 'Hypertrophy'}
+                  </h4>
+                </div>
+                <span className="text-[11px] font-mono text-[var(--color-primary)] font-bold block">70% - 85% 1RM</span>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {locale === 'es'
+                    ? 'Rango óptimo para ganancia de masa muscular y volumen de trabajo (6 a 12 repeticiones). Descansos de 60 a 90 segundos.'
+                    : 'Optimal range for muscle mass and training volume (6-12 reps). Rest 60-90 seconds.'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+                    <Layers size={16} />
+                  </span>
+                  <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                    {locale === 'es' ? 'Resistencia y Descarga' : 'Endurance & Deload'}
+                  </h4>
+                </div>
+                <span className="text-[11px] font-mono text-blue-400 font-bold block">50% - 70% 1RM</span>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {locale === 'es'
+                    ? 'Ideal para series de calentamiento, semanas de descarga activa o acondicionamiento metabólico (+15 reps).'
+                    : 'Ideal for warm-up sets, deload weeks, or conditioning (+15 reps).'}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
