@@ -683,119 +683,73 @@ export default function HistorialPage() {
               </div>
             </div>
 
-            {/* Si hay búsqueda activa: resultados de la búsqueda */}
-            {busquedaAnio.trim() ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <p className="text-xs font-bold text-white">
-                    {locale === 'es'
-                      ? `Resultados para "${busquedaAnio}": ${sesionesAnioFiltradas.length} sesiones`
-                      : `Results for "${busquedaAnio}": ${sesionesAnioFiltradas.length} sessions`}
-                  </p>
-                  <button
-                    onClick={() => setBusquedaAnio('')}
-                    className="text-xs text-[var(--color-primary)] hover:underline cursor-pointer"
-                  >
-                    {locale === 'es' ? 'Ver todos los meses' : 'View all months'}
-                  </button>
-                </div>
+            {/* Grid de los 12 Meses del Año */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                  <Calendar size={16} className="text-[var(--color-primary)]" />
+                  <span>{locale === 'es' ? `Meses de ${anioSeleccionado}` : `Months of ${anioSeleccionado}`}</span>
+                </h3>
+                <span className="text-xs text-neutral-400">
+                  {locale === 'es' ? 'Pulsa en un mes para ver su calendario' : 'Click a month to view calendar'}
+                </span>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {sesionesAnioFiltradas.map((s) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {mesesDelAnio.map((m) => {
+                  const tieneSesiones = m.totalSesiones > 0;
+                  const esMesActualEnAnio = m.mes === ahora.getMonth() && anioSeleccionado === ahora.getFullYear();
+
+                  return (
                     <div
-                      key={s.id}
-                      onClick={() => navigate(`/historial/${s.fecha}`)}
-                      className="card card-hover p-4 rounded-2xl cursor-pointer border border-neutral-800 hover:border-neutral-600 transition-all flex flex-col justify-between gap-3"
+                      key={m.mes}
+                      onClick={() => abrirMesDesdeAnio(m.mes)}
+                      className={`card card-hover p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 cursor-pointer border ${
+                        esMesActualEnAnio
+                          ? 'border-[var(--color-primary)] shadow-[0_0_20px_rgba(219,240,89,0.12)]'
+                          : tieneSesiones
+                          ? 'border-neutral-800 hover:border-neutral-600'
+                          : 'border-neutral-800/50 opacity-60 hover:opacity-100 hover:border-neutral-700'
+                      }`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="text-xs text-neutral-400 font-mono">{formatearFechaLarga(s.fecha)}</span>
-                          <h4 className="text-base font-bold text-white mt-1">{s.rutina}</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-lg font-black text-white capitalize">
+                            {m.nombre}
+                          </h4>
+                          {esMesActualEnAnio && (
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-black">
+                              {locale === 'es' ? 'Actual' : 'Current'}
+                            </span>
+                          )}
                         </div>
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-neutral-300 font-mono">
-                          {s.duracionMin} min
+
+                        <p className="text-xs text-neutral-400">
+                          {tieneSesiones
+                            ? `${m.totalSesiones} ${locale === 'es' ? 'entrenamientos' : 'workouts'}`
+                            : (locale === 'es' ? 'Sin entrenamientos' : 'No workouts')}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs">
+                        {tieneSesiones ? (
+                          <span className="font-mono text-neutral-300 font-bold">
+                            {m.volumenKg >= 1000 ? `${(m.volumenKg / 1000).toFixed(1)}k` : m.volumenKg} <span className="text-neutral-500 font-normal">kg</span>
+                          </span>
+                        ) : (
+                          <span className="text-neutral-500 text-[11px]">—</span>
+                        )}
+
+                        <span className="text-[11px] font-bold text-[var(--color-primary)] flex items-center gap-1">
+                          <span>{locale === 'es' ? 'Ver mes' : 'View month'}</span>
+                          <ArrowRight size={12} />
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {s.ejercicios.map(e => (
-                          <span key={e.id} className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300">
-                            {e.nombre}
-                          </span>
-                        ))}
-                      </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ) : (
-              /* Grid de los 12 Meses del Año */
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                    <Calendar size={16} className="text-[var(--color-primary)]" />
-                    <span>{locale === 'es' ? `Meses de ${anioSeleccionado}` : `Months of ${anioSeleccionado}`}</span>
-                  </h3>
-                  <span className="text-xs text-neutral-400">
-                    {locale === 'es' ? 'Pulsa en un mes para ver su calendario' : 'Click a month to view calendar'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {mesesDelAnio.map((m) => {
-                    const tieneSesiones = m.totalSesiones > 0;
-                    const esMesActualEnAnio = m.mes === ahora.getMonth() && anioSeleccionado === ahora.getFullYear();
-
-                    return (
-                      <div
-                        key={m.mes}
-                        onClick={() => abrirMesDesdeAnio(m.mes)}
-                        className={`card card-hover p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 cursor-pointer border ${
-                          esMesActualEnAnio
-                            ? 'border-[var(--color-primary)] shadow-[0_0_20px_rgba(219,240,89,0.12)]'
-                            : tieneSesiones
-                            ? 'border-neutral-800 hover:border-neutral-600'
-                            : 'border-neutral-800/50 opacity-60 hover:opacity-100 hover:border-neutral-700'
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className="text-lg font-black text-white capitalize">
-                              {m.nombre}
-                            </h4>
-                            {esMesActualEnAnio && (
-                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-black">
-                                {locale === 'es' ? 'Actual' : 'Current'}
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-xs text-neutral-400">
-                            {tieneSesiones
-                              ? `${m.totalSesiones} ${locale === 'es' ? 'entrenamientos' : 'workouts'}`
-                              : (locale === 'es' ? 'Sin entrenamientos' : 'No workouts')}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs">
-                          {tieneSesiones ? (
-                            <span className="font-mono text-neutral-300 font-bold">
-                              {m.volumenKg >= 1000 ? `${(m.volumenKg / 1000).toFixed(1)}k` : m.volumenKg} <span className="text-neutral-500 font-normal">kg</span>
-                            </span>
-                          ) : (
-                            <span className="text-neutral-500 text-[11px]">—</span>
-                          )}
-
-                          <span className="text-[11px] font-bold text-[var(--color-primary)] flex items-center gap-1 group-hover:underline">
-                            <span>{locale === 'es' ? 'Ver mes' : 'View month'}</span>
-                            <ArrowRight size={12} />
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
 
