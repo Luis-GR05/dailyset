@@ -167,9 +167,12 @@ export default function LandingPage() {
 
         {/* Encabezado tres columnas "Motion. Discipline. Result." */}
         <div className="max-w-7xl mx-auto w-full pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 md:gap-8 items-baseline border-b border-white/10 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start border-b border-white/10 pb-8">
             <div className="hero-word">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-none">
+              <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-neutral-500 uppercase block mb-1.5">
+                // 01 · {locale === "es" ? "ACCIÓN" : "ACTION"}
+              </span>
+              <h1 className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tight text-white leading-none whitespace-nowrap">
                 Motion.
               </h1>
               <p className="text-xs text-neutral-400 font-medium mt-3 max-w-xs leading-relaxed">
@@ -180,8 +183,11 @@ export default function LandingPage() {
             </div>
 
             <div className="hero-word">
+              <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-[var(--color-primary)]/70 uppercase block mb-1.5">
+                // 02 · {locale === "es" ? "ENFOQUE" : "FOCUS"}
+              </span>
               <h1
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none"
+                className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tight leading-none whitespace-nowrap"
                 style={{ color: "var(--color-primary)" }}
               >
                 Discipline.
@@ -193,8 +199,11 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="hero-word flex flex-col md:items-end md:text-right">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-none">
+            <div className="hero-word flex flex-col lg:items-end lg:text-right">
+              <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-neutral-500 uppercase block mb-1.5">
+                // 03 · {locale === "es" ? "IMPACTO" : "IMPACT"}
+              </span>
+              <h1 className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tight text-white leading-none whitespace-nowrap">
                 Result.
               </h1>
               <p className="text-xs text-neutral-400 font-medium mt-3 max-w-xs leading-relaxed">
@@ -214,16 +223,16 @@ export default function LandingPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
 
-            {/* Widget flotante esquina inferior izquierda */}
-            <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4 max-w-xs">
+            {/* Widget flotante: top-left en mobile, bottom-left en desktop para evitar solapamiento con CTA */}
+            <div className="absolute top-4 left-4 sm:top-auto sm:bottom-8 sm:left-8 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 max-w-[260px] sm:max-w-xs z-10">
               <DotMatrix />
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
                   {locale === "es" ? "Tu Centro de Entrenamiento" : "Your Workout Hub"}
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xl font-black text-white">4.9 ★</span>
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-base sm:text-xl font-black text-white">4.9 ★</span>
+                  <span className="text-[11px] sm:text-xs text-neutral-400">
                     {locale === "es" ? "2.8k Atletas activos" : "2.8k Active Athletes"}
                   </span>
                 </div>
@@ -231,14 +240,14 @@ export default function LandingPage() {
             </div>
 
             {/* Botón flotante esquina inferior derecha */}
-            <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8">
+            <div className="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 z-10">
               <Link to="/registro">
                 <button
-                  className="px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
+                  className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-black text-[11px] sm:text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
                   style={{ backgroundColor: "var(--color-primary)" }}
                 >
                   <span>{locale === "es" ? "EMPEZAR HOY" : "START TODAY"}</span>
-                  <ArrowUpRight size={16} />
+                  <ArrowUpRight size={15} />
                 </button>
               </Link>
             </div>
@@ -261,14 +270,14 @@ export default function LandingPage() {
 
             {/* Franja horizontal amarillo flúor cortando la imagen (idéntica a la referencia 1) */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 left-0 right-0 py-4 px-6 sm:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl z-10"
+              className="absolute top-1/2 -translate-y-1/2 left-0 right-0 py-3 sm:py-4 px-4 sm:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl z-10"
               style={{ backgroundColor: "var(--color-primary)", color: "var(--color-black)" }}
             >
               <div className="space-y-0.5">
-                <span className="font-black text-lg sm:text-xl tracking-tighter uppercase font-mono">
+                <span className="font-black text-base sm:text-xl tracking-tighter uppercase font-mono">
                   DAILYSET™
                 </span>
-                <p className="text-[11px] sm:text-xs font-bold max-w-sm leading-tight text-black/90">
+                <p className="text-[10px] sm:text-xs font-bold max-w-sm leading-tight text-black/90">
                   {locale === "es"
                     ? "Celebramos a los atletas que no persiguen atajos, sino la constancia diaria como filosofía innegociable."
                     : "We celebrate athletes who don't chase shortcuts, but build consistency as an uncompromising mindset."}
@@ -276,7 +285,7 @@ export default function LandingPage() {
               </div>
 
               <Link to="/registro" className="shrink-0">
-                <button className="bg-black hover:bg-neutral-900 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95">
+                <button className="bg-black hover:bg-neutral-900 text-white font-black text-[10px] sm:text-xs uppercase tracking-widest px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95">
                   {locale === "es" ? "REGÍSTRATE AHORA +" : "REGISTER NOW +"}
                 </button>
               </Link>
