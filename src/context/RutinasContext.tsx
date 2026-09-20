@@ -132,7 +132,11 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
       }
     } catch (e: any) {
       console.error('Error cargando rutinas', e);
-      setError(e.message ?? 'Error cargando rutinas');
+      const isFetchErr = e?.message?.includes('fetch') || e?.name === 'TypeError';
+      const msg = isFetchErr
+        ? 'No se pudo conectar con el servidor (posible corte de red o conexión temporal). Se muestran datos guardados.'
+        : (e.message ?? 'Error cargando rutinas');
+      setError(msg);
     } finally {
       const endedAtMs = performance.now();
       if (myReq === requestSeq.current) {

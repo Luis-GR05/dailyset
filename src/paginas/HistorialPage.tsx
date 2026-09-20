@@ -14,7 +14,8 @@ import {
   Search,
   ArrowRight,
   Filter,
-  Activity
+  Activity,
+  X,
 } from 'lucide-react';
 
 export default function HistorialPage() {
@@ -173,12 +174,21 @@ export default function HistorialPage() {
     setVista('mes_actual');
   };
 
+  // Día seleccionado en el calendario interactivo
+  const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
+
   // Manejar clic en un día del calendario
   const handleDiaClick = (dia: number) => {
-    const mm = String(mesActual + 1).padStart(2, '0');
-    const dd = String(dia).padStart(2, '0');
-    navigate(`/historial/${anioActual}-${mm}-${dd}`);
+    setDiaSeleccionado(prev => prev === dia ? null : dia);
   };
+
+  const fechaSeleccionadaStr = diaSeleccionado !== null
+    ? `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(diaSeleccionado).padStart(2, '0')}`
+    : null;
+
+  const sesionesDiaSeleccionado = fechaSeleccionadaStr
+    ? getSesionesPorFecha(fechaSeleccionadaStr)
+    : [];
 
   // Formato de fecha legible
   const formatearFechaLarga = (fechaStr: string) => {
@@ -373,6 +383,7 @@ export default function HistorialPage() {
                     anio={anioActual}
                     entrenamientos={diasEntrenadosMes}
                     onDiaClick={handleDiaClick}
+                    diaSeleccionado={diaSeleccionado}
                   />
 
                   <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
@@ -383,6 +394,99 @@ export default function HistorialPage() {
                     <span className="font-mono text-white font-bold">{diasEntrenadosMes.length} {locale === 'es' ? 'días' : 'days'}</span>
                   </div>
                 </Card>
+
+                {/* Detalle interactivo del día seleccionado */}
+                {diaSeleccionado !== null && (
+                  <div className="card p-5 rounded-2xl border border-[var(--color-primary)]/40 bg-neutral-900/90 shadow-2xl space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] block">
+                          {locale === 'es' ? 'Detalle del día seleccionado' : 'Selected Day Detail'}
+                        </span>
+                        <h4 className="text-sm sm:text-base font-black text-white capitalize mt-0.5">
+                          {fechaSeleccionadaStr && formatearFechaLarga(fechaSeleccionadaStr)}
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDiaSeleccionado(null)}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer"
+                        title={locale === 'es' ? 'Cerrar detalle' : 'Close detail'}
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+
+                    {sesionesDiaSeleccionado.length > 0 ? (
+                      <div className="space-y-3">
+                        {sesionesDiaSeleccionado.map((sesion, sIdx) => {
+                          const volSesion = sesion.ejercicios.reduce((tot, ej) =>
+                            tot + ej.series.reduce((sTot, s) => sTot + (s.kg || 0) * (s.reps || 0), 0), 0);
+
+                          return (
+                            <div key={sesion.id || sIdx} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <h5 className="text-sm font-black text-white flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
+                                  {sesion.rutina}
+                                </h5>
+                                <span className="text-xs text-neutral-400 font-mono flex items-center gap-1">
+                                  <Clock size={12} /> {sesion.duracionMin} min
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs text-neutral-400">
+                                <span>{sesion.ejercicios.length} {locale === 'es' ? 'ejercicios' : 'exercises'}</span>
+                                <span className="font-mono text-white font-bold">{volSesion.toLocaleString()} kg {locale === 'es' ? 'volumen' : 'volume'}</span>
+                              </div>
+
+                              {/* Mini lista de ejercicios */}
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {sesion.ejercicios.map((ej, eIdx) => (
+                                  <span key={eIdx} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[11px] text-neutral-300 font-medium">
+                                    {ej.nombre} ({ej.series.length}s)
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="pt-2 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/historial/${sesion.fecha}`)}
+                                  className="px-3.5 py-1.5 rounded-xl bg-[var(--color-primary)] text-black text-xs font-black uppercase tracking-wider hover:opacity-90 flex items-center gap-1.5 cursor-pointer shadow-md"
+                                >
+                                  <span>{locale === 'es' ? 'Ver sesión completa' : 'View full session'}</span>
+                                  <ArrowRight size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-4 text-center space-y-2.5">
+                        <p className="text-xs text-neutral-300 font-medium">
+                          {locale === 'es'
+                            ? 'No hay ningún entrenamiento registrado en este día.'
+                            : 'No workouts recorded on this day.'}
+                        </p>
+                        <p className="text-[11px] text-neutral-500">
+                          {locale === 'es'
+                            ? 'Día de descanso o sin sesión guardada en la fecha seleccionada.'
+                            : 'Rest day or no session saved for this date.'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/mis-rutinas')}
+                          className="mt-1 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Dumbbell size={13} style={{ color: 'var(--color-primary)' }} />
+                          <span>{locale === 'es' ? 'Ir a Mis Rutinas para entrenar' : 'Go to My Routines'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Columna Derecha: Feed Detallado de Sesiones del Mes */}

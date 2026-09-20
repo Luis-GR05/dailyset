@@ -9,14 +9,15 @@ interface SidebarProps {
 
 export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
   const location = useLocation();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const menuItems = [
     { nombre: t.nav.dashboard, ruta: "/dashboard" },
     { nombre: t.nav.myRoutines, ruta: "/mis-rutinas" },
-    { nombre: t.nav.history, ruta: "/historial" },
     { nombre: t.nav.exercises, ruta: "/ejercicios" },
+    { nombre: t.nav.history, ruta: "/historial" },
     { nombre: t.nav.statistics, ruta: "/estadisticas" },
+    { nombre: locale === 'es' ? 'Utilidades' : 'Utilities', ruta: "/utilidades" },
     { nombre: t.nav.profile, ruta: "/perfil" },
   ];
 

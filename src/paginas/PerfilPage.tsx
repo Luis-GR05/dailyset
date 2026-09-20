@@ -573,7 +573,7 @@ export default function PerfilPage() {
                   <Flame size={16} />
                 </span>
                 <h2 className="text-lg font-black text-white uppercase italic tracking-wide">
-                  {locale === 'es' ? 'Gamificación & Racha de Constancia' : 'Gamification & Consistency Streak'}
+                  {locale === 'es' ? 'Racha de Constancia' : 'Consistency Streak'}
                 </h2>
               </div>
               <p className="text-neutral-400 text-xs mt-0.5">

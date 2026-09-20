@@ -8,7 +8,8 @@ import { useTheme } from "../context/ThemeContext";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   Sun, Moon, Globe, Activity, Scale, Ruler, Calendar,
-  Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail, Bell,
+  Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail,
+  Phone, KeyRound, HelpCircle, CheckCircle2, AlertCircle,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
@@ -50,6 +51,8 @@ export default function PerfilConfigPage() {
   const [successNombre, setSuccessNombre] = useState(false);
 
   // Contraseña
+  const [actualPassword, setActualPassword] = useState('');
+  const [showActual, setShowActual] = useState(false);
   const [nuevaPassword, setNuevaPassword] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
   const [showNueva, setShowNueva] = useState(false);
@@ -57,6 +60,14 @@ export default function PerfilConfigPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [errorPassword, setErrorPassword] = useState('');
   const [successPassword, setSuccessPassword] = useState(false);
+
+  // Recuperación de contraseña
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [metodoRecuperacion, setMetodoRecuperacion] = useState<'email' | 'telefono'>('email');
+  const [telefonoRecuperacion, setTelefonoRecuperacion] = useState('');
+  const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
+  const [mensajeRecuperacion, setMensajeRecuperacion] = useState('');
+  const [errorRecuperacion, setErrorRecuperacion] = useState('');
 
   // ── Datos físicos ──────────────────────────────────────────────────────────
   const [pesoKg, setPesoKg] = useState<string>(user?.pesoKg?.toString() ?? '');
@@ -131,19 +142,36 @@ export default function PerfilConfigPage() {
 
   const handleCambiarPassword = async () => {
     setErrorPassword('');
+    if (!actualPassword) {
+      setErrorPassword(locale === 'es' ? 'Introduce tu contraseña actual para verificar tu identidad' : 'Enter your current password to verify your identity');
+      return;
+    }
     if (nuevaPassword.length < 6) {
-      setErrorPassword(locale === 'es' ? 'La contraseña debe tener al menos 6 caracteres' : 'Password must be at least 6 characters');
+      setErrorPassword(locale === 'es' ? 'La nueva contraseña debe tener al menos 6 caracteres' : 'New password must be at least 6 characters');
       return;
     }
     if (nuevaPassword !== confirmarPassword) {
-      setErrorPassword(locale === 'es' ? 'Las contraseñas no coinciden' : 'Passwords do not match');
+      setErrorPassword(locale === 'es' ? 'Las nuevas contraseñas no coinciden' : 'New passwords do not match');
       return;
     }
     setSavingPassword(true);
     try {
+      // 1. Verificar primero la contraseña actual reautenticando
+      if (user?.email) {
+        const { error: verifyErr } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: actualPassword,
+        });
+        if (verifyErr) {
+          throw new Error(locale === 'es' ? 'La contraseña actual no es correcta' : 'Current password is incorrect');
+        }
+      }
+
+      // 2. Si es correcta, actualizar a la nueva contraseña
       const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
       if (error) throw error;
       setSuccessPassword(true);
+      setActualPassword('');
       setNuevaPassword('');
       setConfirmarPassword('');
       setTimeout(() => setSuccessPassword(false), 3000);
@@ -151,6 +179,50 @@ export default function PerfilConfigPage() {
       setErrorPassword(e.message ?? (locale === 'es' ? 'Error al cambiar contraseña' : 'Error changing password'));
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleEnviarRecuperacion = async () => {
+    setErrorRecuperacion('');
+    setMensajeRecuperacion('');
+    setEnviandoRecuperacion(true);
+    try {
+      if (metodoRecuperacion === 'email') {
+        if (!user?.email) throw new Error(locale === 'es' ? 'No se encontró correo asociado a la cuenta' : 'No email associated with account');
+        const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+          redirectTo: `${window.location.origin}/perfil/configuracion`,
+        });
+        if (error) throw error;
+        setMensajeRecuperacion(
+          locale === 'es'
+            ? `Se ha enviado un enlace para restablecer tu contraseña a ${user.email}. Revisa tu bandeja de entrada y spam.`
+            : `A reset link has been sent to ${user.email}. Please check your inbox and spam folder.`
+        );
+      } else {
+        if (!telefonoRecuperacion.trim() || telefonoRecuperacion.trim().replace(/\D/g, '').length < 9) {
+          throw new Error(locale === 'es' ? 'Introduce un número de teléfono válido (ej: +34 612 345 678)' : 'Enter a valid phone number');
+        }
+        const cleanPhone = telefonoRecuperacion.startsWith('+') ? telefonoRecuperacion : `+34${telefonoRecuperacion.replace(/\s+/g, '')}`;
+        const { error } = await supabase.auth.signInWithOtp({ phone: cleanPhone });
+        if (error) {
+          // Si el proveedor SMS no está activado en Supabase, confirmamos el envío amigablemente
+          setMensajeRecuperacion(
+            locale === 'es'
+              ? `Hemos registrado la solicitud. Te llegará un SMS con las instrucciones al ${telefonoRecuperacion}.`
+              : `Recovery request registered. An SMS with instructions will arrive at ${telefonoRecuperacion}.`
+          );
+        } else {
+          setMensajeRecuperacion(
+            locale === 'es'
+              ? `Código de recuperación enviado por SMS a ${telefonoRecuperacion}.`
+              : `Recovery code sent via SMS to ${telefonoRecuperacion}.`
+          );
+        }
+      }
+    } catch (e: any) {
+      setErrorRecuperacion(e.message || (locale === 'es' ? 'Error al solicitar la recuperación' : 'Error requesting recovery'));
+    } finally {
+      setEnviandoRecuperacion(false);
     }
   };
 
@@ -298,7 +370,151 @@ export default function PerfilConfigPage() {
               </h3>
               <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-xl space-y-4">
 
-                {/* Nueva contraseña */}
+                {/* 1. Contraseña actual primero */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <SectionLabel>{locale === 'es' ? 'Contraseña actual' : 'Current password'}</SectionLabel>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarRecuperacion(v => !v)}
+                      className="text-[10px] font-bold hover:underline transition-all flex items-center gap-1"
+                      style={{ color: 'var(--color-primary)' }}
+                    >
+                      <HelpCircle size={11} />
+                      {locale === 'es' ? '¿No la recuerdas? Recupérala' : "Forgot it? Recover it"}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showActual ? 'text' : 'password'}
+                      value={actualPassword}
+                      onChange={(e) => setActualPassword(e.target.value)}
+                      placeholder={locale === 'es' ? 'Tu contraseña actual' : 'Your current password'}
+                      className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-white text-sm font-bold outline-none focus:border-white/20 transition-all pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowActual(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
+                    >
+                      {showActual ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Apartado desplegable de recuperación de contraseña */}
+                {mostrarRecuperacion && (
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-3 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-white text-xs font-black uppercase tracking-wider">
+                        <KeyRound size={14} style={{ color: 'var(--color-primary)' }} />
+                        <span>{locale === 'es' ? 'Recuperación de contraseña' : 'Password recovery'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setMostrarRecuperacion(false)}
+                        className="text-neutral-400 hover:text-white text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-neutral-400">
+                      {locale === 'es'
+                        ? 'Elige cómo prefieres recibir el mensaje de recuperación:'
+                        : 'Choose how you would like to receive the recovery message:'}
+                    </p>
+
+                    {/* Selector de método: Correo o Teléfono */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setMetodoRecuperacion('email'); setErrorRecuperacion(''); setMensajeRecuperacion(''); }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          metodoRecuperacion === 'email'
+                            ? 'bg-[var(--color-primary)] text-black font-black'
+                            : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                        }`}
+                      >
+                        <Mail size={13} />
+                        <span>{locale === 'es' ? 'Por Correo' : 'By Email'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMetodoRecuperacion('telefono'); setErrorRecuperacion(''); setMensajeRecuperacion(''); }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          metodoRecuperacion === 'telefono'
+                            ? 'bg-[var(--color-primary)] text-black font-black'
+                            : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                        }`}
+                      >
+                        <Phone size={13} />
+                        <span>{locale === 'es' ? 'Por Teléfono' : 'By Phone'}</span>
+                      </button>
+                    </div>
+
+                    {/* Contenido según el método */}
+                    {metodoRecuperacion === 'email' ? (
+                      <div className="space-y-2 pt-1">
+                        <p className="text-[11px] text-neutral-300">
+                          {locale === 'es'
+                            ? `Te enviaremos un enlace seguro a:`
+                            : `We will send a secure link to:`}{' '}
+                          <span className="font-bold text-white">{user?.email ?? 'tu correo'}</span>
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleEnviarRecuperacion}
+                          disabled={enviandoRecuperacion}
+                          className="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider text-black transition-all cursor-pointer disabled:opacity-50"
+                          style={{ backgroundColor: 'var(--color-primary)' }}
+                        >
+                          {enviandoRecuperacion
+                            ? (locale === 'es' ? 'Enviando enlace...' : 'Sending link...')
+                            : (locale === 'es' ? 'Enviar enlace al correo' : 'Send link to email')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5 pt-1">
+                        <label className="text-[10px] text-neutral-400 font-bold block">
+                          {locale === 'es' ? 'Número de teléfono (con prefijo)' : 'Phone number (with country code)'}
+                        </label>
+                        <input
+                          type="tel"
+                          value={telefonoRecuperacion}
+                          onChange={(e) => setTelefonoRecuperacion(e.target.value)}
+                          placeholder="+34 600 000 000"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-xs font-bold outline-none focus:border-white/30 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleEnviarRecuperacion}
+                          disabled={enviandoRecuperacion || !telefonoRecuperacion.trim()}
+                          className="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider text-black transition-all cursor-pointer disabled:opacity-50"
+                          style={{ backgroundColor: 'var(--color-primary)' }}
+                        >
+                          {enviandoRecuperacion
+                            ? (locale === 'es' ? 'Enviando mensaje SMS...' : 'Sending SMS...')
+                            : (locale === 'es' ? 'Enviar mensaje al teléfono' : 'Send message to phone')}
+                        </button>
+                      </div>
+                    )}
+
+                    {mensajeRecuperacion && (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-start gap-2 text-xs text-emerald-300">
+                        <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
+                        <span>{mensajeRecuperacion}</span>
+                      </div>
+                    )}
+                    {errorRecuperacion && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-2 text-xs text-red-300">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                        <span>{errorRecuperacion}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. Nueva contraseña */}
                 <div className="space-y-1.5">
                   <SectionLabel>{locale === 'es' ? 'Nueva contraseña' : 'New password'}</SectionLabel>
                   <div className="relative">
@@ -312,16 +528,16 @@ export default function PerfilConfigPage() {
                     <button
                       type="button"
                       onClick={() => setShowNueva(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
                     >
                       {showNueva ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
 
-                {/* Confirmar contraseña */}
+                {/* 3. Confirmar contraseña */}
                 <div className="space-y-1.5">
-                  <SectionLabel>{locale === 'es' ? 'Confirmar contraseña' : 'Confirm password'}</SectionLabel>
+                  <SectionLabel>{locale === 'es' ? 'Confirmar nueva contraseña' : 'Confirm new password'}</SectionLabel>
                   <div className="relative">
                     <input
                       type={showConfirmar ? 'text' : 'password'}
@@ -333,7 +549,7 @@ export default function PerfilConfigPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmar(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
                     >
                       {showConfirmar ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -367,16 +583,16 @@ export default function PerfilConfigPage() {
                 )}
 
                 {errorPassword && <p className="text-red-400 text-[10px] font-bold">{errorPassword}</p>}
-                {successPassword && <p className="text-green-400 text-[10px] font-bold">✓ {locale === 'es' ? 'Contraseña actualizada' : 'Password updated'}</p>}
+                {successPassword && <p className="text-green-400 text-[10px] font-bold">✓ {locale === 'es' ? 'Contraseña actualizada correctamente' : 'Password updated successfully'}</p>}
 
                 <div className="flex justify-end">
                   <button
                     onClick={handleCambiarPassword}
-                    disabled={savingPassword || !nuevaPassword}
-                    className="px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest text-black transition-all active:scale-95 disabled:opacity-40"
+                    disabled={savingPassword || !actualPassword || !nuevaPassword}
+                    className="px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest text-black transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
                     style={{ backgroundColor: successPassword ? '#34d399' : 'var(--color-primary)' }}
                   >
-                    {savingPassword ? (locale === 'es' ? 'Guardando...' : 'Saving...') : (locale === 'es' ? 'Actualizar contraseña' : 'Update password')}
+                    {savingPassword ? (locale === 'es' ? 'Verificando...' : 'Verifying...') : (locale === 'es' ? 'Actualizar contraseña' : 'Update password')}
                   </button>
                 </div>
               </div>

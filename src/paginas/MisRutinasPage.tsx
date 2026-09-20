@@ -98,7 +98,7 @@ function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], loca
 }
 
 export default function MisRutinasPage() {
-    const { rutinas, cargando, error, carga, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
+    const { rutinas, cargando, error, carga, refrescar, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina } = useRutinas();
     const { t, locale } = useI18n();
 
     // Pestaña principal: 'mis_rutinas' o 'preestablecidas'
@@ -328,7 +328,17 @@ export default function MisRutinasPage() {
                             </div>
                         )}
 
-                        {error && <p className="text-red-400 text-sm">{error}</p>}
+                        {error && (
+                            <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-300">
+                                <span>⚠️ {error}</span>
+                                <button
+                                    onClick={() => refrescar()}
+                                    className="self-start sm:self-auto px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
+                                >
+                                    {locale === 'es' ? 'Reintentar conexión' : 'Retry connection'}
+                                </button>
+                            </div>
+                        )}
 
                         {/* Estado vacío general cuando no hay ninguna rutina */}
                         {!cargando && rutinas.length === 0 && (
