@@ -7,27 +7,16 @@ interface LogoProps {
 
 export default function Logo({ size = 'md', className = "" }: LogoProps) {
   const sizes = {
-    sm: { text: 'text-2xl', icon: 'w-5 h-7', gap: 'gap-2' },
-    md: { text: 'text-4xl', icon: 'w-8 h-10', gap: 'gap-2' },
-    lg: { text: 'text-5xl', icon: 'w-11 h-14', gap: 'gap-2.5' },
-    xl: { text: 'text-8xl', icon: 'w-20 h-24', gap: 'gap-4' },
+    sm: { text: 'text-2xl' },
+    md: { text: 'text-4xl' },
+    lg: { text: 'text-5xl' },
+    xl: { text: 'text-8xl' },
   };
 
   const s = sizes[size];
 
   return (
-    <div className={`flex items-center select-none ${s.gap} ${className}`}>
-
-      <div className={`${s.icon} flex-shrink-0`}>
-        <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_15px_rgba(219,240,89,0.5)]">
-          <path
-            d="M21 2L3 18H11L7 30L22 13H14L21 2Z"
-            style={{ fill: 'var(--color-primary)' }}
-            className="animate-pulse-slow"
-          />
-        </svg>
-      </div>
-
+    <div className={`inline-flex items-center select-none ${className}`}>
       <div
         className={`flex items-baseline leading-[0.8] font-black ${s.text} tracking-tighter`}
         style={{

@@ -720,18 +720,13 @@ export default function MisRutinasPage() {
                                                 type="button"
                                                 disabled={isAdding}
                                                 onClick={() => handleCogerRutina(plantilla)}
-                                                className="w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all duration-200 shadow-md active:scale-98 cursor-pointer"
-                                                style={{
-                                                    background: 'var(--color-accent)',
-                                                    color: '#000',
-                                                    opacity: isAdding ? 0.7 : 1,
-                                                }}
+                                                className="w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all duration-200 bg-neutral-800/90 hover:bg-neutral-700 text-white hover:text-white border border-neutral-700/80 hover:border-neutral-500 shadow-sm active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {isAdding ? (
                                                     <span>{locale === 'es' ? 'Añadiendo rutina…' : 'Adding routine…'}</span>
                                                 ) : (
                                                     <>
-                                                        <Plus size={15} strokeWidth={3} />
+                                                        <Plus size={15} strokeWidth={2.5} className="text-neutral-300" />
                                                         <span>{locale === 'es' ? 'Coger esta rutina' : 'Add this routine'}</span>
                                                     </>
                                                 )}

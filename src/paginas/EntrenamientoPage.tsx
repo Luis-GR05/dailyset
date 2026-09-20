@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AppLayout, Card } from "../componentes";
-import { Eye, ExternalLink, Dumbbell } from 'lucide-react';
+import { Eye, ExternalLink, Dumbbell, Sun, Timer } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useRutinas } from '../context/RutinasContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
+import { useWakeLock } from '../hooks/useWakeLock';
+import TemporizadorDescanso from '../componentes/entrenamiento/TemporizadorDescanso';
+import TarjetaCompartirModal, { type DatosCompartirSesion } from '../componentes/compartir/TarjetaCompartirModal';
 
 type EntrenamientoLocationState = {
     nombre?: string;
@@ -97,7 +100,7 @@ export default function EntrenamientoPage() {
             return rutinas.find(r => r.id === Number(rutinaId) || String(r.id) === String(rutinaId));
         }
         if (nombreRutinaState) return rutinas.find(r => r.nombre === nombreRutinaState);
-        return undefined;
+        return rutinas.length > 0 ? rutinas[0] : undefined;
     }, [rutinaId, nombreRutinaState, rutinas]);
 
     const nombreRutina = rutina?.nombre || nombreRutinaState || (locale === 'es' ? "Entrenamiento" : "Training");
@@ -116,12 +119,24 @@ export default function EntrenamientoPage() {
         });
     }, [rutina?.ejerciciosIds, state?.ejerciciosIds, catalogoEjercicios, locale]);
 
+    const { isSupported: wakeLockSupported, isActive: wakeLockActive, request: requestWakeLock, release: releaseWakeLock, toggle: toggleWakeLock } = useWakeLock();
+
     const [ejerciciosUI, setEjerciciosUI] = useState<EjercicioUI[]>([]);
     const [empezado, setEmpezado] = useState(false);
     const [guardando, setGuardando] = useState(false);
     const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
     const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    // Estados para Temporizador de Descanso
+    const [mostrarDescanso, setMostrarDescanso] = useState(false);
+    const [segundosDescansoConfig] = useState(90);
+    const [ejercicioDescansoActual, setEjercicioDescansoActual] = useState<string>('');
+    const [descansoKey, setDescansoKey] = useState(0);
+
+    // Estados para Tarjeta de Compartir Story / WhatsApp
+    const [mostrarModalCompartir, setMostrarModalCompartir] = useState(false);
+    const [datosCompartir, setDatosCompartir] = useState<DatosCompartirSesion | null>(null);
 
     useEffect(() => {
         if (empezado) return;
@@ -146,15 +161,30 @@ export default function EntrenamientoPage() {
     }, [empezado, startedAtMs]);
 
     const toggleSerie = (ejercicioId: number, serieNumero: number) => {
+        let recienCompletada = false;
+        let nombreEjercicio = '';
         setEjerciciosUI(prev => prev.map(ej => {
             if (ej.id !== ejercicioId) return ej;
+            nombreEjercicio = ej.nombre;
             return {
                 ...ej,
-                series: ej.series.map(s =>
-                    s.numero === serieNumero ? { ...s, completada: !s.completada } : s
-                )
+                series: ej.series.map(s => {
+                    if (s.numero === serieNumero) {
+                        const nuevoEstado = !s.completada;
+                        if (nuevoEstado) recienCompletada = true;
+                        return { ...s, completada: nuevoEstado };
+                    }
+                    return s;
+                })
             };
         }));
+
+        // Si se completa una serie durante el entrenamiento, activar descanso automáticamente
+        if (recienCompletada && empezado) {
+            setEjercicioDescansoActual(nombreEjercicio);
+            setDescansoKey(prev => prev + 1);
+            setMostrarDescanso(true);
+        }
     };
 
     const actualizarSerieCampo = (ejercicioId: number, serieNumero: number, campo: 'kg' | 'reps', valor: number) => {
@@ -220,7 +250,37 @@ export default function EntrenamientoPage() {
                     series: ej.series.map(s => ({ kg: s.kg, reps: s.reps, completada: s.completada })),
                 })),
             });
-            navigate('/historial');
+
+            // Liberar pantalla encendida y cerrar descanso
+            releaseWakeLock();
+            setMostrarDescanso(false);
+
+            // Preparar datos para la tarjeta de compartir
+            const fecha_ = new Date();
+            const fechaTexto = fecha_.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+                weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+            });
+
+            const resumenEjercicios = ejerciciosUI.map(ej => {
+                const seriesHechas = ej.series.filter(s => s.completada);
+                const maxKg = seriesHechas.reduce((max, s) => Math.max(max, s.kg), 0);
+                return {
+                    nombre: ej.nombre,
+                    series: seriesHechas.length > 0 ? seriesHechas.length : ej.series.length,
+                    mejorPeso: maxKg > 0 ? maxKg : undefined,
+                };
+            });
+
+            setDatosCompartir({
+                nombreRutina,
+                duracionMin,
+                volumenKg: volumenTotal,
+                totalSeries: seriesRealizadas,
+                fechaTexto,
+                puntuacion,
+                ejercicios: resumenEjercicios,
+            });
+            setMostrarModalCompartir(true);
         } catch (e: any) {
             const msg = e instanceof Error ? e.message : undefined;
             setErrorGuardar(msg ?? (locale === 'es' ? 'Error guardando la sesión' : 'Error saving session'));
@@ -249,6 +309,51 @@ export default function EntrenamientoPage() {
                                 {Math.round(volumenTotal)} {t.history.kg}
                             </span>
                         </div>
+
+                        {/* Botón Wake Lock (Pantalla siempre encendida) */}
+                        {wakeLockSupported && (
+                            <button
+                                type="button"
+                                onClick={toggleWakeLock}
+                                title={
+                                    wakeLockActive
+                                        ? (locale === 'es' ? 'Pantalla siempre activa (clic para desactivar)' : 'Screen stay awake active (click to disable)')
+                                        : (locale === 'es' ? 'Mantener pantalla siempre encendida' : 'Keep screen awake')
+                                }
+                                className={`h-9 px-3 rounded-xl border flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    wakeLockActive
+                                        ? 'bg-[#DBF059]/15 border-[#DBF059]/40 text-[#DBF059] shadow-[0_0_12px_rgba(219,240,89,0.15)]'
+                                        : 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:text-white'
+                                }`}
+                            >
+                                <Sun size={14} className={wakeLockActive ? 'animate-pulse text-[#DBF059]' : ''} />
+                                <span className="hidden sm:inline">
+                                    {wakeLockActive
+                                        ? (locale === 'es' ? 'Pantalla Activa' : 'Awake')
+                                        : (locale === 'es' ? 'Pantalla' : 'Screen')}
+                                </span>
+                            </button>
+                        )}
+
+                        {/* Botón de acceso directo al Temporizador de descanso */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDescansoKey(prev => prev + 1);
+                                setMostrarDescanso(prev => !prev);
+                            }}
+                            title={locale === 'es' ? 'Temporizador de descanso' : 'Rest timer'}
+                            className={`h-9 px-3 rounded-xl border flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                                mostrarDescanso
+                                    ? 'bg-[#DBF059]/15 border-[#DBF059]/40 text-[#DBF059]'
+                                    : 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:text-white'
+                            }`}
+                        >
+                            <Timer size={14} />
+                            <span className="hidden sm:inline">
+                                {locale === 'es' ? 'Descanso' : 'Rest'}
+                            </span>
+                        </button>
                     </div>
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         {!empezado ? (
@@ -262,6 +367,7 @@ export default function EntrenamientoPage() {
                                         return;
                                     }
                                     setEmpezado(true);
+                                    requestWakeLock();
                                     const now = Date.now();
                                     setStartedAtMs(now);
                                     setElapsedSeconds(0);
@@ -452,6 +558,30 @@ export default function EntrenamientoPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Temporizador flotante de descanso entre series */}
+                {mostrarDescanso && (
+                    <TemporizadorDescanso
+                        key={descansoKey}
+                        segundosIniciales={segundosDescansoConfig}
+                        ejercicioNombre={ejercicioDescansoActual}
+                        onTerminar={() => {}}
+                        onCerrar={() => setMostrarDescanso(false)}
+                    />
+                )}
+
+                {/* Modal de Tarjeta para Compartir (Stories / WhatsApp) */}
+                {mostrarModalCompartir && datosCompartir && (
+                    <TarjetaCompartirModal
+                        abierto={mostrarModalCompartir}
+                        onCerrar={() => {
+                            setMostrarModalCompartir(false);
+                            navigate('/historial');
+                        }}
+                        datos={datosCompartir}
+                        onContinuar={() => navigate('/historial')}
+                    />
+                )}
             </div>
         </AppLayout>
     );

@@ -1,13 +1,18 @@
+import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from "../context/I18nContext";
+import { Share2 } from 'lucide-react';
+import TarjetaCompartirModal, { type DatosCompartirSesion } from '../componentes/compartir/TarjetaCompartirModal';
 
 export default function HistorialDiaPage() {
   const { fecha } = useParams<{ fecha: string }>();
   const navigate = useNavigate();
   const { getSesionesPorFecha } = useHistorial();
   const { t, locale } = useI18n();
+
+  const [compartirSesion, setCompartirSesion] = useState<DatosCompartirSesion | null>(null);
 
   const sesiones = getSesionesPorFecha(fecha ?? '');
 
@@ -31,6 +36,27 @@ export default function HistorialDiaPage() {
   });
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const abrirCompartir = (sesion: typeof sesiones[0], volTotal: number) => {
+    const resumenEjercicios = sesion.ejercicios.map(ej => {
+      const maxKg = ej.series.reduce((max, s) => Math.max(max, s.kg), 0);
+      return {
+        nombre: ej.nombre,
+        series: ej.series.length,
+        mejorPeso: maxKg > 0 ? maxKg : undefined,
+      };
+    });
+
+    setCompartirSesion({
+      nombreRutina: sesion.rutina,
+      duracionMin: sesion.duracionMin,
+      volumenKg: volTotal,
+      totalSeries: sesion.ejercicios.reduce((t, e) => t + e.series.length, 0),
+      fechaTexto: capitalize(fechaLegible),
+      puntuacion: sesion.puntuacion,
+      ejercicios: resumenEjercicios,
+    });
+  };
 
   return (
     <AppLayout>
@@ -65,7 +91,7 @@ export default function HistorialDiaPage() {
                         {sesion.rutina}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <div className="flex items-center gap-1">
                         <span className="text-neutral-400 text-xs">{locale === 'es' ? 'Puntuación:' : 'Score:'}</span>
                         <div className="flex gap-1">
@@ -89,6 +115,16 @@ export default function HistorialDiaPage() {
                       <div className="text-xs text-neutral-300">
                         {locale === 'es' ? 'Duración' : 'Duration'}: <span className="text-white font-bold">{sesion.duracionMin} min</span>
                       </div>
+
+                      {/* Botón para compartir en Stories / WhatsApp */}
+                      <button
+                        onClick={() => abrirCompartir(sesion, volumenTotal)}
+                        className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer border border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                        title={locale === 'es' ? 'Compartir en Instagram Stories / WhatsApp' : 'Share to Stories / WhatsApp'}
+                      >
+                        <Share2 size={13} style={{ color: 'var(--color-primary)' }} />
+                        <span>{locale === 'es' ? 'Compartir' : 'Share'}</span>
+                      </button>
                     </div>
                   </div>
                 </Card>
@@ -121,6 +157,15 @@ export default function HistorialDiaPage() {
             );
           })}
         </div>
+
+        {/* Modal para Compartir Story / WhatsApp */}
+        {compartirSesion && (
+          <TarjetaCompartirModal
+            abierto={Boolean(compartirSesion)}
+            onCerrar={() => setCompartirSesion(null)}
+            datos={compartirSesion}
+          />
+        )}
       </div>
     </AppLayout>
   );

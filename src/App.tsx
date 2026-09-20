@@ -66,6 +66,7 @@ function App() {
                   <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
                   <Route path="/mis-rutinas" element={<ProtectedRoute><MisRutinasPage /></ProtectedRoute>} />
                   <Route path="/mis-rutinas/entrenamiento" element={<ProtectedRoute><EntrenamientoPage /></ProtectedRoute>} />
+                  <Route path="/entrenamiento" element={<Navigate to="/mis-rutinas/entrenamiento" replace />} />
                   <Route path="/historial" element={<ProtectedRoute><HistorialPage /></ProtectedRoute>} />
                   <Route path="/historial/:fecha" element={<ProtectedRoute><HistorialDiaPage /></ProtectedRoute>} />
                   <Route path="/ejercicios" element={<ProtectedRoute><EjerciciosPage /></ProtectedRoute>} />
