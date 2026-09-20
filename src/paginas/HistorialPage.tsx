@@ -31,6 +31,9 @@ export default function HistorialPage() {
   // Año inspeccionado en la vista anual
   const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
 
+  // Locale string — debe estar antes de cualquier useMemo que lo use
+  const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
+
   // Meses disponibles para el selector en vista mes
   const mesesDisponibles = useMemo(() => {
     return Array.from({ length: 12 }, (_, m) => ({
@@ -43,7 +46,6 @@ export default function HistorialPage() {
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
 
   // Nombre formateado del mes seleccionado
-  const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
   const nombreMesSeleccionado = useMemo(() => {
     return new Date(anioActual, mesActual).toLocaleString(localeStr, { month: 'long' });
   }, [anioActual, mesActual, localeStr]);
