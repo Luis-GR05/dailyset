@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { AppLayout, Card } from "../componentes";
+import { Eye, ExternalLink, Dumbbell } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useRutinas } from '../context/RutinasContext';
 import { useEjercicios } from '../context/EjerciciosContext';
@@ -284,18 +285,61 @@ export default function EntrenamientoPage() {
                 {/* Listado de Ejercicios */}
                 <div className="space-y-6">
                     {ejerciciosUI.length > 0 ? (
-                        ejerciciosUI.map((ejercicio) => (
-                            <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-4">
-                                        <ImagenPlaceholder size="sm" />
-                                        <div>
-                                            <h3 className="font-bold text-white text-lg">{ejercicio.nombre}</h3>
-                                            <p className="text-sm cursor-pointer hover:underline" style={{ color: 'var(--color-accent)' }}>
-                                                {locale === 'es' ? 'Ver historial (próx.)' : 'View history (soon)'}
-                                            </p>
-                                        </div>
-                                    </div>
+                                const infoEj = catalogoEjercicios.find(e => e.id === ejercicio.id);
+                                const imagenUrl = infoEj?.imagenInicio || infoEj?.imagenFinal;
+
+                                return (
+                                    <Card key={ejercicio.id} className="p-4 md:p-6" hoverable={false}>
+                                        <div className="flex justify-between items-start mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <Link
+                                                    to={`/ejercicios/${ejercicio.id}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="w-14 h-14 rounded-xl bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center border border-white/10 hover:border-[var(--color-primary)] transition-all group"
+                                                    title={locale === 'es' ? 'Ver técnica y cómo se hace' : 'View technique and how to perform'}
+                                                >
+                                                    {imagenUrl ? (
+                                                        <img src={imagenUrl} alt={ejercicio.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                    ) : (
+                                                        <Dumbbell size={22} className="text-neutral-400 group-hover:text-[var(--color-primary)] transition-colors" />
+                                                    )}
+                                                </Link>
+                                                <div>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <Link
+                                                            to={`/ejercicios/${ejercicio.id}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="font-bold text-white text-lg hover:underline transition-colors"
+                                                        >
+                                                            {ejercicio.nombre}
+                                                        </Link>
+                                                        {infoEj?.grupo && (
+                                                            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-neutral-300">
+                                                                {infoEj.grupo}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                                                        <Link
+                                                            to={`/ejercicios/${ejercicio.id}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg transition-all"
+                                                            style={{
+                                                                background: 'rgba(219, 240, 89, 0.12)',
+                                                                color: 'var(--color-primary)',
+                                                                border: '1px solid rgba(219, 240, 89, 0.35)',
+                                                            }}
+                                                        >
+                                                            <Eye size={13} />
+                                                            <span>{locale === 'es' ? 'Ver cómo se hace' : 'How to perform'}</span>
+                                                            <ExternalLink size={11} className="opacity-70" />
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
                                     {/* Botón Eliminar */}
                                     <button
                                         onClick={() => eliminarEjercicio(ejercicio.id)}

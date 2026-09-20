@@ -38,26 +38,47 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const CACHE_KEY = 'dailyset:ejercicios:cache';
+
+  // Cargar caché local de inmediato si existe
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEjercicios(parsed);
+        }
+      }
+    } catch {
+      // Ignorar errores de parseo
+    }
+  }, []);
+
   const cargarEjercicios = async () => {
     setCargando(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from('ejercicios')
-        .select(`
-          id, nombre, descripcion, dificultad,
-          url_video, url_imagen,
-          external_id, grupo_muscular,
-          musculos_primarios, musculos_secundarios,
-          equipamiento, categoria_ejercicio,
-          instrucciones_pasos, imagen_inicio, imagen_final,
-          es_publico
-        `)
-        .order('nombre', { ascending: true });
+      const selectFields = `
+        id, nombre, descripcion, dificultad,
+        url_video, url_imagen,
+        external_id, grupo_muscular,
+        musculos_primarios, musculos_secundarios,
+        equipamiento, categoria_ejercicio,
+        instrucciones_pasos, imagen_inicio, imagen_final,
+        es_publico
+      `;
 
-      if (error) throw error;
+      // Cargar en dos bloques para sobrepasar el límite de 1000 de Supabase
+      const [res1, res2] = await Promise.all([
+        supabase.from('ejercicios').select(selectFields).range(0, 999).order('nombre', { ascending: true }),
+        supabase.from('ejercicios').select(selectFields).range(1000, 1999).order('nombre', { ascending: true })
+      ]);
 
-      const normalizados: Ejercicio[] = (data ?? []).map((e: any) => ({
+      if (res1.error) throw res1.error;
+      const combinedData = [...(res1.data ?? []), ...(res2.data ?? [])];
+
+      const normalizados: Ejercicio[] = combinedData.map((e: any) => ({
         id:                   e.id as number,
         externalId:           e.external_id ?? undefined,
         nombre:               e.nombre as string,
@@ -76,6 +97,12 @@ export function EjerciciosProvider({ children }: { children: ReactNode }) {
       }));
 
       setEjercicios(normalizados);
+
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(normalizados));
+      } catch {
+        // En caso de cuota excedida en localStorage, ignorar
+      }
     } catch (e: any) {
       console.error('Error cargando ejercicios', e);
       setError(e.message ?? 'Error cargando ejercicios');

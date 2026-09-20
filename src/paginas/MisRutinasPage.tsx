@@ -11,7 +11,7 @@ import {
     Pencil, Trash2, ListPlus, X, Dumbbell, Sparkles, Check, Clock,
     ChevronDown, ChevronUp, Plus, Brain, RefreshCw, ArrowLeft,
     Flame, Zap, Heart, Trophy, Award, Gauge, User, Home, Building2,
-    Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle
+    Maximize2, ArrowUp, ArrowDown, Target, AlertTriangle, Eye, ExternalLink, Play
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, type RutinaTemplate } from '../data/rutinasPredefinidas';
@@ -35,7 +35,21 @@ interface EjercicioIA { id: number; nombre: string; grupo: string; series: numbe
 interface RutinaGeneradaIA { nombre: string; categoria: string; duracion: number; nivel: string; objetivo: string; zona: string; color: string; ejercicios: EjercicioIA[]; }
 
 function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], locale: string): RutinaGeneradaIA | null {
-    if (!ejerciciosDB.length) return null;
+    // Si todavía están cargando los ejercicios, usar los ejercicios verificados de las rutinas predefinidas
+    const fallbackEjercicios: Ejercicio[] = RUTINAS_PREDEFINIDAS.flatMap(r => r.ejercicios.map(e => ({
+        id: e.id,
+        nombre: e.nombre,
+        grupo: r.categoria,
+        musculosPrimarios: [],
+        musculosSecundarios: [],
+        categoriaEjercicio: r.categoria.toLowerCase(),
+        dificultad: r.nivel.toLowerCase(),
+        descripcion: '',
+        instruccionesPasos: [],
+        esPublico: true,
+    })));
+    const pool = (ejerciciosDB && ejerciciosDB.length > 0) ? ejerciciosDB : fallbackEjercicios;
+    if (!pool.length) return null;
     const catMap: Record<string, string[]> = {
         ganar_musculo: ['strength', 'fuerza'],
         perder_peso: ['strength', 'cardio', 'plyometrics', 'fuerza'],
@@ -82,10 +96,10 @@ function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], loca
     }
     let filtered: Ejercicio[] = [];
     for (let relax = 0; relax <= 3; relax++) {
-        filtered = ejerciciosDB.filter(e => matches(e, relax));
+        filtered = pool.filter(e => matches(e, relax));
         if (filtered.length >= n) break;
     }
-    if (filtered.length < n) filtered = [...ejerciciosDB];
+    if (filtered.length < n) filtered = [...pool];
     const selected = [...filtered].sort(() => Math.random() - 0.5).slice(0, n);
     const lblObjetivo: Record<string,string> = { ganar_musculo: locale==='es'?'Ganar Músculo':'Build Muscle', perder_peso: locale==='es'?'Perder Peso':'Fat Loss', resistencia: locale==='es'?'Resistencia':'Endurance', flexibilidad: locale==='es'?'Flexibilidad':'Flexibility' };
     const lblZona: Record<string,string> = { completo: locale==='es'?'Cuerpo Completo':'Full Body', superior: locale==='es'?'Tren Superior':'Upper Body', inferior: locale==='es'?'Tren Inferior':'Lower Body', core: 'Core' };
@@ -119,8 +133,9 @@ export default function MisRutinasPage() {
     const [filtroPredefinidas, setFiltroPredefinidas] = useState<string>('Todas');
     const [modal, setModal] = useState<Modal>(null);
 
-    // Estado para expansión de ejercicios en plantillas
+    // Estado para expansión de ejercicios en plantillas y rutinas de usuario
     const [rutinaExpandida, setRutinaExpandida] = useState<string | null>(null);
+    const [rutinaUsuarioExpandida, setRutinaUsuarioExpandida] = useState<number | null>(null);
     // Estado de carga al adoptar una rutina
     const [adoptandoId, setAdoptandoId] = useState<string | null>(null);
     // Mensaje de éxito temporal
@@ -396,85 +411,166 @@ export default function MisRutinasPage() {
                         {/* Lista de rutinas del usuario */}
                         {!cargando && rutinasUsuarioFiltradas.length > 0 && (
                             <div className="space-y-4">
-                                {rutinasUsuarioFiltradas.map((rutina) => (
-                                    <div key={rutina.id} className="card card-hover px-6 py-5 flex items-center gap-6">
-                                        {/* Icono */}
-                                        <div className="w-12 h-12 rounded-xl bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
-                                            {rutina.imageUrl ? (
-                                                <img src={rutina.imageUrl} alt={rutina.nombre} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Dumbbell size={22} className="text-neutral-400" />
+                                {rutinasUsuarioFiltradas.map((rutina) => {
+                                    const isExpanded = rutinaUsuarioExpandida === rutina.id;
+                                    const totalEjercicios = contarEjercicios(rutina);
+                                    // Obtener la información real de los ejercicios de la base de datos
+                                    const ejerciciosRutina = (rutina.ejerciciosIds || []).map((id) => {
+                                        const encontrado = ejerciciosDB.find((e) => e.id === id);
+                                        return encontrado || { id, nombre: `Ejercicio #${id}`, grupo: '' };
+                                    });
+
+                                    return (
+                                        <div
+                                            key={rutina.id}
+                                            className="card card-hover p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between"
+                                        >
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                {/* Icono e Info */}
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className="w-12 h-12 rounded-xl bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
+                                                        {rutina.imageUrl ? (
+                                                            <img src={rutina.imageUrl} alt={rutina.nombre} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Dumbbell size={22} className="text-neutral-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
+                                                            <span
+                                                                className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
+                                                                style={{ background: 'var(--color-primary)', color: '#000000' }}
+                                                            >
+                                                                {rutina.categoria}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-neutral-400 text-xs mt-1">
+                                                            {totalEjercicios} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Acciones principales */}
+                                                <div className="flex items-center gap-2 self-end sm:self-center flex-wrap">
+                                                    {totalEjercicios > 0 && (
+                                                        <Link
+                                                            to="/mis-rutinas/entrenamiento"
+                                                            state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 cursor-pointer"
+                                                            style={{
+                                                                background: 'var(--color-primary)',
+                                                                color: '#000000',
+                                                            }}
+                                                        >
+                                                            <Play size={13} fill="#000000" />
+                                                            <span>{locale === 'es' ? 'Entrenar' : 'Train'}</span>
+                                                        </Link>
+                                                    )}
+                                                    <button
+                                                        className="card-action-btn info"
+                                                        title={t.routines.addExercises}
+                                                        onClick={() => setModal({ tipo: 'ejercicios', rutina })}
+                                                    >
+                                                        <ListPlus size={15} />
+                                                    </button>
+                                                    <button
+                                                        className="card-action-btn"
+                                                        title={t.routines.editRoutine}
+                                                        onClick={() => setModal({ tipo: 'editar', rutina })}
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button
+                                                        className="card-action-btn danger"
+                                                        title={t.routines.deleteRoutine}
+                                                        onClick={() => setModal({ tipo: 'confirmarEliminar', rutina })}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Desplegable de ejercicios incluidos en la rutina guardada */}
+                                            {totalEjercicios > 0 && (
+                                                <div className="mt-4 pt-3 border-t border-neutral-800/80">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setRutinaUsuarioExpandida(isExpanded ? null : rutina.id)}
+                                                        className="w-full flex items-center justify-between text-xs font-bold py-1 transition-colors text-neutral-300 hover:text-white"
+                                                    >
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Dumbbell size={14} style={{ color: 'var(--color-primary)' }} />
+                                                            {locale === 'es'
+                                                                ? `Ver ejercicios de la rutina (${totalEjercicios})`
+                                                                : `View routine exercises (${totalEjercicios})`}
+                                                        </span>
+                                                        {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                                    </button>
+
+                                                    {isExpanded && (
+                                                        <div className="mt-3 space-y-2">
+                                                            {ejerciciosRutina.map((ej, idx) => (
+                                                                <div
+                                                                    key={ej.id}
+                                                                    className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800 hover:border-neutral-700 transition-colors"
+                                                                >
+                                                                    <div className="flex items-center gap-3 min-w-0">
+                                                                        <span className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 bg-neutral-800 text-neutral-300">
+                                                                            {idx + 1}
+                                                                        </span>
+                                                                        <div className="min-w-0">
+                                                                            <Link
+                                                                                to={`/ejercicios/${ej.id}`}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="text-white hover:text-[var(--color-primary)] font-bold text-xs truncate block transition-colors"
+                                                                                title={locale === 'es' ? 'Ver técnica y cómo se hace' : 'View how to perform'}
+                                                                            >
+                                                                                {ej.nombre}
+                                                                            </Link>
+                                                                            {ej.grupo && (
+                                                                                <span className="text-[10px] text-neutral-500 font-medium">
+                                                                                    {ej.grupo}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <Link
+                                                                        to={`/ejercicios/${ej.id}`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all cursor-pointer"
+                                                                        style={{
+                                                                            background: 'rgba(219, 240, 89, 0.12)',
+                                                                            color: 'var(--color-primary)',
+                                                                            border: '1px solid rgba(219, 240, 89, 0.3)',
+                                                                        }}
+                                                                        title={locale === 'es' ? 'Ver técnica y cómo se hace' : 'View technique'}
+                                                                    >
+                                                                        <Eye size={12} />
+                                                                        <span>{locale === 'es' ? 'Ver cómo se hace' : 'How to do it'}</span>
+                                                                        <ExternalLink size={10} className="opacity-70" />
+                                                                    </Link>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {totalEjercicios === 0 && (
+                                                <div className="mt-2 pt-2 border-t border-neutral-800/50">
+                                                    <p className="text-xs" style={{ color: 'var(--color-accent)' }}>
+                                                        {locale === 'es'
+                                                            ? 'Añade ejercicios con el botón de lista (+) para poder entrenar'
+                                                            : 'Add exercises with the list button (+) to start training'}
+                                                    </p>
+                                                </div>
                                             )}
                                         </div>
-
-                                        {/* Info y enlace a entrenamiento */}
-                                        {contarEjercicios(rutina) > 0 ? (
-                                            <Link
-                                                to="/mis-rutinas/entrenamiento"
-                                                state={{ nombre: rutina.nombre, rutinaId: rutina.id }}
-                                                className="flex-1 min-w-0"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
-                                                    <span
-                                                        className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
-                                                        style={{ background: 'var(--color-primary)', color: '#000000' }}
-                                                    >
-                                                        {rutina.categoria}
-                                                    </span>
-                                                </div>
-                                                <p className="text-neutral-400 text-sm mt-0.5">
-                                                    {contarEjercicios(rutina)} {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
-                                                </p>
-                                            </Link>
-                                        ) : (
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-white text-base truncate">{rutina.nombre}</h3>
-                                                    <span
-                                                        className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm"
-                                                        style={{ background: 'var(--color-primary)', color: '#000000' }}
-                                                    >
-                                                        {rutina.categoria}
-                                                    </span>
-                                                </div>
-                                                <p className="text-neutral-400 text-sm mt-0.5">
-                                                    0 {t.routines.exercises.toLowerCase()} · {rutina.duracion} {t.routines.min}
-                                                </p>
-                                                <p className="text-xs mt-1" style={{ color: 'var(--color-accent)' }}>
-                                                    {locale === 'es'
-                                                        ? 'Añade ejercicios con el botón de lista para poder iniciar'
-                                                        : 'Add exercises with the list button to start'}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Acciones */}
-                                        <div className="card-actions shrink-0" style={{ opacity: 1 }}>
-                                            <button
-                                                className="card-action-btn info"
-                                                title={t.routines.addExercises}
-                                                onClick={() => setModal({ tipo: 'ejercicios', rutina })}
-                                            >
-                                                <ListPlus size={15} />
-                                            </button>
-                                            <button
-                                                className="card-action-btn"
-                                                title={t.routines.editRoutine}
-                                                onClick={() => setModal({ tipo: 'editar', rutina })}
-                                            >
-                                                <Pencil size={14} />
-                                            </button>
-                                            <button
-                                                className="card-action-btn danger"
-                                                title={t.routines.deleteRoutine}
-                                                onClick={() => setModal({ tipo: 'confirmarEliminar', rutina })}
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -571,27 +667,42 @@ export default function MisRutinasPage() {
                                                 </button>
 
                                                 {isExpanded && (
-                                                    <div className="mt-2 space-y-1.5 pl-2 border-l-2 border-neutral-800">
+                                                    <div className="mt-2 space-y-1.5 pl-1">
                                                         {plantilla.ejercicios.map((ej, idx) => (
-                                                            <div key={ej.id} className="flex items-center gap-2 text-xs">
-                                                                <span
-                                                                    className="w-4 h-4 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0"
-                                                                    style={{
-                                                                        background: 'var(--color-neutral-800)',
-                                                                        color: 'var(--color-neutral-1000)',
-                                                                    }}
-                                                                >
-                                                                    {idx + 1}
-                                                                </span>
+                                                            <div key={ej.id} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 hover:border-neutral-700 transition-colors">
+                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                    <span
+                                                                        className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 bg-neutral-800 text-neutral-300"
+                                                                    >
+                                                                        {idx + 1}
+                                                                    </span>
+                                                                    <Link
+                                                                        to={`/ejercicios/${ej.id}`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className="text-white hover:text-[var(--color-primary)] font-bold text-xs truncate transition-colors"
+                                                                        title={`${ej.nombre} (${locale === 'es' ? 'Ver cómo se hace' : 'View how to perform'})`}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        {ej.nombre}
+                                                                    </Link>
+                                                                </div>
                                                                 <Link
                                                                     to={`/ejercicios/${ej.id}`}
                                                                     target="_blank"
                                                                     rel="noreferrer"
-                                                                    className="text-neutral-300 hover:text-white hover:underline truncate transition-colors"
-                                                                    title={`${ej.nombre} (${locale === 'es' ? 'Ver detalle' : 'View details'})`}
+                                                                    className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 transition-all cursor-pointer"
+                                                                    style={{
+                                                                        background: 'rgba(219, 240, 89, 0.12)',
+                                                                        color: 'var(--color-primary)',
+                                                                        border: '1px solid rgba(219, 240, 89, 0.3)',
+                                                                    }}
+                                                                    title={locale === 'es' ? 'Ver técnica y cómo se hace' : 'View technique'}
                                                                     onClick={(e) => e.stopPropagation()}
                                                                 >
-                                                                    {ej.nombre}
+                                                                    <Eye size={11} />
+                                                                    <span>{locale === 'es' ? 'Ver técnica' : 'Technique'}</span>
+                                                                    <ExternalLink size={9} className="opacity-70" />
                                                                 </Link>
                                                             </div>
                                                         ))}
@@ -898,20 +1009,48 @@ export default function MisRutinasPage() {
                                         {locale === 'es' ? 'Ejercicios incluidos' : 'Included exercises'}
                                     </h4>
                                     {rutinaIA.ejercicios.map((ej, i) => (
-                                        <div key={ej.id} className="flex items-center gap-3 p-3 rounded-xl"
+                                        <div key={ej.id} className="flex items-center justify-between gap-3 p-3 rounded-xl"
                                             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                            <div className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-black text-[11px]"
-                                                style={{ background: `${rutinaIA.color}20`, color: rutinaIA.color }}>
-                                                {i + 1}
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-black text-[11px]"
+                                                    style={{ background: `${rutinaIA.color}20`, color: rutinaIA.color }}>
+                                                    {i + 1}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <Link
+                                                        to={`/ejercicios/${ej.id}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-white hover:text-[var(--color-primary)] text-sm font-bold truncate block transition-colors"
+                                                        title={locale === 'es' ? 'Ver cómo se hace el ejercicio' : 'View how to perform'}
+                                                    >
+                                                        {ej.nombre}
+                                                    </Link>
+                                                    {ej.grupo && <p className="text-neutral-500 text-[11px]">{ej.grupo}</p>}
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-white text-sm font-bold truncate">{ej.nombre}</p>
-                                                {ej.grupo && <p className="text-neutral-500 text-[11px]">{ej.grupo}</p>}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Link
+                                                    to={`/ejercicios/${ej.id}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                                                    style={{
+                                                        background: 'rgba(219, 240, 89, 0.12)',
+                                                        color: 'var(--color-primary)',
+                                                        border: '1px solid rgba(219, 240, 89, 0.3)',
+                                                    }}
+                                                    title={locale === 'es' ? 'Ver cómo se hace el ejercicio' : 'View how to perform'}
+                                                >
+                                                    <Eye size={12} />
+                                                    <span>{locale === 'es' ? 'Ver cómo se hace' : 'How to do it'}</span>
+                                                    <ExternalLink size={10} className="opacity-70" />
+                                                </Link>
+                                                <span className="text-[10px] font-black px-2 py-1 rounded-lg"
+                                                    style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-2000)' }}>
+                                                    {ej.desc}
+                                                </span>
                                             </div>
-                                            <span className="text-[10px] font-black px-2 py-1 rounded-lg shrink-0"
-                                                style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-neutral-2000)' }}>
-                                                {ej.desc}
-                                            </span>
                                         </div>
                                     ))}
                                 </div>

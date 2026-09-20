@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useEjercicios } from '../../context/EjerciciosContext';
 import type { Rutina } from '../../context/RutinasContext';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Eye, ExternalLink } from 'lucide-react';
 
 interface EditarEjerciciosRutinaProps {
     rutina: Rutina;
@@ -43,18 +44,29 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
                                 <p className="text-neutral-500 text-sm text-center py-4">Sin ejercicios aún. Añade alguno abajo.</p>
                             ) : (
                                 enRutina.map(e => (
-                                    <div key={e.id} className="ejercicio-item ejercicio-item-en-rutina">
-                                        <div>
-                                            <span className="text-white text-sm font-medium">{e.nombre}</span>
-                                            <span className="text-neutral-500 text-xs ml-2">{e.grupo}</span>
+                                    <div key={e.id} className="ejercicio-item ejercicio-item-en-rutina flex items-center justify-between">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-white text-sm font-medium truncate">{e.nombre}</span>
+                                            {e.grupo && <span className="text-neutral-500 text-xs shrink-0">{e.grupo}</span>}
                                         </div>
-                                        <button
-                                            className="ejercicio-quitar-btn"
-                                            onClick={() => quitar(e.id)}
-                                            title="Quitar"
-                                        >
-                                            <X size={10} />
-                                        </button>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <Link
+                                                to={`/ejercicios/${e.id}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="p-1 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
+                                                title="Ver cómo se hace el ejercicio"
+                                            >
+                                                <Eye size={14} />
+                                            </Link>
+                                            <button
+                                                className="ejercicio-quitar-btn"
+                                                onClick={() => quitar(e.id)}
+                                                title="Quitar"
+                                            >
+                                                <X size={10} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}
@@ -81,19 +93,30 @@ export default function EditarEjerciciosRutina({ rutina, onGuardar, onCerrar }: 
                             </p>
                         ) : (
                             disponibles.map(e => (
-                                <div key={e.id} className="ejercicio-item ejercicio-item-disponible">
-                                    <div>
-                                        <span className="text-white text-sm font-medium">{e.nombre}</span>
-                                        <span className="text-neutral-500 text-xs ml-2">{e.grupo}</span>
-                                        <span className="ejercicio-categoria-badge">{e.categoriaEjercicio}</span>
+                                <div key={e.id} className="ejercicio-item ejercicio-item-disponible flex items-center justify-between">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <span className="text-white text-sm font-medium truncate">{e.nombre}</span>
+                                        {e.grupo && <span className="text-neutral-500 text-xs shrink-0">{e.grupo}</span>}
+                                        <span className="ejercicio-categoria-badge shrink-0">{e.categoriaEjercicio}</span>
                                     </div>
-                                    <button
-                                        className="ejercicio-agregar-btn"
-                                        onClick={() => agregar(e.id)}
-                                        title="Añadir"
-                                    >
-                                        <Plus size={14} />
-                                    </button>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Link
+                                            to={`/ejercicios/${e.id}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="p-1 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
+                                            title="Ver cómo se hace el ejercicio"
+                                        >
+                                            <Eye size={14} />
+                                        </Link>
+                                        <button
+                                            className="ejercicio-agregar-btn"
+                                            onClick={() => agregar(e.id)}
+                                            title="Añadir"
+                                        >
+                                            <Plus size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))
                         )}
