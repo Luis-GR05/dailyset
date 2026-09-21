@@ -19,6 +19,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
+import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
 
 export interface NivelConfig {
   nivel: number;
@@ -32,6 +33,8 @@ export interface NivelConfig {
   descEn: string;
   beneficioEs: string;
   beneficioEn: string;
+  marcoDescEs: string;
+  marcoDescEn: string;
 }
 
 // Progresión de niveles basada exclusivamente en asistencia y días de entrenamiento cumplidos
@@ -48,6 +51,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Starting the daily training habit.',
     beneficioEs: 'Seguimiento de racha activado',
     beneficioEn: 'Streak tracking activated',
+    marcoDescEs: 'Marco Amarillo Eléctrico con Chispas y Rayos',
+    marcoDescEn: 'Electric Yellow Frame with Sparks & Lightning',
   },
   {
     nivel: 2,
@@ -61,6 +66,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Demonstrated consistency attending every scheduled workout.',
     beneficioEs: 'Insignia Bronce de Disciplina',
     beneficioEn: 'Bronze Discipline Badge',
+    marcoDescEs: 'Marco de Bronce Forjado con Remaches',
+    marcoDescEn: 'Forged Bronze Frame with Rivets',
   },
   {
     nivel: 3,
@@ -74,6 +81,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Forged discipline. Fulfilling every routine day.',
     beneficioEs: 'Multiplicador de consistencia semanal',
     beneficioEn: 'Weekly consistency multiplier',
+    marcoDescEs: 'Marco de Acero & Plata Templada con Destellos',
+    marcoDescEn: 'Tempered Steel & Chrome Silver Frame',
   },
   {
     nivel: 4,
@@ -87,6 +96,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Total commitment to training. The habit is second nature.',
     beneficioEs: 'Rango de Oro en estadísticas',
     beneficioEn: 'Gold rank on statistics',
+    marcoDescEs: 'Marco de Oro 24K con Laureles de Victoria',
+    marcoDescEn: '24K Gold Frame with Victory Laurels',
   },
   {
     nivel: 5,
@@ -100,6 +111,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Impeccable attendance. Part of the top 5% most disciplined.',
     beneficioEs: 'Insignia Platino exclusiva',
     beneficioEn: 'Exclusive Platinum badge',
+    marcoDescEs: 'Marco Platino Holográfico con Alas Cósmicas',
+    marcoDescEn: 'Holographic Platinum Frame with Cosmic Wings',
   },
   {
     nivel: 6,
@@ -113,6 +126,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Unbreakable discipline and impeccable dedication.',
     beneficioEs: 'Aura de Diamante en perfil',
     beneficioEn: 'Diamond aura on profile',
+    marcoDescEs: 'Marco Diamante Cristalino con Prismas',
+    marcoDescEn: 'Crystalline Diamond Frame with Prisms',
   },
   {
     nivel: 7,
@@ -126,6 +141,8 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Total habit mastery and absolute consistency.',
     beneficioEs: 'Rango Máximo Honorífico',
     beneficioEn: 'Honorary Maximum Rank',
+    marcoDescEs: 'Marco Imperial con Corona Real de Oro y Rubíes',
+    marcoDescEn: 'Imperial Frame with Golden Royal Crown & Rubies',
   },
 ];
 
@@ -454,18 +471,23 @@ export default function PerfilPage() {
 
           {/* Tarjeta resumen rápida de Racha/Nivel en la subpágina */}
           <div className="card p-6 md:p-7 backdrop-blur-2xl flex flex-col sm:flex-row items-center justify-between gap-5">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full border-2 border-white/15 bg-neutral-900 overflow-hidden flex items-center justify-center shrink-0 shadow-lg">
-                {displayAvatar ? (
-                  <img src={displayAvatar} alt={user?.nombre ?? 'Avatar'} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-black text-white italic">{iniciales || 'U'}</span>
-                )}
-              </div>
+            <div className="flex items-center gap-5">
+              <MarcoAvatarNivel
+                nivel={nivelActual.nivel}
+                size="md"
+                avatarUrl={displayAvatar}
+                iniciales={iniciales || 'U'}
+                nombre={user?.nombre ?? 'Avatar'}
+                className="shrink-0"
+              />
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="font-black text-[10px] tracking-[0.25em] uppercase italic text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--color-primary)]/20">
                     {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
+                  </span>
+                  <span className="font-bold text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
+                    <Sparkles size={10} />
+                    {locale === 'es' ? nivelActual.marcoDescEs : nivelActual.marcoDescEn}
                   </span>
                 </div>
                 <h1 className="text-2xl font-black text-white italic uppercase tracking-tight">
@@ -528,51 +550,39 @@ export default function PerfilPage() {
         <div className="relative overflow-hidden card p-6 md:p-8 backdrop-blur-2xl">
           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
 
-            {/* Avatar interactivo: Clic en cualquier parte del círculo para cambiar foto */}
-            <div className="relative group/avatar">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                title={locale === 'es' ? 'Haz clic para cambiar tu foto de perfil' : 'Click to change profile photo'}
-                className="w-28 h-28 rounded-full border-2 border-white/15 p-1 bg-black/40 shadow-xl overflow-hidden flex items-center justify-center cursor-pointer relative group transition-all duration-300 hover:border-[var(--color-primary)] active:scale-95"
-              >
-                {displayAvatar ? (
-                  <img
-                    src={displayAvatar}
-                    alt={user?.nombre ?? 'Avatar'}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="w-full h-full bg-neutral-900 rounded-full flex items-center justify-center"
-                    style={{ border: '1px solid var(--color-primary)' }}
-                  >
-                    <span className="text-3xl font-black text-white italic tracking-tighter uppercase">
-                      {iniciales || 'U'}
+            {/* Avatar interactivo con marco de nivel */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="relative group/avatar">
+                <MarcoAvatarNivel
+                  nivel={nivelActual.nivel}
+                  size="lg"
+                  avatarUrl={displayAvatar}
+                  iniciales={iniciales || 'U'}
+                  nombre={user?.nombre ?? 'Avatar'}
+                  onClick={() => fileInputRef.current?.click()}
+                  title={locale === 'es' ? 'Haz clic para cambiar tu foto de perfil' : 'Click to change profile photo'}
+                  className="cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95"
+                >
+                  {/* Overlay hover completo en el círculo con cámara y texto */}
+                  <div className="absolute inset-0 bg-black/65 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                    <Camera size={20} className="text-white drop-shadow-md" />
+                    <span className="text-[9px] font-black uppercase text-white mt-1 tracking-wider text-center px-1">
+                      {locale === 'es' ? 'Cambiar Foto' : 'Change Photo'}
                     </span>
                   </div>
-                )}
-
-                {/* Overlay hover completo en el círculo con cámara y texto */}
-                <div className="absolute inset-0 bg-black/65 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Camera size={22} className="text-white drop-shadow-md" />
-                  <span className="text-[9px] font-black uppercase text-white mt-1 tracking-wider text-center px-2">
-                    {locale === 'es' ? 'Cambiar Foto' : 'Change Photo'}
-                  </span>
-                </div>
+                </MarcoAvatarNivel>
               </div>
 
-              {/* Botón flotante accesible */}
+              {/* Botón sutil para cambiar foto sin estorbar el marco */}
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
+                onClick={() => fileInputRef.current?.click()}
                 disabled={subiendoFoto}
                 title={locale === 'es' ? 'Cambiar foto de perfil' : 'Change profile photo'}
-                className="absolute bottom-1 right-1 p-2 rounded-full bg-neutral-900 border border-white/20 text-white hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer z-10"
+                className="mt-1 text-[10px] font-bold text-neutral-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer py-0.5 px-2 rounded-md hover:bg-white/5"
               >
-                <Camera size={14} />
+                <Camera size={11} className="text-amber-400" />
+                <span>{locale === 'es' ? 'Cambiar Foto' : 'Change Photo'}</span>
               </button>
             </div>
 
@@ -587,6 +597,10 @@ export default function PerfilPage() {
                 >
                   {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
                 </button>
+                <span className="font-bold text-[10px] text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1.5 shadow-sm">
+                  <Sparkles size={11} className="animate-spin" style={{ animationDuration: '4s' }} />
+                  {locale === 'es' ? nivelActual.marcoDescEs : nivelActual.marcoDescEn}
+                </span>
                 {streakData.rachaActual >= 3 && (
                   <button
                     type="button"

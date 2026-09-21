@@ -42,6 +42,44 @@ interface AuthContextType {
   ) => Promise<{ requiresEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
+  iniciarComoInvitado: () => void;
+}
+
+export const DEFAULT_GUEST_USER: User = {
+  id: "invitado",
+  email: "invitado@dailyset.app",
+  nombre: "Atleta DailySet",
+  nombre_usuario: "atleta_invitado",
+  avatar_url: undefined,
+  unidadesKg: true,
+  notificaciones: false,
+  notificacionesEmail: false,
+  rango: "ATLETA",
+  progreso: 25,
+  totalSets: "24",
+  racha: 3,
+  pesoTotal: "1.250",
+  pesoKg: 75,
+  alturaCm: 178,
+  edad: 26,
+  genero: "masculino",
+  nivelActividad: "moderado",
+  objetivo: "ganar_musculo",
+};
+
+export function getGuestUser(): User {
+  try {
+    const raw = localStorage.getItem("dailyset_guest_profile");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return { ...DEFAULT_GUEST_USER, ...parsed };
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_GUEST_USER;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -215,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = await withTimeout(fetchProfile(session.user));
           setUser(profile ?? mapAuthUser(session.user));
         } else {
-          setUser(null);
+          setUser(getGuestUser());
         }
       } catch (error: unknown) {
         console.error("Error inicializando autenticación:", error);
@@ -232,9 +270,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch {
             // ignore
           }
-          setUser(null);
+          setUser(getGuestUser());
         } else if (!hydratedFromCache) {
-          setUser(null);
+          setUser(getGuestUser());
         }
       } finally {
         if (isMounted) {
@@ -252,7 +290,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = await withTimeout(fetchProfile(session.user));
           setUser(profile ?? mapAuthUser(session.user));
         } else {
-          setUser(null);
+          setUser((prev) => (prev?.id === "invitado" ? prev : getGuestUser()));
         }
       } catch (error) {
         console.error("Error en cambio de estado auth:", error);
@@ -390,11 +428,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem(AUTH_STORAGE_KEY);
     setUser(null);
+  };
+
+  const iniciarComoInvitado = () => {
+    const guest = getGuestUser();
+    setUser(guest);
   };
 
   const updateUser = async (data: Partial<User>) => {
     if (!user) throw new Error("No hay sesión activa");
+
+    // Si es usuario invitado / offline, persistir en localStorage y actualizar estado reactivo
+    if (user.id === "invitado") {
+      const updated: User = {
+        ...user,
+        ...data,
+      };
+      setUser(updated);
+      try {
+        localStorage.setItem("dailyset_guest_profile", JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return;
+    }
 
     // Obtener el perfil actual para hacer merge de preferencias
     const { data: currentProfile, error: fetchError } = await supabase
@@ -456,7 +515,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, updateUser }}
+      value={{ user, loading, login, register, logout, updateUser, iniciarComoInvitado }}
     >
       {children}
     </AuthContext.Provider>

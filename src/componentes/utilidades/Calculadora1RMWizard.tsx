@@ -402,7 +402,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           <!-- Header -->
           <div class="header">
             <div class="logo-wrap">
-              <div class="logo-icon">⚡</div>
+              <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000" stroke="#000" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
               <div>
                 <div class="logo-text">DAILYSET</div>
                 <div class="logo-sub">Domina tu progreso</div>
@@ -489,13 +489,13 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
             <div class="guidelines-title">Recomendaciones de Calentamiento y Cargas</div>
             <div class="guidelines-list">
               <div class="guidelines-item">
-                <strong>⚡ Calentamiento progresivo:</strong> Haz series de aproximación con barra vacía, 50% (8 reps), 70% (3 reps) y 85% (1 rep) antes de series efectivas pesadas.
+                <strong>Calentamiento progresivo:</strong> Haz series de aproximación con barra vacía, 50% (8 reps), 70% (3 reps) y 85% (1 rep) antes de series efectivas pesadas.
               </div>
               <div class="guidelines-item">
-                <strong>⏱️ Descansos completos:</strong> Para series al 85-100% de 1RM, descansa entre 3 y 5 minutos para recuperar las reservas de fosfocreatina muscular.
+                <strong>Descansos completos:</strong> Para series al 85-100% de 1RM, descansa entre 3 y 5 minutos para recuperar las reservas de fosfocreatina muscular.
               </div>
               <div class="guidelines-item">
-                <strong>🛡️ Seguridad ante todo:</strong> Utiliza barras de seguridad o la asistencia de un compañero (spotter) en levantamientos de alta intensidad.
+                <strong>Seguridad ante todo:</strong> Utiliza barras de seguridad o la asistencia de un compañero (spotter) en levantamientos de alta intensidad.
               </div>
             </div>
           </div>

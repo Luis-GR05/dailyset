@@ -76,10 +76,10 @@ function App() {
                     <Route path="/ejercicios" element={<ProtectedRoute><EjerciciosPage /></ProtectedRoute>} />
                     <Route path="/ejercicios/:id" element={<ProtectedRoute><EjercicioDetallePage /></ProtectedRoute>} />
                     <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
-                    <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
-                    <Route path="/perfil/racha" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
-                    <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
-                    <Route path="/perfil/datos" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+                    <Route path="/perfil" element={<PerfilPage />} />
+                    <Route path="/perfil/racha" element={<PerfilPage />} />
+                    <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
+                    <Route path="/perfil/datos" element={<PerfilConfigPage />} />
                     <Route path="/utilidades" element={<UtilidadesPage />} />
 
                     {/* Confirmación de registro */}

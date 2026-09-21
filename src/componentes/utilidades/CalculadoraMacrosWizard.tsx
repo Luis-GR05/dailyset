@@ -579,7 +579,7 @@ export default function CalculadoraMacrosWizard() {
           <!-- Header -->
           <div class="header">
             <div class="logo-wrap">
-              <div class="logo-icon">⚡</div>
+              <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000" stroke="#000" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
               <div>
                 <div class="logo-text">DAILYSET</div>
                 <div class="logo-sub">Domina tu progreso</div>
@@ -713,13 +713,13 @@ export default function CalculadoraMacrosWizard() {
             <div class="guidelines-title">Recomendaciones Clave para Adherencia</div>
             <div class="guidelines-list">
               <div class="guidelines-item">
-                <strong>💧 Hidratación:</strong> Bebe entre 35 y 40 ml de agua por kg de peso corporal al día (${Math.round((pesoKg * 37) / 10) / 100}L aprox).
+                <strong>Hidratación:</strong> Bebe entre 35 y 40 ml de agua por kg de peso corporal al día (${Math.round((pesoKg * 37) / 10) / 100}L aprox).
               </div>
               <div class="guidelines-item">
-                <strong>⏱️ Síntesis Proteica:</strong> Distribuye las tomas cada 3-4 horas para mantener activo el estímulo anabólico (MPS).
+                <strong>Síntesis Proteica:</strong> Distribuye las tomas cada 3-4 horas para mantener activo el estímulo anabólico (MPS).
               </div>
               <div class="guidelines-item">
-                <strong>⚖️ Monitoreo:</strong> Regístrate en ayunas 3 veces por semana y ajusta ±100 kcal según la tendencia de la media quincenal.
+                <strong>Monitoreo de Peso:</strong> Regístrate en ayunas 3 veces por semana y ajusta ±100 kcal según la tendencia de la media quincenal.
               </div>
             </div>
           </div>
