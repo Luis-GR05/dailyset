@@ -9,6 +9,7 @@ import { useI18n } from "../context/I18nContext";
 import {
   ArrowUpRight,
   CheckCircle2,
+  Smartphone,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -194,7 +195,7 @@ export default function LandingPage() {
           </div>
 
           {/* Elementos inferiores sobre la foto */}
-          <div className="relative z-10 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+          <div className="relative z-10 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4">
             {/* Widget flotante */}
             <div className="bg-black/85 backdrop-blur-xl border border-white/15 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 max-w-[270px] sm:max-w-xs shadow-2xl">
               <DotMatrix />
@@ -211,16 +212,50 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Botón flotante esquina inferior derecha */}
-            <Link to="/registro">
-              <button
-                className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_30px_rgba(219,240,89,0.35)] hover:scale-105 active:scale-95"
-                style={{ backgroundColor: "var(--color-primary)" }}
-              >
-                <span>{locale === "es" ? "EMPEZAR HOY" : "START TODAY"}</span>
-                <ArrowUpRight size={16} />
-              </button>
-            </Link>
+            {/* Badges de Descarga en Tiendas (App Store & Google Play) + Botón CTA */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 bg-black/85 backdrop-blur-xl border border-white/15 p-2 rounded-2xl shadow-2xl">
+                <div className="px-2 hidden sm:block text-left">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">
+                    {locale === "es" ? "Disponible en" : "Available on"}
+                  </span>
+                  <span className="text-xs font-black text-white font-mono">iOS & Android</span>
+                </div>
+                <a
+                  href="#descarga-app"
+                  className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
+                  title="Descargar en Apple App Store"
+                >
+                  <img
+                    src="/Imagenes/Apple_Store.png"
+                    alt="Apple App Store"
+                    className="h-5 sm:h-6 w-auto object-contain"
+                  />
+                </a>
+                <a
+                  href="#descarga-app"
+                  className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
+                  title="Disponible en Google Play"
+                >
+                  <img
+                    src="/Imagenes/Google_Play_2022_logo.svg.png"
+                    alt="Google Play"
+                    className="h-4 sm:h-5 w-auto object-contain"
+                  />
+                </a>
+              </div>
+
+              {/* Botón flotante */}
+              <Link to="/registro">
+                <button
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_30px_rgba(219,240,89,0.35)] hover:scale-105 active:scale-95"
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                >
+                  <span>{locale === "es" ? "EMPEZAR HOY" : "START TODAY"}</span>
+                  <ArrowUpRight size={16} />
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -454,6 +489,148 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ─── 7. SECCIÓN DE DESCARGA: DISPONIBLE EN AMBOS LADOS (IOS & ANDROID) ─── */}
+      <section id="descarga-app" className="relative py-24 px-5 sm:px-8 md:px-12 bg-neutral-950 border-t border-white/5 overflow-hidden">
+        {/* Glow atmosférico flúor */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[var(--color-primary)]/10 blur-[160px] pointer-events-none -z-0" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            {/* Columna Izquierda: Información de descarga */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-black uppercase tracking-widest font-mono">
+                <Smartphone size={14} />
+                <span>{locale === "es" ? "DISPONIBLE EN AMBAS PLATAFORMAS" : "AVAILABLE ON BOTH PLATFORMS"}</span>
+              </div>
+
+              <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+                {locale === "es"
+                  ? "DESCARGA DAILYSET EN IOS Y ANDROID"
+                  : "DOWNLOAD DAILYSET ON IOS & ANDROID"}
+              </h2>
+
+              <p className="text-sm sm:text-base text-neutral-400 leading-relaxed max-w-xl">
+                {locale === "es"
+                  ? "Lleva tu entrenamiento al siguiente nivel. Puedes descargar la app tanto en Apple App Store como en Google Play Store para registrar cada serie, controlar tus descansos y seguir tus marcas en tiempo real dentro y fuera del gimnasio."
+                  : "Take your workouts to the next level. Download the app on both Apple App Store and Google Play Store to track every set, rest timers, and your progress in real-time with full offline support."}
+              </p>
+
+              {/* Botones de Tiendas de descarga */}
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <a
+                  href="#descarga-app"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open("https://www.apple.com/app-store/", "_blank");
+                  }}
+                  className="bg-white hover:bg-neutral-100 px-5 py-3 rounded-2xl border border-white/30 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer group"
+                  title="Descargar en Apple App Store"
+                >
+                  <img
+                    src="/Imagenes/Apple_Store.png"
+                    alt="Descargar en Apple App Store"
+                    className="h-8 sm:h-9 w-auto object-contain"
+                  />
+                </a>
+
+                <a
+                  href="#descarga-app"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open("https://play.google.com/store", "_blank");
+                  }}
+                  className="bg-white hover:bg-neutral-100 px-5 py-3 rounded-2xl border border-white/30 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer group"
+                  title="Disponible en Google Play"
+                >
+                  <img
+                    src="/Imagenes/Google_Play_2022_logo.svg.png"
+                    alt="Disponible en Google Play"
+                    className="h-7 sm:h-8 w-auto object-contain"
+                  />
+                </a>
+              </div>
+
+              {/* Puntos clave de la aplicación */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
+                <div className="flex items-center gap-2 text-neutral-300">
+                  <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
+                  <span>{locale === "es" ? "Persistencia 100% Offline" : "100% Offline Ready"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-neutral-300">
+                  <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
+                  <span>{locale === "es" ? "Sincronización instantánea" : "Instant Cloud Sync"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-neutral-300">
+                  <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
+                  <span>{locale === "es" ? "4.9 ★ en ambas tiendas" : "4.9 ★ on both stores"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Tarjeta visual interactiva estilo dispositivo */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative w-full max-w-sm rounded-3xl p-6 bg-gradient-to-b from-neutral-900 to-black border border-white/15 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/40 flex items-center justify-center text-[var(--color-primary)]">
+                      <Smartphone size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">DailySet Mobile</h4>
+                      <p className="text-[10px] text-neutral-400 font-mono">iOS & Android</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)] text-black text-[10px] font-black uppercase">
+                    PRO APP
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">⚡</span>
+                      <div>
+                        <p className="text-xs font-bold text-white">{locale === "es" ? "Entrenamiento Activo" : "Active Workout"}</p>
+                        <p className="text-[10px] text-neutral-400">{locale === "es" ? "Persistencia en vivo serie a serie" : "Live set-by-set persistence"}</p>
+                      </div>
+                    </div>
+                    <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">⏱️</span>
+                      <div>
+                        <p className="text-xs font-bold text-white">{locale === "es" ? "Temporizador Inteligente" : "Smart Rest Timer"}</p>
+                        <p className="text-[10px] text-neutral-400">{locale === "es" ? "Avisos acústicos y hápticos" : "Audio & haptic cues"}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold text-white">90s</span>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">📊</span>
+                      <div>
+                        <p className="text-xs font-bold text-white">{locale === "es" ? "Análisis & Récords" : "Analytics & PRs"}</p>
+                        <p className="text-[10px] text-neutral-400">{locale === "es" ? "Sobrecarga progresiva automática" : "Auto progressive overload"}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold text-[var(--color-primary)]">+8.5 kg</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 font-mono">
+                    {locale === "es" ? "Disponible para iPhone y Android" : "Available for iPhone & Android"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── 8. SECCIÓN DIVIDIDA: "DA EL PRIMER PASO HOY" (REFERENCIA 4) ─── */}
       <section id="comenzar" className="py-20 px-5 sm:px-8 md:px-12 bg-black border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
@@ -527,6 +704,35 @@ export default function LandingPage() {
                     {locale === "es" ? "Iniciar Sesión" : "Login"}
                   </button>
                 </Link>
+              </div>
+
+              {/* Botones de descarga de tiendas en bloque corporativo */}
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-black block w-full sm:w-auto">
+                  {locale === "es" ? "O descárgala en tu móvil:" : "Or download for mobile:"}
+                </span>
+                <a
+                  href="#descarga-app"
+                  className="bg-white hover:bg-neutral-100 px-3.5 py-1.5 rounded-xl border border-black/15 shadow transition-all hover:scale-105 active:scale-95 flex items-center justify-center h-9"
+                  title="Apple App Store"
+                >
+                  <img
+                    src="/Imagenes/Apple_Store.png"
+                    alt="Apple App Store"
+                    className="h-5 w-auto object-contain"
+                  />
+                </a>
+                <a
+                  href="#descarga-app"
+                  className="bg-white hover:bg-neutral-100 px-3.5 py-1.5 rounded-xl border border-black/15 shadow transition-all hover:scale-105 active:scale-95 flex items-center justify-center h-9"
+                  title="Google Play"
+                >
+                  <img
+                    src="/Imagenes/Google_Play_2022_logo.svg.png"
+                    alt="Google Play"
+                    className="h-4 w-auto object-contain"
+                  />
+                </a>
               </div>
             </div>
 
