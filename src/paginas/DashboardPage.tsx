@@ -445,9 +445,9 @@ export default function DashboardPage() {
                           {totalEjercicios} {locale === 'es' ? 'ejercicios' : 'exercises'}
                         </span>
                         {fechaRelativa && (
-                          <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400">
-                            <CheckCircle2 size={11} />
-                            {fechaRelativa}
+                          <span className="flex items-center gap-1 text-[10px] font-mono text-white">
+                            <CheckCircle2 size={11} className="text-emerald-400" />
+                            <span className="text-white">{fechaRelativa}</span>
                           </span>
                         )}
                       </div>
