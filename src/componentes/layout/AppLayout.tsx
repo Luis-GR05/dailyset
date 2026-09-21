@@ -30,11 +30,10 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro = fa
         Skip to content
       </a>
       <div
-        className="flex min-h-dvh w-full relative transition-colors duration-200"
+        className="flex min-h-dvh w-full relative transition-colors duration-200 overflow-x-clip"
         style={{
           backgroundColor: fondoClaro ? '#FFFFFF' : 'var(--color-black)',
           color: fondoClaro ? '#0F172A' : 'var(--color-white)',
-          overflowX: 'hidden'
         }}
       >
         {/* Fondo limpio y uniforme solo en modo oscuro */}

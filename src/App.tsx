@@ -80,7 +80,7 @@ function App() {
                     <Route path="/perfil/racha" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
                     <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
                     <Route path="/perfil/datos" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
-                    <Route path="/utilidades" element={<ProtectedRoute><UtilidadesPage /></ProtectedRoute>} />
+                    <Route path="/utilidades" element={<UtilidadesPage />} />
 
                     {/* Confirmación de registro */}
                     <Route path="/registro-confirmacion" element={<RegistroConfirmacionPage />} />
