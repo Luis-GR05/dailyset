@@ -11,7 +11,7 @@ import {
   Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail,
   Phone, KeyRound, HelpCircle, CheckCircle2, AlertCircle,
   Download, Trash2, ShieldCheck, AlertTriangle, FileSpreadsheet, Loader2,
-  Ban, Check, X,
+  Ban, Check, X, Headphones,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
@@ -1125,6 +1125,39 @@ export default function PerfilConfigPage() {
                     <span>{locale === 'es' ? 'Eliminar cuenta' : 'Delete account'}</span>
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Ayuda & Soporte Técnico */}
+            <div className="space-y-3">
+              <h3 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] ml-2 italic flex items-center gap-2">
+                <Headphones size={11} />
+                {locale === 'es' ? 'Ayuda & Soporte Técnico' : 'Help & Tech Support'}
+              </h3>
+              <div className="bg-neutral-900/40 border border-white/5 rounded-2xl p-4 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] shrink-0">
+                    <Headphones size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-white text-xs sm:text-sm">
+                      {locale === 'es' ? 'Chat de Soporte Técnico 24/7' : '24/7 Tech Support Chat'}
+                    </h4>
+                    <p className="text-neutral-400 text-xs mt-0.5 max-w-md">
+                      {locale === 'es'
+                        ? 'Resuelve incidencias sobre sincronización, copias de seguridad, cálculo de sobrecarga o reporta problemas técnicos directamente.'
+                        : 'Get fast support for data sync, cloud backups, overload formulas, or technical reports.'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/perfil/soporte')}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black hover:opacity-90 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
+                >
+                  <Headphones size={14} />
+                  <span>{locale === 'es' ? 'Abrir Chat' : 'Open Chat'}</span>
+                </button>
               </div>
             </div>
 

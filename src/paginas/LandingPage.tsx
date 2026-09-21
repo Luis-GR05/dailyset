@@ -10,6 +10,9 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Smartphone,
+  Zap,
+  Timer,
+  BarChart3,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -62,13 +65,7 @@ export default function LandingPage() {
           "-=0.6"
         );
 
-      // Ticker tape continuo
-      gsap.to(".ticker-inner", {
-        x: "-50%",
-        duration: 22,
-        repeat: -1,
-        ease: "none",
-      });
+
 
       // Animación de las tarjetas bento y atletas
       gsap.utils.toArray<Element>(".animate-on-scroll").forEach((el) => {
@@ -88,27 +85,7 @@ export default function LandingPage() {
     { scope: container }
   );
 
-  const tickerWords = locale === "es"
-    ? [
-        "DAILYSET",
-        "DISCIPLINA",
-        "SOBRECARGA PROGRESIVA",
-        "FUERZA REAL",
-        "RENDIMIENTO",
-        "RUTINAS IA",
-        "MÉTRICAS PRECISAS",
-        "CONSTANCIA",
-      ]
-    : [
-        "DAILYSET",
-        "DISCIPLINE",
-        "PROGRESSIVE OVERLOAD",
-        "REAL STRENGTH",
-        "PERFORMANCE",
-        "AI ROUTINES",
-        "ACCURATE METRICS",
-        "CONSISTENCY",
-      ];
+
 
   return (
     <div
@@ -206,46 +183,14 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-base sm:text-xl font-black text-white">4.9 ★</span>
                   <span className="text-[11px] sm:text-xs text-neutral-400">
-                    {locale === "es" ? "2.8k Atletas activos" : "2.8k Active Athletes"}
+                    {locale === "es" ? "Comunidad de Atletas" : "Athlete Community"}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Badges de Descarga en Tiendas (App Store & Google Play) + Botón CTA */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2.5 bg-black/85 backdrop-blur-xl border border-white/15 p-2 rounded-2xl shadow-2xl">
-                <div className="px-2 hidden sm:block text-left">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">
-                    {locale === "es" ? "Disponible en" : "Available on"}
-                  </span>
-                  <span className="text-xs font-black text-white font-mono">iOS & Android</span>
-                </div>
-                <a
-                  href="#descarga-app"
-                  className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
-                  title="Descargar en Apple App Store"
-                >
-                  <img
-                    src="/Imagenes/Apple_Store.png"
-                    alt="Apple App Store"
-                    className="h-5 sm:h-6 w-auto object-contain"
-                  />
-                </a>
-                <a
-                  href="#descarga-app"
-                  className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
-                  title="Disponible en Google Play"
-                >
-                  <img
-                    src="/Imagenes/Google_Play_2022_logo.svg.png"
-                    alt="Google Play"
-                    className="h-4 sm:h-5 w-auto object-contain"
-                  />
-                </a>
-              </div>
-
-              {/* Botón flotante */}
+            {/* Botón CTA principal */}
+            <div className="flex items-center gap-4">
               <Link to="/registro">
                 <button
                   className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_30px_rgba(219,240,89,0.35)] hover:scale-105 active:scale-95"
@@ -334,25 +279,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── 4. TICKER INFINITO TAPE MARQUEE ─── */}
-      <div
-        className="relative overflow-hidden py-4 border-y border-white/10"
-        style={{ backgroundColor: "rgba(212,251,52,0.06)" }}
-      >
-        <div className="ticker-inner flex whitespace-nowrap" style={{ width: "max-content" }}>
-          {[...tickerWords, ...tickerWords, ...tickerWords, ...tickerWords].map((word, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-4 px-6 text-xs sm:text-sm font-black tracking-widest uppercase font-mono"
-              style={{
-                color: i % 2 === 0 ? "var(--color-primary)" : "var(--color-white)",
-              }}
-            >
-              {word} <span style={{ color: "var(--color-primary)", opacity: 0.6 }}>✦</span>
-            </span>
-          ))}
-        </div>
-      </div>
+
 
       {/* ─── 5. "DAILYSET EN MOVIMIENTO" & NÚMERO GRÁFICO (REFERENCIA 2) ─── */}
       <section id="en-movimiento" className="relative py-24 px-5 sm:px-8 md:px-12 bg-neutral-950 overflow-hidden">
@@ -588,7 +515,9 @@ export default function LandingPage() {
                 <div className="space-y-3">
                   <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">⚡</span>
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--color-primary)] shrink-0">
+                        <Zap size={16} />
+                      </div>
                       <div>
                         <p className="text-xs font-bold text-white">{locale === "es" ? "Entrenamiento Activo" : "Active Workout"}</p>
                         <p className="text-[10px] text-neutral-400">{locale === "es" ? "Persistencia en vivo serie a serie" : "Live set-by-set persistence"}</p>
@@ -599,7 +528,9 @@ export default function LandingPage() {
 
                   <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">⏱️</span>
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
+                        <Timer size={16} />
+                      </div>
                       <div>
                         <p className="text-xs font-bold text-white">{locale === "es" ? "Temporizador Inteligente" : "Smart Rest Timer"}</p>
                         <p className="text-[10px] text-neutral-400">{locale === "es" ? "Avisos acústicos y hápticos" : "Audio & haptic cues"}</p>
@@ -610,7 +541,9 @@ export default function LandingPage() {
 
                   <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">📊</span>
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--color-primary)] shrink-0">
+                        <BarChart3 size={16} />
+                      </div>
                       <div>
                         <p className="text-xs font-bold text-white">{locale === "es" ? "Análisis & Récords" : "Analytics & PRs"}</p>
                         <p className="text-[10px] text-neutral-400">{locale === "es" ? "Sobrecarga progresiva automática" : "Auto progressive overload"}</p>
@@ -706,34 +639,6 @@ export default function LandingPage() {
                 </Link>
               </div>
 
-              {/* Botones de descarga de tiendas en bloque corporativo */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <span className="text-[11px] font-black uppercase tracking-wider text-black block w-full sm:w-auto">
-                  {locale === "es" ? "O descárgala en tu móvil:" : "Or download for mobile:"}
-                </span>
-                <a
-                  href="#descarga-app"
-                  className="bg-white hover:bg-neutral-100 px-3.5 py-1.5 rounded-xl border border-black/15 shadow transition-all hover:scale-105 active:scale-95 flex items-center justify-center h-9"
-                  title="Apple App Store"
-                >
-                  <img
-                    src="/Imagenes/Apple_Store.png"
-                    alt="Apple App Store"
-                    className="h-5 w-auto object-contain"
-                  />
-                </a>
-                <a
-                  href="#descarga-app"
-                  className="bg-white hover:bg-neutral-100 px-3.5 py-1.5 rounded-xl border border-black/15 shadow transition-all hover:scale-105 active:scale-95 flex items-center justify-center h-9"
-                  title="Google Play"
-                >
-                  <img
-                    src="/Imagenes/Google_Play_2022_logo.svg.png"
-                    alt="Google Play"
-                    className="h-4 w-auto object-contain"
-                  />
-                </a>
-              </div>
             </div>
 
             {/* Newsletter box (idéntico a la referencia 4) */}
@@ -793,9 +698,9 @@ export default function LandingPage() {
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Legal" : "Legal"}</p>
-              <p><a href="#" className="hover:underline">{locale === "es" ? "Privacidad" : "Privacy"}</a></p>
-              <p><a href="#" className="hover:underline">{locale === "es" ? "Términos" : "Terms"}</a></p>
-              <p><a href="#" className="hover:underline">{locale === "es" ? "Cookies" : "Cookies"}</a></p>
+              <p><Link to="/privacidad" className="hover:underline">{locale === "es" ? "Privacidad" : "Privacy"}</Link></p>
+              <p><Link to="/terminos" className="hover:underline">{locale === "es" ? "Términos" : "Terms"}</Link></p>
+              <p><Link to="/privacidad" className="hover:underline">{locale === "es" ? "Cookies" : "Cookies"}</Link></p>
             </div>
           </div>
 
@@ -808,6 +713,44 @@ export default function LandingPage() {
               <span>DAILY</span>
               <span className="italic inline-block" style={{ fontStyle: 'italic', transform: 'skewX(-8deg)' }}>SET</span>
             </h1>
+          </div>
+
+          {/* Badges de Descarga en Tiendas (App Store & Google Play) abajo del todo */}
+          <div className="flex justify-center py-4">
+            <div className="flex items-center gap-2.5 bg-black text-white border border-black/20 p-2 rounded-2xl shadow-xl">
+              <div className="px-2 text-left">
+                <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">
+                  {locale === "es" ? "Disponible en" : "Available on"}
+                </span>
+                <span className="text-xs font-black text-white font-mono">iOS & Android</span>
+              </div>
+              <a
+                href="https://www.apple.com/app-store/"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
+                title="Descargar en Apple App Store"
+              >
+                <img
+                  src="/Imagenes/Apple_Store.png"
+                  alt="Apple App Store"
+                  className="h-5 sm:h-6 w-auto object-contain"
+                />
+              </a>
+              <a
+                href="https://play.google.com/store"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
+                title="Disponible en Google Play"
+              >
+                <img
+                  src="/Imagenes/Google_Play_2022_logo.svg.png"
+                  alt="Google Play"
+                  className="h-4 sm:h-5 w-auto object-contain"
+                />
+              </a>
+            </div>
           </div>
 
           {/* Barra final de Copyright */}

@@ -297,6 +297,17 @@ export default function RegistroPage() {
                     </>
                   )}
                 </button>
+
+                <p className="text-[10px] text-neutral-500 text-center mt-3">
+                  {locale === 'es' ? 'Al registrarte, aceptas nuestros ' : 'By creating an account, you agree to our '}
+                  <Link to="/terminos" className="text-neutral-400 hover:text-white underline">
+                    {locale === 'es' ? 'Términos' : 'Terms'}
+                  </Link>
+                  {locale === 'es' ? ' y ' : ' and '}
+                  <Link to="/privacidad" className="text-neutral-400 hover:text-white underline">
+                    {locale === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}
+                  </Link>.
+                </p>
               </div>
             </form>
 

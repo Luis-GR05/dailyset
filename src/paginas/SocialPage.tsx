@@ -26,9 +26,6 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  Sun,
-  Moon,
-  Monitor,
   UserPlus,
   Sparkles,
   Share2,
@@ -94,19 +91,6 @@ export default function SocialPage() {
     mq.addEventListener('change', listener);
     return () => mq.removeEventListener('change', listener);
   }, [themeMode]);
-
-  const toggleTema = () => {
-    const nuevoModo: SocialThemeMode = isDarkEffective ? 'light' : 'dark';
-    setThemeMode(nuevoModo);
-    setIsDarkEffective(nuevoModo === 'dark');
-    localStorage.setItem('dailyset_social_theme_mode', nuevoModo);
-  };
-
-  const handleSetAuto = () => {
-    setThemeMode('auto');
-    localStorage.setItem('dailyset_social_theme_mode', 'auto');
-    setIsDarkEffective(getDevicePrefersDark());
-  };
 
   const isLight = !isDarkEffective;
 
@@ -218,76 +202,15 @@ export default function SocialPage() {
             <button
               type="button"
               onClick={() => setMostrarInvitarModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer bg-[var(--color-primary)] text-black"
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer ${
+                isLight
+                  ? 'bg-black text-white hover:bg-neutral-800'
+                  : 'bg-black text-white border border-white/15 hover:bg-neutral-800 hover:border-white/30'
+              }`}
             >
-              <UserPlus size={14} />
+              <UserPlus size={14} className="text-white" />
               <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
             </button>
-
-            {/* Control de tema claro / oscuro */}
-            <div className={`flex items-center p-1 rounded-xl border ${
-              isLight ? 'bg-neutral-100/90 border-neutral-200' : 'bg-neutral-900 border-neutral-800'
-            }`}>
-              <button
-                type="button"
-                onClick={toggleTema}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none ${
-                  isLight
-                    ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200/80'
-                    : 'bg-neutral-800 text-white shadow-sm border border-neutral-700'
-                }`}
-                title={locale === 'es' ? 'Cambiar entre fondo blanco y modo oscuro' : 'Toggle between white background and dark mode'}
-              >
-                {isLight ? (
-                  <>
-                    <Sun size={14} className="text-amber-500" />
-                    <span>{locale === 'es' ? 'Fondo blanco' : 'Light theme'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon size={14} className="text-sky-400" />
-                    <span>{locale === 'es' ? 'Modo oscuro' : 'Dark theme'}</span>
-                  </>
-                )}
-              </button>
-
-              {themeMode !== 'auto' ? (
-                <button
-                  type="button"
-                  onClick={handleSetAuto}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                    isLight ? 'text-neutral-500 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'
-                  }`}
-                  title={locale === 'es' ? 'Sincronizar automáticamente con el dispositivo' : 'Sync automatically with device'}
-                >
-                  <Monitor size={12} />
-                  <span>{locale === 'es' ? 'Auto' : 'Auto'}</span>
-                </button>
-              ) : (
-                <span
-                  className={`flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    isLight ? 'text-neutral-400' : 'text-neutral-500'
-                  }`}
-                  title={locale === 'es' ? 'Sincronizado con tu dispositivo' : 'Synced with your device'}
-                >
-                  <Monitor size={11} />
-                  <span>{locale === 'es' ? 'Dispositivo' : 'Device'}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Botón rápido para ir a crear rutina */}
-            <Link
-              to="/mis-rutinas"
-              className={`p-2 rounded-xl border transition-colors ${
-                isLight
-                  ? 'bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200'
-                  : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-800'
-              }`}
-              title={locale === 'es' ? 'Gestionar mis rutinas' : 'Manage my routines'}
-            >
-              <Dumbbell size={16} />
-            </Link>
           </div>
         </div>
 
@@ -446,9 +369,13 @@ export default function SocialPage() {
                     <button
                       type="button"
                       onClick={() => setMostrarInvitarModal(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black shadow-md cursor-pointer"
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shadow-md cursor-pointer transition-all active:scale-95 ${
+                        isLight
+                          ? 'bg-black text-white hover:bg-neutral-800'
+                          : 'bg-black text-white border border-white/15 hover:bg-neutral-800 hover:border-white/30'
+                      }`}
                     >
-                      <UserPlus size={14} />
+                      <UserPlus size={14} className="text-white" />
                       <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
                     </button>
                     <button
@@ -525,7 +452,7 @@ export default function SocialPage() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-[var(--color-primary)] text-black">
+                <div className={`p-3 rounded-2xl ${isLight ? 'bg-neutral-200 text-neutral-900' : 'bg-black text-white border border-white/15'}`}>
                   <UserPlus size={20} />
                 </div>
                 <div>
@@ -543,9 +470,13 @@ export default function SocialPage() {
               <button
                 type="button"
                 onClick={() => setMostrarInvitarModal(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-[var(--color-primary)] text-black shadow-md hover:opacity-95 transition-all cursor-pointer shrink-0"
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black shadow-md transition-all cursor-pointer shrink-0 ${
+                  isLight
+                    ? 'bg-black text-white hover:bg-neutral-800'
+                    : 'bg-black text-white border border-white/15 hover:bg-neutral-800 hover:border-white/30'
+                }`}
               >
-                <Share2 size={13} fill="#000000" />
+                <Share2 size={13} className="text-white" />
                 <span>{locale === 'es' ? 'Compartir mi enlace' : 'Share my link'}</span>
               </button>
             </div>

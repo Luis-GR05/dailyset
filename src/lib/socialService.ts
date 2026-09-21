@@ -324,6 +324,11 @@ export async function buscarUsuarios(
       if (p.es_publico === false) return false;
       if (currentUserId && p.id === currentUserId) return false;
       if (bloqueadosIds.includes(p.id)) return false;
+      const u = (p.nombre_usuario || '').toLowerCase();
+      const n = (p.nombre_completo || '').toLowerCase();
+      if (u.includes('test_user') || u.includes('tester') || u.includes('ficticio') || u.includes('demo') || n.includes('test user') || n.includes('ficticio')) {
+        return false;
+      }
       return true;
     });
 
@@ -411,6 +416,11 @@ export async function getUsuariosSugeridos(
       if (p.es_publico === false) return false;
       if (currentUserId && p.id === currentUserId) return false;
       if (bloqueadosIds.includes(p.id)) return false;
+      const u = (p.nombre_usuario || '').toLowerCase();
+      const n = (p.nombre_completo || '').toLowerCase();
+      if (u.includes('test_user') || u.includes('tester') || u.includes('ficticio') || u.includes('demo') || n.includes('test user') || n.includes('ficticio')) {
+        return false;
+      }
       return true;
     });
 
@@ -426,13 +436,11 @@ export async function getUsuariosSugeridos(
       const rutCount = rutinasMap[p.id] || 0;
       const esSeguido = seguidosPorMi.includes(p.id);
 
-      let tipoSugerencia: PerfilPublico['tipoSugerencia'] = 'recomendado';
-      if (rutCount >= 3) {
+      let tipoSugerencia: PerfilPublico['tipoSugerencia'] = undefined;
+      if (rutCount >= 5) {
         tipoSugerencia = 'creador_activo';
-      } else if (segCount >= 2) {
+      } else if (segCount >= 10) {
         tipoSugerencia = 'popular';
-      } else if (p.created_at && (Date.now() - new Date(p.created_at).getTime()) < 1000 * 60 * 60 * 24 * 7) {
-        tipoSugerencia = 'nuevo';
       }
 
       return {

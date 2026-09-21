@@ -74,22 +74,14 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
                   className={`inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
                     perfil.tipoSugerencia === 'popular'
                       ? isLight ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : perfil.tipoSugerencia === 'creador_activo'
-                      ? isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : perfil.tipoSugerencia === 'nuevo'
-                      ? isLight ? 'bg-sky-50 text-sky-800 border-sky-200' : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                      : isLight ? 'bg-neutral-100 text-neutral-800 border-neutral-200' : 'bg-neutral-800 text-neutral-300 border-neutral-700'
+                      : isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   }`}
                 >
                   <Sparkles size={8} />
                   <span>
                     {perfil.tipoSugerencia === 'popular'
                       ? (locale === 'es' ? 'Popular' : 'Popular')
-                      : perfil.tipoSugerencia === 'creador_activo'
-                      ? (locale === 'es' ? 'Creador Activo' : 'Active Creator')
-                      : perfil.tipoSugerencia === 'nuevo'
-                      ? (locale === 'es' ? 'Nuevo' : 'New')
-                      : (locale === 'es' ? 'Sugerido' : 'Suggested')}
+                      : (locale === 'es' ? 'Creador Activo' : 'Active Creator')}
                   </span>
                 </span>
               )}

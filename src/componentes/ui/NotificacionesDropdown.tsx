@@ -388,9 +388,9 @@ export default function NotificacionesDropdown() {
                     </p>
 
                     {item.enlace && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-primary)] mt-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white mt-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                         <span>{locale === 'es' ? 'Ver detalles' : 'View details'}</span>
-                        <ChevronRight size={12} />
+                        <ChevronRight size={12} className="text-white" />
                       </span>
                     )}
                   </div>

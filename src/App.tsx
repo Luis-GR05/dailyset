@@ -10,6 +10,8 @@ const LandingPage = lazy(() => import('./paginas/LandingPage'));
 const LoginPage = lazy(() => import('./paginas/LoginPage'));
 const RegistroPage = lazy(() => import('./paginas/RegistroPage'));
 const RegistroConfirmacionPage = lazy(() => import('./paginas/RegistroConfirmacionPage'));
+const PoliticaPrivacidadPage = lazy(() => import('./paginas/PoliticaPrivacidadPage'));
+const TerminosCondicionesPage = lazy(() => import('./paginas/TerminosCondicionesPage'));
 
 const DashboardPage = lazy(() => import('./paginas/DashboardPage'));
 const MisRutinasPage = lazy(() => import('./paginas/MisRutinasPage'));
@@ -22,6 +24,7 @@ const EjercicioDetallePage = lazy(() => import('./paginas/EjercicioDetallePage')
 const EstadisticasPage = lazy(() => import('./paginas/EstadisticasPage'));
 const PerfilPage = lazy(() => import('./paginas/PerfilPage'));
 const PerfilConfigPage = lazy(() => import('./paginas/PerfilConfig'));
+const SoporteChatPage = lazy(() => import('./paginas/SoporteChatPage'));
 const UtilidadesPage = lazy(() => import('./paginas/UtilidadesPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -64,6 +67,11 @@ function App() {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/registro" element={<RegistroPage />} />
+                    <Route path="/privacidad" element={<PoliticaPrivacidadPage />} />
+                    <Route path="/politica-privacidad" element={<Navigate to="/privacidad" replace />} />
+                    <Route path="/terminos" element={<TerminosCondicionesPage />} />
+                    <Route path="/terminos-condiciones" element={<Navigate to="/terminos" replace />} />
+                    <Route path="/terminos-y-condiciones" element={<Navigate to="/terminos" replace />} />
 
                     {/* Rutas privadas */}
                     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -80,6 +88,8 @@ function App() {
                     <Route path="/perfil/racha" element={<PerfilPage />} />
                     <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
                     <Route path="/perfil/datos" element={<PerfilConfigPage />} />
+                    <Route path="/perfil/soporte" element={<SoporteChatPage />} />
+                    <Route path="/soporte" element={<Navigate to="/perfil/soporte" replace />} />
                     <Route path="/utilidades" element={<UtilidadesPage />} />
 
                     {/* Confirmación de registro */}

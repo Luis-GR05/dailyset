@@ -553,12 +553,10 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
     return (
       <div className="w-full max-w-3xl mx-auto space-y-6 animate-fadeIn pb-8">
         {/* Cabecera del resumen */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 relative overflow-hidden" hoverable={false}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3.5">
-              <div className="p-3.5 rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+              <div className="p-3.5 rounded-2xl bg-black text-white border border-white/15">
                 <Sparkles size={26} />
               </div>
               <div>
@@ -576,17 +574,17 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
               <button
                 type="button"
                 onClick={exportarPDF}
-                className="px-4 py-2.5 rounded-xl bg-neutral-950 hover:bg-neutral-800 border border-neutral-700 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-black/60 hover:bg-white/10 border border-white/15 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow active:scale-95"
                 title={locale === 'es' ? 'Exportar Ficha a PDF o Imprimir' : 'Export Card to PDF or Print'}
               >
-                <Printer size={15} className="text-[var(--color-primary)]" />
+                <Printer size={15} className="text-white" />
                 <span>{locale === 'es' ? 'Imprimir / PDF' : 'Print / PDF'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={copiarResumen}
-                className="px-4 py-2.5 rounded-xl bg-[var(--color-primary)] text-neutral-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-[0_0_20px_rgba(219,240,89,0.3)] active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-black text-white border border-white/15 hover:bg-white/10 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95"
               >
                 {copiado ? <Check size={15} /> : <Copy size={15} />}
                 <span>{copiado ? (locale === 'es' ? '¡Copiado!' : 'Copied!') : (locale === 'es' ? 'Copiar Ficha' : 'Copy Card')}</span>
@@ -595,13 +593,13 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           </div>
 
           {/* Hero 1RM Display */}
-          <div className="mt-6 p-6 rounded-2xl bg-neutral-950 border border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-6 p-6 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">
                 {locale === 'es' ? 'Tu 1RM Estimado' : 'Your Estimated 1RM'}
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-4xl sm:text-5xl font-black font-mono text-[var(--color-primary)] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-black font-mono text-white tracking-tight">
                   {rmCalculado}
                 </span>
                 <span className="text-sm font-bold text-neutral-400">{unidad} (100%)</span>
@@ -613,44 +611,44 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
               </p>
             </div>
 
-            <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-start sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0 border-neutral-800">
+            <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-start sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10">
               <span className="text-xs text-neutral-400 block">
                 {locale === 'es' ? 'Fórmula aplicada:' : 'Formula used:'}
               </span>
-              <span className="font-mono font-bold text-sm text-white px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 mt-1 uppercase">
+              <span className="font-mono font-bold text-sm text-white px-3 py-1.5 rounded-full bg-black/70 border border-white/10 mt-1 uppercase">
                 {formula}
               </span>
             </div>
           </div>
 
           {/* Comparativa entre Fórmulas Científicas */}
-          <div className="mt-4 p-4 rounded-2xl bg-neutral-950/60 border border-neutral-800/80">
+          <div className="mt-4 p-4 rounded-2xl bg-black/40 border border-white/10">
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-2.5">
               {locale === 'es' ? 'Comparativa de Fórmulas Científicas:' : 'Scientific Formulas Comparison:'}
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-xs">
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-center">
                 <span className="text-[10px] text-neutral-400 uppercase font-bold block">Epley</span>
                 <span className="text-base font-black text-white mt-0.5 block">{rmEpley} {unidad}</span>
               </div>
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-center">
                 <span className="text-[10px] text-neutral-400 uppercase font-bold block">Brzycki</span>
                 <span className="text-base font-black text-white mt-0.5 block">{rmBrzycki} {unidad}</span>
               </div>
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-center">
                 <span className="text-[10px] text-neutral-400 uppercase font-bold block">Lander</span>
                 <span className="text-base font-black text-white mt-0.5 block">{rmLander} {unidad}</span>
               </div>
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-center">
                 <span className="text-[10px] text-neutral-400 uppercase font-bold block">Lombardi</span>
                 <span className="text-base font-black text-white mt-0.5 block">{rmLombardi} {unidad}</span>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Tabla Completa de Porcentajes de Carga */}
-        <Card className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-4" hoverable={false}>
+        <Card className="p-6 space-y-4" hoverable={false}>
           <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
             <div className="flex items-center gap-2">
               <Layers size={18} className="text-[var(--color-primary)]" />
@@ -724,7 +722,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           <button
             type="button"
             onClick={reiniciarTodo}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow active:scale-95"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-black/60 hover:bg-white/10 border border-white/15 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow active:scale-95"
           >
             <RotateCcw size={16} />
             <span>{locale === 'es' ? 'Hacerlo de nuevo (Reiniciar)' : 'Calculate Again (Reset)'}</span>
@@ -733,7 +731,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           <button
             type="button"
             onClick={() => setPaso(1)}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-black/60 hover:bg-white/10 border border-white/15 text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
           >
             <Pencil size={15} />
             <span>{locale === 'es' ? 'Modificar mis datos' : 'Edit my inputs'}</span>
@@ -749,7 +747,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-fadeIn pb-8">
       {/* ── BARRA DE PROGRESO DEL PROCESO ── */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-xl">
+      <Card className="p-4 sm:p-5" hoverable={false}>
         <div className="flex items-center justify-between mb-3 text-xs">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-neutral-950 font-mono font-black text-xs flex items-center justify-center">
@@ -767,7 +765,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
         </div>
 
         {/* Barra de progreso */}
-        <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden">
           <div
             className="h-full bg-[var(--color-primary)] transition-all duration-300 rounded-full"
             style={{
@@ -775,16 +773,16 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
             }}
           />
         </div>
-      </div>
+      </Card>
 
       {/* ──────────────────────────────────────────────────────── */}
       {/* ── PASO 1: EJERCICIO Y UNIDAD                         ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 1 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+              <div className="p-3 rounded-2xl bg-black text-white border border-white/15">
                 <Dumbbell size={22} />
               </div>
               <div>
@@ -800,7 +798,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
             </div>
 
             {/* Selector de Unidad */}
-            <div className="flex bg-neutral-950 p-1 rounded-2xl border border-neutral-800 self-start sm:self-auto">
+            <div className="flex bg-black/60 p-1 rounded-2xl border border-white/10 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setUnidad('kg')}
@@ -850,7 +848,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                     className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                       activo
                         ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white shadow-md ring-1 ring-[var(--color-primary)]/40'
-                        : 'bg-neutral-950/70 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                        : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20 hover:bg-white/5'
                     }`}
                   >
                     <div>
@@ -879,7 +877,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                   value={ejercicioCustom}
                   onChange={(e) => setEjercicioCustom(e.target.value)}
                   placeholder={locale === 'es' ? 'Ej: Fondos en paralelas, Prensa 45°...' : 'e.g. Dips, Leg Press...'}
-                  className="w-full px-4 py-3 rounded-2xl bg-neutral-950 border border-neutral-700 text-white font-bold text-sm focus:border-[var(--color-primary)] focus:outline-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-black/60 border border-white/10 text-white font-bold text-sm focus:border-[var(--color-primary)] focus:outline-none"
                   autoFocus
                 />
               </div>
@@ -904,8 +902,8 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
       {/* ── PASO 2: CARGA Y REPETICIONES                       ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 2 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
               <Target size={22} />
             </div>
@@ -923,7 +921,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
 
           <div className="space-y-6">
             {/* Peso levantado */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl bg-black/60 border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-neutral-300">
                   {locale === 'es' ? 'Peso levantado en la serie' : 'Weight lifted'}
@@ -941,7 +939,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                   max={600}
                   value={peso || ''}
                   onChange={(e) => setPeso(Math.max(1, Number(e.target.value)))}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono font-black text-2xl focus:border-[var(--color-primary)] focus:outline-none"
+                  className="w-full px-4 py-3 rounded-xl bg-black/80 border border-white/10 text-white font-mono font-black text-2xl focus:border-[var(--color-primary)] focus:outline-none"
                   placeholder="80"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-mono font-bold text-neutral-500">
@@ -956,7 +954,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                     key={delta}
                     type="button"
                     onClick={() => setPeso((prev) => Math.max(1, prev + delta))}
-                    className="flex-1 py-1.5 px-2 rounded-xl text-xs font-mono font-bold bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition-colors cursor-pointer text-center"
+                    className="flex-1 py-1.5 px-2 rounded-xl text-xs font-mono font-bold bg-black/60 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition-colors cursor-pointer text-center"
                   >
                     {delta > 0 ? `+${delta}` : delta}
                   </button>
@@ -965,7 +963,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
             </div>
 
             {/* Repeticiones completadas */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl bg-black/60 border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-neutral-300">
                   {locale === 'es' ? 'Repeticiones completadas (con buena técnica)' : 'Completed reps (good form)'}
@@ -996,7 +994,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                     className={`py-2 text-xs font-mono font-bold rounded-xl border transition-all cursor-pointer ${
                       reps === r
                         ? 'bg-[var(--color-primary)] text-neutral-950 border-[var(--color-primary)] shadow-sm'
-                        : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        : 'bg-black/60 text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
                     }`}
                   >
                     {r}
@@ -1007,11 +1005,11 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           </div>
 
           {/* Navegación Paso 2 */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setPaso(1)}
-              className="px-5 py-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-2xl bg-black/60 border border-white/10 hover:border-white/20 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>{locale === 'es' ? 'Anterior' : 'Back'}</span>
@@ -1032,8 +1030,8 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
       {/* ── PASO 3: FÓRMULA CIENTÍFICA                         ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 3 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
               <Award size={22} />
             </div>
@@ -1093,7 +1091,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                   className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-4 ${
                     activo
                       ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white shadow-lg ring-1 ring-[var(--color-primary)]/40'
-                      : 'bg-neutral-950/70 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                      : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
                   }`}
                 >
                   <div className="flex-1">
@@ -1101,7 +1099,7 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
                       <span className={`text-sm font-extrabold ${activo ? 'text-[var(--color-primary)]' : 'text-neutral-200'}`}>
                         {f.nombre}
                       </span>
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-neutral-900 text-neutral-400 border border-neutral-800">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-black/60 text-neutral-400 border border-white/10">
                         {f.badge}
                       </span>
                     </div>
@@ -1121,11 +1119,11 @@ ${tablaZonas.map((z) => `• ${z.pct}%: ${(Math.round(rmCalculado * (z.pct / 100
           </div>
 
           {/* Navegación Paso 3 -> GENERAR RESUMEN */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setPaso(2)}
-              className="px-5 py-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-2xl bg-black/60 border border-white/10 hover:border-white/20 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>{locale === 'es' ? 'Anterior' : 'Back'}</span>

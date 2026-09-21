@@ -5,6 +5,7 @@ import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from '../context/I18nContext';
 import MesCalendario from '../componentes/ui/MesCalendario';
 import MonthYearPicker from '../componentes/ui/MonthYearPicker';
+import YearPicker from '../componentes/ui/YearPicker';
 import {
   Calendar,
   Layers,
@@ -244,7 +245,7 @@ export default function HistorialPage() {
           <div className="space-y-6 animate-fadeIn">
 
             {/* Barra de control del mes con navegación directa */}
-            <div className="card p-4 sm:p-5 flex items-center justify-between gap-4">
+            <div className="card p-4 sm:p-5 flex items-center justify-between gap-4 relative z-30">
               {/* Izquierda: flechas + título */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
@@ -540,7 +541,7 @@ export default function HistorialPage() {
 
                           <div className="flex items-center justify-between text-xs text-neutral-400 pt-1 group-hover:text-white transition-colors">
                             <span className="text-[11px] font-semibold">{locale === 'es' ? 'Ver desglose completo' : 'View full breakdown'}</span>
-                            <ArrowRight size={14} className="text-[var(--color-primary)] group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight size={14} className="text-white group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
                       );
@@ -580,7 +581,7 @@ export default function HistorialPage() {
           <div className="space-y-6 animate-fadeIn">
 
             {/* Cabecera del Año con selector de año */}
-            <div className="card p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="card p-4 sm:p-5 rounded-2xl flex items-center justify-between gap-4 relative z-30">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
                   <button
@@ -599,23 +600,35 @@ export default function HistorialPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <h2 className="text-2xl sm:text-3xl font-black text-white">
-                    {anioSeleccionado}
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black capitalize text-white leading-tight">
+                    {locale === 'es' ? 'Año' : 'Year'} <span className="text-[var(--color-primary)] font-mono">{anioSeleccionado}</span>
                   </h2>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {metricasAnio.totalSesiones} {locale === 'es' ? 'sesiones registradas' : 'sessions recorded'}
+                  </p>
                 </div>
               </div>
 
-              {/* Derecha: Selector de año */}
-              <select
-                value={anioSeleccionado}
-                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                className="bg-neutral-800 border border-neutral-700 text-white rounded-xl px-4 py-2 text-sm font-bold outline-none focus:border-[var(--color-primary)] cursor-pointer hover:border-neutral-500 transition-colors self-start md:self-auto"
-              >
-                {aniosDisponibles.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+              {/* Derecha: Selector de año con calendario */}
+              <div className="flex items-center gap-2 shrink-0">
+                {anioSeleccionado !== new Date().getFullYear() && (
+                  <button
+                    type="button"
+                    onClick={() => setAnioSeleccionado(new Date().getFullYear())}
+                    className="hidden sm:inline-flex text-xs font-bold px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    {locale === 'es' ? '← Año actual' : '← Current year'}
+                  </button>
+                )}
+                <YearPicker
+                  anio={anioSeleccionado}
+                  aniosDisponibles={aniosDisponibles}
+                  locale={locale}
+                  sublabel={`${metricasAnio.totalSesiones} ${locale === 'es' ? 'sesiones' : 'sessions'}`}
+                  onChange={(y) => setAnioSeleccionado(y)}
+                />
+              </div>
             </div>
 
             {/* Estadísticas del Año */}
@@ -720,9 +733,9 @@ export default function HistorialPage() {
                           <span className="text-neutral-500 text-[11px]">—</span>
                         )}
 
-                        <span className="text-[11px] font-bold text-[var(--color-primary)] flex items-center gap-1">
+                        <span className="text-[11px] font-bold text-white flex items-center gap-1 group-hover:text-white">
                           <span>{locale === 'es' ? 'Ver mes' : 'View month'}</span>
-                          <ArrowRight size={12} />
+                          <ArrowRight size={12} className="text-white" />
                         </span>
                       </div>
                     </div>

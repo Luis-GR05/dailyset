@@ -5,6 +5,7 @@ import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import YearPicker from '../componentes/ui/YearPicker';
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -143,8 +144,8 @@ export default function EstadisticasPage() {
   return (
     <AppLayout>
       <div className="space-y-4 pb-10 max-w-5xl mx-auto">
-        {/* Cabecera: título + año clickable */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-neutral-800 pb-5">
+        {/* Cabecera: título + selector de año tipo calendario */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-neutral-800 pb-5 relative z-30">
           <div>
             <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">
               {locale === 'es' ? 'Progreso' : 'Progress'}
@@ -152,7 +153,7 @@ export default function EstadisticasPage() {
             <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
           </div>
 
-          {/* Controles de cabecera: Botón Tu semana en cifras + selector de año */}
+          {/* Controles de cabecera: Botón Tu semana en cifras + selector de año con calendario */}
           <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
             <button
               type="button"
@@ -163,44 +164,32 @@ export default function EstadisticasPage() {
               <span>{locale === 'es' ? 'Tu semana en cifras' : 'Week wrapped'}</span>
             </button>
 
-            <button
-              onClick={irAnioAnterior}
-              disabled={!canGoPrev}
-              className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-white/8 disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
-              title={locale === 'es' ? 'Año anterior' : 'Previous year'}
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            {/* El año es un número grande con un <select> invisible encima */}
-            <div className="relative group cursor-pointer" title={locale === 'es' ? 'Seleccionar año' : 'Select year'}>
-              {/* Texto visual del año */}
-              <span className="text-5xl font-black text-white tracking-tighter leading-none select-none group-hover:text-[var(--color-primary)] transition-colors">
-                {anioSeleccionado}
-              </span>
-              {/* Icono pequeño que indica que es clickable */}
-              <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
-              {/* Select nativo invisible superpuesto — al hacer click abre el desplegable */}
-              <select
-                value={anioSeleccionado}
-                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                aria-label={locale === 'es' ? 'Seleccionar año' : 'Select year'}
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+              <button
+                onClick={irAnioAnterior}
+                disabled={!canGoPrev}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={locale === 'es' ? 'Año anterior' : 'Previous year'}
               >
-                {aniosDisponibles.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={irAnioSiguiente}
+                disabled={!canGoNext}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={locale === 'es' ? 'Año siguiente' : 'Next year'}
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
 
-            <button
-              onClick={irAnioSiguiente}
-              disabled={!canGoNext}
-              className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-white/8 disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
-              title={locale === 'es' ? 'Año siguiente' : 'Next year'}
-            >
-              <ChevronRight size={20} />
-            </button>
+            <YearPicker
+              anio={anioSeleccionado}
+              aniosDisponibles={aniosDisponibles}
+              locale={locale}
+              sublabel={`${totalEntrenos} ${locale === 'es' ? 'sesiones' : 'sessions'}`}
+              onChange={setAnioSeleccionado}
+            />
           </div>
         </div>
 

@@ -17,9 +17,11 @@ import {
   Calendar,
   CheckCircle2,
   ArrowLeft,
+  Headphones,
 } from 'lucide-react';
 import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
 import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
+import ChatSoporte from '../componentes/soporte/ChatSoporte';
 
 export interface NivelConfig {
   nivel: number;
@@ -155,6 +157,7 @@ export default function PerfilPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const esVistaRacha = location.pathname.includes('/racha');
+  const [mostrarChatSoporte, setMostrarChatSoporte] = useState(false);
 
   const [subiendoFoto, setSubiendoFoto] = useState(false);
 
@@ -374,15 +377,17 @@ export default function PerfilPage() {
     },
     {
       etiqueta: locale === 'es' ? 'RACHA DE CONSTANCIA' : 'CONSISTENCY STREAK',
-      valor: streakData.rachaActual ? `${streakData.rachaActual} ${locale === 'es' ? 'DÍAS' : 'DAYS'}` : '0 DÍAS',
+      valor: streakData.rachaActual
+        ? `${streakData.rachaActual} ${locale === 'es' ? (streakData.rachaActual === 1 ? 'DÍA' : 'DÍAS') : (streakData.rachaActual === 1 ? 'DAY' : 'DAYS')}`
+        : (locale === 'es' ? '0 DÍAS' : '0 DAYS'),
       icono: <Flame size={15} className="text-amber-400 animate-pulse" />,
-      destacado: streakData.rachaActual > 0,
+      destacado: false,
     },
     {
       etiqueta: locale === 'es' ? 'DISCIPLINA' : 'DISCIPLINE',
       valor: `${metricas.disciplinaPct}%`,
-      icono: <Target size={15} className="text-[var(--color-primary)]" />,
-      destacado: metricas.disciplinaPct >= 50,
+      icono: <Target size={15} className="text-neutral-300" />,
+      destacado: false,
     },
   ], [totalSesiones, streakData.rachaActual, metricas.disciplinaPct, locale]);
 
@@ -434,6 +439,13 @@ export default function PerfilPage() {
       esRojo: false,
     },
     {
+      nombre: (locale === 'es' ? 'Chat de Soporte Técnico' : 'Technical Support Chat').toUpperCase(),
+      ruta: '/perfil/soporte',
+      flecha: true,
+      esRojo: false,
+      esSoporte: true,
+    },
+    {
       nombre: t.profile.logout.toUpperCase(),
       ruta: null,
       flecha: false,
@@ -447,6 +459,10 @@ export default function PerfilPage() {
         await logout();
         navigate('/login');
       }
+      return;
+    }
+    if ((opcion as any).esSoporte) {
+      setMostrarChatSoporte(true);
       return;
     }
     if (opcion.ruta) {
@@ -470,7 +486,7 @@ export default function PerfilPage() {
           </div>
 
           {/* Tarjeta resumen rápida de Racha/Nivel en la subpágina */}
-          <div className="card p-6 md:p-7 backdrop-blur-2xl flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="card p-6 md:p-7 backdrop-blur-2xl flex items-center justify-between gap-5">
             <div className="flex items-center gap-5">
               <MarcoAvatarNivel
                 nivel={nivelActual.nivel}
@@ -485,33 +501,10 @@ export default function PerfilPage() {
                   <span className="font-black text-[10px] tracking-[0.25em] uppercase italic text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--color-primary)]/20">
                     {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
                   </span>
-                  <span className="font-bold text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
-                    <Sparkles size={10} />
-                    {locale === 'es' ? nivelActual.marcoDescEs : nivelActual.marcoDescEn}
-                  </span>
                 </div>
                 <h1 className="text-2xl font-black text-white italic uppercase tracking-tight">
                   {user?.nombre ?? (locale === 'es' ? 'Atleta DailySet' : 'DailySet Athlete')}
                 </h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-center">
-              <div className="flex-1 sm:flex-initial bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 text-center min-w-[110px]">
-                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-widest block mb-0.5">
-                  {locale === 'es' ? 'Racha Actual' : 'Current Streak'}
-                </span>
-                <span className="font-black text-xl text-amber-400 flex items-center justify-center gap-1.5 font-mono">
-                  <Flame size={18} className="animate-pulse" /> {streakData.rachaActual} <span className="text-xs font-sans font-bold text-neutral-400">{locale === 'es' ? 'días' : 'days'}</span>
-                </span>
-              </div>
-              <div className="flex-1 sm:flex-initial bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 text-center min-w-[110px]">
-                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-widest block mb-0.5">
-                  {locale === 'es' ? 'Récord Histórico' : 'Best Streak'}
-                </span>
-                <span className="font-black text-xl text-white font-mono">
-                  {streakData.bestStreak} <span className="text-xs font-sans font-bold text-neutral-400">{locale === 'es' ? 'días' : 'days'}</span>
-                </span>
               </div>
             </div>
           </div>
@@ -597,10 +590,6 @@ export default function PerfilPage() {
                 >
                   {locale === 'es' ? `NIVEL ${nivelActual.nivel} · ${nivelActual.rangoEs}` : `LEVEL ${nivelActual.nivel} · ${nivelActual.rangoEn}`}
                 </button>
-                <span className="font-bold text-[10px] text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1.5 shadow-sm">
-                  <Sparkles size={11} className="animate-spin" style={{ animationDuration: '4s' }} />
-                  {locale === 'es' ? nivelActual.marcoDescEs : nivelActual.marcoDescEn}
-                </span>
                 {streakData.rachaActual >= 3 && (
                   <button
                     type="button"
@@ -661,9 +650,9 @@ export default function PerfilPage() {
                 className={`text-center border-r border-white/5 last:border-r-0 px-2 ${stat.etiqueta.includes('RACHA') ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
                 title={stat.etiqueta.includes('RACHA') ? (locale === 'es' ? 'Ver detalles de racha' : 'View streak details') : undefined}
               >
-                <div className={`font-black text-base sm:text-lg md:text-xl italic leading-none flex items-center justify-center gap-1.5 ${stat.destacado ? 'text-[var(--color-primary)]' : 'text-white'}`}>
+                <div className="font-black text-base sm:text-lg md:text-xl italic leading-none flex items-center justify-center gap-1.5 text-white">
                   {stat.icono}
-                  <span>{stat.valor}</span>
+                  <span className="text-white">{stat.valor}</span>
                 </div>
                 <p className="text-neutral-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em] mt-2 italic">
                   {stat.etiqueta}
@@ -703,8 +692,22 @@ export default function PerfilPage() {
                 </div>
               </button>
             ))}
-          </div>
         </div>
+
+        {/* Modal de Chat de Soporte Técnico */}
+        {mostrarChatSoporte && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setMostrarChatSoporte(false)}
+          >
+            <div
+              className="w-full max-w-xl max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200"
+              onClick={e => e.stopPropagation()}
+            >
+              <ChatSoporte onCerrar={() => setMostrarChatSoporte(false)} />
+            </div>
+          </div>
+        )}
 
       </div>
     </AppLayout>

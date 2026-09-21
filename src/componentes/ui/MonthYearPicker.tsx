@@ -57,7 +57,7 @@ export default function MonthYearPicker({
   };
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${open ? 'z-50' : 'z-10'}`}>
       {/* Trigger */}
       <button
         onClick={() => setOpen(v => !v)}
@@ -77,7 +77,7 @@ export default function MonthYearPicker({
       {/* Popover */}
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 z-50 w-72 rounded-2xl border border-white/10 bg-neutral-900 shadow-2xl shadow-black/60 backdrop-blur-xl animate-fadeIn"
+          className="absolute right-0 top-full mt-2 z-[100] w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/15 bg-[#0e0e0e] shadow-2xl shadow-black/95 backdrop-blur-2xl animate-fadeIn"
           style={{ minWidth: '17rem' }}
         >
           {/* Cabecera: navegación de año */}

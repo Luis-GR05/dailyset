@@ -781,10 +781,10 @@ export default function CalculadoraMacrosWizard() {
     return (
       <div className="w-full max-w-3xl mx-auto space-y-6 animate-fadeIn pb-8">
         {/* Cabecera del resumen */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl relative overflow-hidden">
+        <Card className="p-6 sm:p-8 relative overflow-hidden" hoverable={false}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3.5">
               <div className="p-3.5 rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
                 <Sparkles size={26} />
@@ -804,7 +804,7 @@ export default function CalculadoraMacrosWizard() {
               <button
                 type="button"
                 onClick={exportarPDF}
-                className="px-4 py-2.5 rounded-xl bg-neutral-950 hover:bg-neutral-800 border border-neutral-700 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-black/60 hover:bg-white/10 border border-white/15 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow active:scale-95"
                 title={locale === 'es' ? 'Exportar a PDF o Imprimir' : 'Export to PDF or Print'}
               >
                 <Printer size={15} className="text-[var(--color-primary)]" />
@@ -823,7 +823,7 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Calorías Objetivo Centrales */}
-          <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-neutral-950 border border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">
                 {locale === 'es' ? 'Meta Calórica Diaria' : 'Target Daily Calories'}
@@ -839,7 +839,7 @@ export default function CalculadoraMacrosWizard() {
               </p>
             </div>
 
-            <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-start sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0 border-neutral-800">
+            <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-start sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10">
               <span className="text-xs text-neutral-400 block">
                 {locale === 'es' ? 'Ritmo proyectado:' : 'Projected rate:'}
               </span>
@@ -849,7 +849,7 @@ export default function CalculadoraMacrosWizard() {
                     ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
                     : cambioSemanalKg > 0
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-neutral-800 text-neutral-300'
+                    : 'bg-black/60 text-neutral-300 border border-white/10'
                 }`}
               >
                 {cambioSemanalKg < 0 ? <ArrowDownRight size={16} /> : cambioSemanalKg > 0 ? <ArrowUpRight size={16} /> : null}
@@ -859,12 +859,12 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Desglose de Correlación Matemática (BMR -> TDEE -> Meta) */}
-          <div className="mt-4 p-4 rounded-2xl bg-neutral-950/60 border border-neutral-800/80">
+          <div className="mt-4 p-4 rounded-2xl bg-black/40 border border-white/10">
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-2.5">
               {locale === 'es' ? 'Correlación del Gasto Energético:' : 'Energy Expenditure Breakdown:'}
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10">
                 <div className="flex items-center gap-1.5 text-neutral-400 mb-1">
                   <HeartPulse size={14} className="text-rose-400" />
                   <span>{locale === 'es' ? 'Metabolismo Basal (BMR)' : 'Basal Rate (BMR)'}</span>
@@ -873,7 +873,7 @@ export default function CalculadoraMacrosWizard() {
                 <span className="text-[10px] text-neutral-500 block mt-0.5">En reposo absoluto</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10">
                 <div className="flex items-center gap-1.5 text-neutral-400 mb-1">
                   <Activity size={14} className="text-amber-400" />
                   <span>{locale === 'es' ? `Actividad (${factorSeleccionado}x)` : `Activity (${factorSeleccionado}x)`}</span>
@@ -882,7 +882,7 @@ export default function CalculadoraMacrosWizard() {
                 <span className="text-[10px] text-neutral-500 block mt-0.5">{factoresActividad[nivelActividad].nombre}</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+              <div className="p-3 rounded-xl bg-black/60 border border-white/10">
                 <div className="flex items-center gap-1.5 text-neutral-400 mb-1">
                   <Scale size={14} className="text-blue-400" />
                   <span>{locale === 'es' ? 'Mantenimiento (TDEE)' : 'Maintenance (TDEE)'}</span>
@@ -892,12 +892,12 @@ export default function CalculadoraMacrosWizard() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Tarjetas de Macronutrientes */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Proteína */}
-          <Card className="p-5 rounded-3xl bg-neutral-900/80 border border-blue-500/25 space-y-3" hoverable={false}>
+          <Card className="p-5 space-y-3 border border-blue-500/30" hoverable={false}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-blue-400">
                 {locale === 'es' ? 'Proteínas' : 'Protein'}
@@ -910,14 +910,14 @@ export default function CalculadoraMacrosWizard() {
               <span className="text-3xl sm:text-4xl font-black text-white">{gramosProteina}</span>
               <span className="text-sm font-bold text-neutral-400">g / día</span>
             </div>
-            <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-xs font-mono text-neutral-400">
+            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs font-mono text-neutral-400">
               <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
               <strong className="text-blue-400">{protPorKg} g/kg</strong>
             </div>
           </Card>
 
           {/* Carbohidratos */}
-          <Card className="p-5 rounded-3xl bg-neutral-900/80 border border-amber-500/25 space-y-3" hoverable={false}>
+          <Card className="p-5 space-y-3 border border-amber-500/30" hoverable={false}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-amber-400">
                 {locale === 'es' ? 'Carbohidratos' : 'Carbohydrates'}
@@ -930,14 +930,14 @@ export default function CalculadoraMacrosWizard() {
               <span className="text-3xl sm:text-4xl font-black text-white">{gramosCarbos}</span>
               <span className="text-sm font-bold text-neutral-400">g / día</span>
             </div>
-            <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-xs font-mono text-neutral-400">
+            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs font-mono text-neutral-400">
               <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
               <strong className="text-amber-400">{carbPorKg} g/kg</strong>
             </div>
           </Card>
 
           {/* Grasas */}
-          <Card className="p-5 rounded-3xl bg-neutral-900/80 border border-rose-500/25 space-y-3" hoverable={false}>
+          <Card className="p-5 space-y-3 border border-rose-500/30" hoverable={false}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-rose-400">
                 {locale === 'es' ? 'Grasas Saludables' : 'Healthy Fats'}
@@ -950,7 +950,7 @@ export default function CalculadoraMacrosWizard() {
               <span className="text-3xl sm:text-4xl font-black text-white">{gramosGrasas}</span>
               <span className="text-sm font-bold text-neutral-400">g / día</span>
             </div>
-            <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-xs font-mono text-neutral-400">
+            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs font-mono text-neutral-400">
               <span>{locale === 'es' ? 'Ratio corporal:' : 'Body ratio:'}</span>
               <strong className="text-rose-400">{grasPorKg} g/kg</strong>
             </div>
@@ -958,8 +958,8 @@ export default function CalculadoraMacrosWizard() {
         </div>
 
         {/* Reparto por comidas */}
-        <Card className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-4" hoverable={false}>
-          <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+        <Card className="p-6 space-y-4" hoverable={false}>
+          <div className="flex items-center justify-between pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Utensils size={18} className="text-[var(--color-primary)]" />
               <h3 className="text-sm font-extrabold text-white">
@@ -973,14 +973,14 @@ export default function CalculadoraMacrosWizard() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Array.from({ length: numComidas }).map((_, idx) => (
-              <div key={idx} className="p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-2 text-center">
+              <div key={idx} className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-2 text-center">
                 <span className="text-xs font-bold text-white block">
                   {locale === 'es' ? `Comida ${idx + 1}` : `Meal ${idx + 1}`}
                 </span>
                 <span className="text-xs font-mono text-neutral-400 block font-bold">
                   {kcalPorComida} kcal
                 </span>
-                <div className="grid grid-cols-3 gap-1 pt-2 border-t border-neutral-900 text-[11px] font-mono font-bold">
+                <div className="grid grid-cols-3 gap-1 pt-2 border-t border-white/10 text-[11px] font-mono font-bold">
                   <span className="text-blue-400">{protPorComida}g P</span>
                   <span className="text-amber-400">{carbPorComida}g C</span>
                   <span className="text-rose-400">{grasPorComida}g G</span>
@@ -1004,7 +1004,7 @@ export default function CalculadoraMacrosWizard() {
           <button
             type="button"
             onClick={reiniciarTodo}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow active:scale-95"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-black/60 hover:bg-white/10 border border-white/15 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow active:scale-95"
           >
             <RotateCcw size={16} />
             <span>{locale === 'es' ? 'Hacerlo de nuevo (Reiniciar)' : 'Calculate Again (Reset)'}</span>
@@ -1013,7 +1013,7 @@ export default function CalculadoraMacrosWizard() {
           <button
             type="button"
             onClick={() => setPaso(1)}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-black/60 hover:bg-white/10 border border-white/15 text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
           >
             <Pencil size={15} />
             <span>{locale === 'es' ? 'Modificar mis datos' : 'Edit my inputs'}</span>
@@ -1029,7 +1029,7 @@ export default function CalculadoraMacrosWizard() {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-fadeIn pb-8">
       {/* ── BARRA DE PROGRESO DEL PROCESO ── */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-xl">
+      <Card className="p-4 sm:p-5" hoverable={false}>
         <div className="flex items-center justify-between mb-3 text-xs">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-neutral-950 font-mono font-black text-xs flex items-center justify-center">
@@ -1048,7 +1048,7 @@ export default function CalculadoraMacrosWizard() {
         </div>
 
         {/* Barra de progreso */}
-        <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden">
           <div
             className="h-full bg-[var(--color-primary)] transition-all duration-300 rounded-full"
             style={{
@@ -1056,14 +1056,14 @@ export default function CalculadoraMacrosWizard() {
             }}
           />
         </div>
-      </div>
+      </Card>
 
       {/* ──────────────────────────────────────────────────────── */}
       {/* ── PASO 1: TUS DATOS CORPORALES                       ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 1 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
                 <User size={22} />
@@ -1081,7 +1081,7 @@ export default function CalculadoraMacrosWizard() {
             </div>
 
             {/* Sexo biológico */}
-            <div className="flex bg-neutral-950 p-1 rounded-2xl border border-neutral-800 self-start sm:self-auto">
+            <div className="flex bg-black/60 p-1 rounded-2xl border border-white/10 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setGenero('masculino')}
@@ -1110,17 +1110,17 @@ export default function CalculadoraMacrosWizard() {
           {/* Grid de Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Peso */}
-            <div className="p-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-neutral-300">
                   {locale === 'es' ? 'Peso corporal' : 'Body weight'}
                 </label>
-                <div className="flex text-[10px] bg-neutral-900 rounded-lg p-0.5 border border-neutral-800">
+                <div className="flex text-[10px] bg-black/80 rounded-lg p-0.5 border border-white/10">
                   <button
                     type="button"
                     onClick={() => setUnidadPeso('kg')}
                     className={`px-2 py-0.5 rounded cursor-pointer transition-all ${
-                      unidadPeso === 'kg' ? 'bg-[var(--color-primary)] text-neutral-950 font-bold' : 'text-neutral-400'
+                      unidadPeso === 'kg' ? 'bg-[var(--color-primary)] text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
                     kg
@@ -1129,7 +1129,7 @@ export default function CalculadoraMacrosWizard() {
                     type="button"
                     onClick={() => setUnidadPeso('lbs')}
                     className={`px-2 py-0.5 rounded cursor-pointer transition-all ${
-                      unidadPeso === 'lbs' ? 'bg-[var(--color-primary)] text-neutral-950 font-bold' : 'text-neutral-400'
+                      unidadPeso === 'lbs' ? 'bg-[var(--color-primary)] text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
                     lbs
@@ -1141,7 +1141,7 @@ export default function CalculadoraMacrosWizard() {
                 step="0.5"
                 value={peso || ''}
                 onChange={(e) => setPeso(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-black/80 border border-white/10 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
                 placeholder="75"
               />
               <span className="text-[11px] text-neutral-500 block">
@@ -1150,7 +1150,7 @@ export default function CalculadoraMacrosWizard() {
             </div>
 
             {/* Estatura */}
-            <div className="p-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
               <label className="text-xs font-bold text-neutral-300 block">
                 {locale === 'es' ? 'Estatura (cm)' : 'Height (cm)'}
               </label>
@@ -1159,7 +1159,7 @@ export default function CalculadoraMacrosWizard() {
                   type="number"
                   value={altura || ''}
                   onChange={(e) => setAltura(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/80 border border-white/10 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
                   placeholder="178"
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-neutral-500 font-bold">
@@ -1172,7 +1172,7 @@ export default function CalculadoraMacrosWizard() {
             </div>
 
             {/* Edad */}
-            <div className="p-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
               <label className="text-xs font-bold text-neutral-300 block">
                 {locale === 'es' ? 'Edad (años)' : 'Age (years)'}
               </label>
@@ -1180,7 +1180,7 @@ export default function CalculadoraMacrosWizard() {
                 type="number"
                 value={edad || ''}
                 onChange={(e) => setEdad(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-black/80 border border-white/10 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
                 placeholder="26"
               />
               <span className="text-[11px] text-neutral-500 block">
@@ -1189,7 +1189,7 @@ export default function CalculadoraMacrosWizard() {
             </div>
 
             {/* % Grasa Corporal (Opcional) */}
-            <div className="p-4 rounded-2xl bg-neutral-950/70 border border-neutral-800 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-neutral-300">
                   {locale === 'es' ? '% Grasa corporal' : 'Body fat %'}
@@ -1205,7 +1205,7 @@ export default function CalculadoraMacrosWizard() {
                   placeholder="15"
                   value={grasaCorporal}
                   onChange={(e) => setGrasaCorporal(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/80 border border-white/10 text-white font-mono font-black text-xl focus:border-[var(--color-primary)] focus:outline-none"
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-neutral-500 font-bold">
                   %
@@ -1218,7 +1218,7 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Botón Siguiente */}
-          <div className="pt-4 border-t border-neutral-800 flex justify-end">
+          <div className="pt-4 border-t border-white/10 flex justify-end">
             <button
               type="button"
               onClick={() => setPaso(2)}
@@ -1235,8 +1235,8 @@ export default function CalculadoraMacrosWizard() {
       {/* ── PASO 2: NIVEL DE ACTIVIDAD                         ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 2 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
               <Activity size={22} />
             </div>
@@ -1265,7 +1265,7 @@ export default function CalculadoraMacrosWizard() {
                   className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-4 ${
                     activo
                       ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white shadow-lg ring-1 ring-[var(--color-primary)]/40'
-                      : 'bg-neutral-950/70 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                      : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
                   }`}
                 >
                   <div className="flex-1">
@@ -1273,7 +1273,7 @@ export default function CalculadoraMacrosWizard() {
                       <span className={`text-sm font-extrabold ${activo ? 'text-[var(--color-primary)]' : 'text-neutral-200'}`}>
                         {item.nombre}
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-neutral-900 text-neutral-400 border border-neutral-800">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-black/80 text-neutral-400 border border-white/10">
                         {item.entreno}
                       </span>
                     </div>
@@ -1286,7 +1286,7 @@ export default function CalculadoraMacrosWizard() {
                     <span className={`w-6 h-6 rounded-full border flex items-center justify-center ${
                       activo
                         ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-neutral-950'
-                        : 'border-neutral-700 bg-neutral-900'
+                        : 'border-white/15 bg-black/80'
                     }`}>
                       {activo && <Check size={14} strokeWidth={3} />}
                     </span>
@@ -1297,11 +1297,11 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Navegación Paso 2 */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setPaso(1)}
-              className="px-5 py-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-2xl bg-black/60 border border-white/10 hover:border-white/20 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>{locale === 'es' ? 'Anterior' : 'Back'}</span>
@@ -1322,8 +1322,8 @@ export default function CalculadoraMacrosWizard() {
       {/* ── PASO 3: OBJETIVO NUTRICIONAL                       ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 3 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
               <Target size={22} />
             </div>
@@ -1352,7 +1352,7 @@ export default function CalculadoraMacrosWizard() {
                   className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-4 ${
                     activo
                       ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-white shadow-lg ring-1 ring-[var(--color-primary)]/40'
-                      : 'bg-neutral-950/70 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                      : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
                   }`}
                 >
                   <div className="flex-1">
@@ -1366,7 +1366,7 @@ export default function CalculadoraMacrosWizard() {
                             ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
                             : item.tipo === 'bulk'
                             ? 'bg-rose-500/15 text-rose-400 border border-rose-500/20'
-                            : 'bg-neutral-800 text-neutral-300'
+                            : 'bg-black/80 text-neutral-300 border border-white/10'
                         }`}
                       >
                         {item.ritmo}
@@ -1381,7 +1381,7 @@ export default function CalculadoraMacrosWizard() {
                     <span className={`w-6 h-6 rounded-full border flex items-center justify-center ${
                       activo
                         ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-neutral-950'
-                        : 'border-neutral-700 bg-neutral-900'
+                        : 'border-white/15 bg-black/80'
                     }`}>
                       {activo && <Check size={14} strokeWidth={3} />}
                     </span>
@@ -1392,11 +1392,11 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Navegación Paso 3 */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setPaso(2)}
-              className="px-5 py-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-2xl bg-black/60 border border-white/10 hover:border-white/20 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>{locale === 'es' ? 'Anterior' : 'Back'}</span>
@@ -1417,8 +1417,8 @@ export default function CalculadoraMacrosWizard() {
       {/* ── PASO 4: ESTRATEGIA DE MACROS Y COMIDAS             ── */}
       {/* ──────────────────────────────────────────────────────── */}
       {paso === 4 && (
-        <Card className="p-6 sm:p-8 rounded-3xl bg-neutral-900/80 border border-neutral-800 space-y-6 shadow-xl" hoverable={false}>
-          <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
+        <Card className="p-6 sm:p-8 space-y-6" hoverable={false}>
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <div className="p-3 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
               <Utensils size={22} />
             </div>
@@ -1455,7 +1455,7 @@ export default function CalculadoraMacrosWizard() {
                     className={`p-4 rounded-2xl border text-center transition-all cursor-pointer ${
                       activo
                         ? 'bg-blue-500/20 border-blue-500 text-white shadow-md ring-1 ring-blue-500/40'
-                        : 'bg-neutral-950/70 border-neutral-800 text-neutral-400 hover:text-white'
+                        : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
                     }`}
                   >
                     <span className="text-sm font-mono font-black block">{p.label}</span>
@@ -1467,7 +1467,7 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Selector de Número de Comidas */}
-          <div className="space-y-3 pt-4 border-t border-neutral-800">
+          <div className="space-y-3 pt-4 border-t border-white/10">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-neutral-300">
                 {locale === 'es' ? '¿En cuántas comidas prefieres repartirlas?' : 'How many daily meals do you prefer?'}
@@ -1486,7 +1486,7 @@ export default function CalculadoraMacrosWizard() {
                   className={`flex-1 py-3 rounded-2xl font-mono font-black text-sm border transition-all cursor-pointer ${
                     numComidas === n
                       ? 'bg-[var(--color-primary)] text-neutral-950 border-[var(--color-primary)] shadow-md'
-                      : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
+                      : 'bg-black/60 border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
                   }`}
                 >
                   {n}
@@ -1496,11 +1496,11 @@ export default function CalculadoraMacrosWizard() {
           </div>
 
           {/* Navegación Paso 4 -> GENERAR RESUMEN */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setPaso(3)}
-              className="px-5 py-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-2xl bg-black/60 border border-white/10 hover:border-white/20 text-neutral-400 hover:text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>{locale === 'es' ? 'Anterior' : 'Back'}</span>
