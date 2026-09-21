@@ -74,11 +74,7 @@ export default function BannerEntrenamientoActivo() {
   return (
     <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
       <div
-        className="rounded-2xl p-3.5 sm:p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg"
-        style={{
-          background: 'linear-gradient(135deg, rgba(219,240,89,0.08) 0%, rgba(18,18,20,0.95) 100%)',
-          borderColor: 'rgba(219,240,89,0.3)',
-        }}
+        className="rounded-2xl p-3.5 sm:p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg bg-neutral-900 border-neutral-800 hover:border-[var(--color-primary)]/40 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           <div

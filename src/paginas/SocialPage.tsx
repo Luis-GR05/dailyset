@@ -520,8 +520,8 @@ export default function SocialPage() {
             <div
               className={`rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                 isLight
-                  ? 'bg-gradient-to-r from-amber-50/70 via-white to-neutral-50 border-neutral-200/90 shadow-sm'
-                  : 'bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-neutral-800'
+                  ? 'bg-neutral-50 border-neutral-200 shadow-sm'
+                  : 'bg-neutral-900 border-neutral-800'
               }`}
             >
               <div className="flex items-center gap-3">

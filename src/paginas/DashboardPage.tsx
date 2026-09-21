@@ -316,11 +316,8 @@ export default function DashboardPage() {
         <section>
           <div
             onClick={() => setModalCifrasAbierto(true)}
-            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-950 border border-neutral-800 hover:border-[var(--color-primary)]/50 transition-all cursor-pointer shadow-lg hover:shadow-xl"
+            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-neutral-900 border border-neutral-800 hover:border-[var(--color-primary)]/50 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
-            {/* Resplandor decorativo */}
-            <div className="absolute top-0 right-0 w-64 h-full bg-[var(--color-primary)]/5 blur-3xl group-hover:bg-[var(--color-primary)]/10 transition-colors pointer-events-none" />
-
             <div className="relative flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className="w-11 h-11 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">

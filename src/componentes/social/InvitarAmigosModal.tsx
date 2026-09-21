@@ -122,8 +122,8 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
           <div
             className={`rounded-2xl p-5 border text-center relative overflow-hidden ${
               isLight
-                ? 'bg-gradient-to-br from-amber-50/50 via-white to-neutral-50 border-neutral-200/90 shadow-sm'
-                : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border-neutral-800'
+                ? 'bg-neutral-50 border-neutral-200 shadow-sm'
+                : 'bg-neutral-900 border-neutral-800'
             }`}
           >
             <div className="absolute top-2 right-2 opacity-10 pointer-events-none">
