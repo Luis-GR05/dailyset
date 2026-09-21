@@ -46,7 +46,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
           fixed top-0 left-0 h-full w-64 sm:w-72 p-5 sm:p-6 flex flex-col z-50
           transform transition-transform duration-300 ease-in-out
           ${abierto ? "translate-x-0" : "-translate-x-full"}
-          md:static md:translate-x-0 md:z-auto
+          md:sticky md:top-0 md:h-dvh md:self-start md:shrink-0 md:translate-x-0 md:z-30 md:overflow-y-auto scrollbar-hide
         `}
         style={{ backgroundColor: 'var(--color-black)', borderRight: '1px solid var(--color-neutral-800)' }}
       >
