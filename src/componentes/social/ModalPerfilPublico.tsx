@@ -292,7 +292,7 @@ export default function ModalPerfilPublico({
                           className={`inline-block mt-1 text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full border ${
                             isLight
                               ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
-                              : 'bg-neutral-800 text-[var(--color-primary)] border border-neutral-700'
+                              : 'bg-neutral-800 text-white border border-neutral-700'
                           }`}
                         >
                           {perfil.nivel_entrenamiento}

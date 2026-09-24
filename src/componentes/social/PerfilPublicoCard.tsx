@@ -25,7 +25,7 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
       className={`rounded-2xl p-4 sm:p-5 transition-all shadow-md flex flex-col justify-between gap-4 border ${
         isLight
           ? 'bg-white border-neutral-200/90 text-neutral-900 shadow-sm hover:border-neutral-300 hover:shadow-md'
-          : 'bg-neutral-900/60 border-neutral-800/80 text-white hover:border-neutral-700'
+          : 'bg-black border-white/10 text-white hover:border-white/50 transition-colors duration-300'
       } ${onClick ? 'cursor-pointer' : ''}`}
     >
       {/* ── Cabecera: Avatar, Info y Botón Seguir ── */}
@@ -62,7 +62,7 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
                   className={`inline-block text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
                     isLight
                       ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
-                      : 'bg-neutral-800 text-[var(--color-primary)] border border-neutral-700'
+                      : 'bg-neutral-800 text-white border border-neutral-700'
                   }`}
                 >
                   {perfil.nivel_entrenamiento}
@@ -74,14 +74,22 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
                   className={`inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${
                     perfil.tipoSugerencia === 'popular'
                       ? isLight ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : perfil.tipoSugerencia === 'creador_activo'
+                      ? isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : perfil.tipoSugerencia === 'nuevo'
+                      ? isLight ? 'bg-neutral-100 text-neutral-900 border-neutral-300' : 'bg-white/10 text-white border-white/20'
+                      : isLight ? 'bg-neutral-100 text-neutral-800 border-neutral-200' : 'bg-neutral-800 text-neutral-300 border-neutral-700'
                   }`}
                 >
-                  <Sparkles size={8} />
+                  <Sparkles size={8} className={perfil.tipoSugerencia === 'nuevo' ? (isLight ? 'text-neutral-900' : 'text-white') : undefined} />
                   <span>
                     {perfil.tipoSugerencia === 'popular'
                       ? (locale === 'es' ? 'Popular' : 'Popular')
-                      : (locale === 'es' ? 'Creador Activo' : 'Active Creator')}
+                      : perfil.tipoSugerencia === 'creador_activo'
+                      ? (locale === 'es' ? 'Creador Activo' : 'Active Creator')
+                      : perfil.tipoSugerencia === 'nuevo'
+                      ? (locale === 'es' ? 'Nuevo' : 'New')
+                      : (locale === 'es' ? 'Sugerido' : 'Suggested')}
                   </span>
                 </span>
               )}

@@ -5,6 +5,7 @@ import { EjerciciosProvider } from './context/EjerciciosContext';
 import { RutinasProvider } from './context/RutinasContext';
 import { SocialProvider } from './context/SocialContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CookieBanner } from './componentes';
 
 const LandingPage = lazy(() => import('./paginas/LandingPage'));
 const LoginPage = lazy(() => import('./paginas/LoginPage'));
@@ -52,6 +53,7 @@ function App() {
           <RutinasProvider>
             <SocialProvider>
               <Router>
+                <CookieBanner />
                 <Suspense
                   fallback={
                     <div className="min-h-dvh bg-[#0a0a0a] flex items-center justify-center">

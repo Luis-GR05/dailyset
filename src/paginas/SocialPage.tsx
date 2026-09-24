@@ -65,7 +65,7 @@ export default function SocialPage() {
   const [mostrarInvitarModal, setMostrarInvitarModal] = useState(false);
 
   // Estado del tema para Social (Fondo blanco por defecto, con detección automática de modo oscuro)
-  const [themeMode, setThemeMode] = useState<SocialThemeMode>(() => {
+  const [themeMode] = useState<SocialThemeMode>(() => {
     const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
     if (guardado === 'auto' || guardado === 'light' || guardado === 'dark') {
       return guardado as SocialThemeMode;
@@ -216,7 +216,7 @@ export default function SocialPage() {
 
         {/* ── Navegación por Pestañas ── */}
         <div className={`flex items-center gap-2 p-1.5 rounded-2xl border ${
-          isLight ? 'bg-neutral-100 border-neutral-200/90' : 'bg-neutral-900/80 border-neutral-800'
+          isLight ? 'bg-neutral-100 border-neutral-200/90' : 'bg-black border-white/10'
         }`}>
           <button
             type="button"
@@ -225,7 +225,7 @@ export default function SocialPage() {
               tabActiva === 'feed'
                 ? isLight
                   ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'bg-neutral-800 text-white shadow-md'
+                  : 'bg-neutral-900 text-white border border-white/10 shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
@@ -242,7 +242,7 @@ export default function SocialPage() {
               tabActiva === 'explorar'
                 ? isLight
                   ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'bg-neutral-800 text-white shadow-md'
+                  : 'bg-neutral-900 text-white border border-white/10 shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
@@ -259,7 +259,7 @@ export default function SocialPage() {
               tabActiva === 'mi_perfil'
                 ? isLight
                   ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'bg-neutral-800 text-white shadow-md'
+                  : 'bg-neutral-900 text-white border border-white/10 shadow-md'
                 : isLight
                 ? 'text-neutral-600 hover:text-neutral-900'
                 : 'text-neutral-400 hover:text-white'
@@ -278,7 +278,7 @@ export default function SocialPage() {
             {/* Filtros del Feed (Para ti / Siguiendo) */}
             <div className="flex items-center justify-between gap-3">
               <div className={`flex items-center p-1 rounded-xl border ${
-                isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-900 border-neutral-800'
+                isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-black border-white/10 hover:border-white/50 transition-colors duration-300'
               }`}>
                 <button
                   type="button"
@@ -288,7 +288,7 @@ export default function SocialPage() {
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : isLight
                       ? 'bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200 shadow-sm'
-                      : 'bg-neutral-800 text-neutral-300 hover:text-white'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   {locale === 'es' ? 'Para ti' : 'For you'}
@@ -302,7 +302,7 @@ export default function SocialPage() {
                       ? 'bg-[var(--color-primary)] text-black shadow-sm'
                       : isLight
                       ? 'bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200 shadow-sm'
-                      : 'bg-neutral-800 text-neutral-300 hover:text-white'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   <Users size={13} />
@@ -340,10 +340,10 @@ export default function SocialPage() {
             ) : feed.length === 0 ? (
               <div className="space-y-6">
                 <div className={`text-center py-12 px-4 rounded-2xl border border-dashed space-y-3 ${
-                  isLight ? 'bg-white border-neutral-200 shadow-sm' : 'bg-neutral-900/30 border-neutral-800'
+                  isLight ? 'bg-white border-neutral-200 shadow-sm' : 'bg-black border-white/10 hover:border-white/50 transition-colors duration-300'
                 }`}>
                   <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
-                    isLight ? 'bg-neutral-100 text-neutral-400' : 'bg-neutral-800/80 text-neutral-500'
+                    isLight ? 'bg-neutral-100 text-neutral-400' : 'bg-neutral-900 text-neutral-400 border border-white/10'
                   }`}>
                     <Dumbbell size={28} />
                   </div>
@@ -448,11 +448,11 @@ export default function SocialPage() {
               className={`rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                 isLight
                   ? 'bg-neutral-50 border-neutral-200 shadow-sm'
-                  : 'bg-neutral-900 border-neutral-800'
+                  : 'bg-black border-white/10 hover:border-white transition-colors'
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-2xl ${isLight ? 'bg-neutral-200 text-neutral-900' : 'bg-black text-white border border-white/15'}`}>
+                <div className={`p-3 rounded-2xl ${isLight ? 'bg-neutral-200 text-neutral-900' : 'bg-neutral-900 text-white border border-white/10'}`}>
                   <UserPlus size={20} />
                 </div>
                 <div>
@@ -470,13 +470,13 @@ export default function SocialPage() {
               <button
                 type="button"
                 onClick={() => setMostrarInvitarModal(true)}
-                className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black shadow-md transition-all cursor-pointer shrink-0 ${
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-black shadow-md transition-all cursor-pointer shrink-0 ${
                   isLight
                     ? 'bg-black text-white hover:bg-neutral-800'
-                    : 'bg-black text-white border border-white/15 hover:bg-neutral-800 hover:border-white/30'
+                    : 'bg-black text-white border border-white/20 hover:bg-neutral-900 hover:border-white'
                 }`}
               >
-                <Share2 size={13} className="text-white" />
+                <Share2 size={14} className="text-white" />
                 <span>{locale === 'es' ? 'Compartir mi enlace' : 'Share my link'}</span>
               </button>
             </div>
@@ -496,7 +496,7 @@ export default function SocialPage() {
                 className={`input pl-11 pr-10 py-3 text-sm rounded-2xl w-full border transition-all ${
                   isLight
                     ? 'bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-400 focus:ring-1 focus:ring-neutral-200'
-                    : 'bg-neutral-900 border-neutral-800 text-white placeholder-neutral-500 focus:border-[var(--color-primary)]'
+                    : 'bg-black border-white/10 text-white placeholder-neutral-500 focus:border-white/30'
                 }`}
               />
               {buscandoUsuarios && (
@@ -538,7 +538,7 @@ export default function SocialPage() {
                 </div>
               ) : (
                 <div className={`text-center py-12 px-4 rounded-2xl border space-y-2 ${
-                  isLight ? 'bg-white border-neutral-200/90 shadow-sm' : 'bg-neutral-900/30 border-neutral-800/60'
+                  isLight ? 'bg-white border-neutral-200/90 shadow-sm' : 'bg-black border-white/10 hover:border-white/50 transition-colors duration-300'
                 }`}>
                   <Compass size={32} className={`mx-auto mb-2 ${isLight ? 'text-neutral-400' : 'text-neutral-600'}`} />
                   <h4 className={`font-bold text-sm ${isLight ? 'text-neutral-900' : 'text-white'}`}>
@@ -553,7 +553,7 @@ export default function SocialPage() {
               )
             ) : usuariosEncontrados.length === 0 && !buscandoUsuarios ? (
               <div className={`text-center py-12 px-4 rounded-2xl border ${
-                isLight ? 'bg-white border-neutral-200/90 text-neutral-600' : 'bg-neutral-900/30 border-neutral-800/60 text-neutral-400'
+                isLight ? 'bg-white border-neutral-200/90 text-neutral-600' : 'bg-black border-white/10 text-neutral-400'
               }`}>
                 <p className="text-sm font-semibold">
                   {locale === 'es'
@@ -598,11 +598,11 @@ export default function SocialPage() {
           <div className="space-y-6">
             {/* Tarjeta de Biografía pública */}
             <div className={`rounded-2xl p-5 space-y-4 border ${
-              isLight ? 'bg-white border-neutral-200/90 shadow-sm text-neutral-900' : 'bg-neutral-900/60 border-neutral-800 text-white'
+              isLight ? 'bg-white border-neutral-200/90 shadow-sm text-neutral-900' : 'bg-black border-white/10 text-white hover:border-white/50 transition-colors duration-300'
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 border ${
-                  isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-800 border-neutral-700'
+                  isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-900 border-white/10'
                 }`}>
                   {user?.avatar_url ? (
                     <img src={user.avatar_url} alt={user.nombre} className="w-full h-full object-cover" />
@@ -616,7 +616,7 @@ export default function SocialPage() {
                 </div>
               </div>
 
-              <form onSubmit={handleGuardarBio} className={`space-y-3 pt-3 border-t ${isLight ? 'border-neutral-200/80' : 'border-neutral-800'}`}>
+              <form onSubmit={handleGuardarBio} className={`space-y-3 pt-3 border-t ${isLight ? 'border-neutral-200/80' : 'border-white/10'}`}>
                 <label className={`text-xs font-bold block ${isLight ? 'text-neutral-800' : 'text-neutral-300'}`}>
                   {locale === 'es' ? 'Tu biografía pública' : 'Your public bio'}
                 </label>
@@ -624,7 +624,7 @@ export default function SocialPage() {
                   className={`input text-xs sm:text-sm resize-none rounded-xl p-3 w-full border ${
                     isLight
                       ? 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:bg-white focus:border-neutral-400'
-                      : 'bg-neutral-950 border-neutral-800 text-white placeholder-neutral-500'
+                      : 'bg-black border-white/10 text-white placeholder-neutral-500 focus:border-white/30'
                   }`}
                   rows={3}
                   maxLength={200}
@@ -650,7 +650,7 @@ export default function SocialPage() {
                     <button
                       type="submit"
                       disabled={guardandoBio}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[var(--color-primary)] text-black hover:opacity-90 transition-all cursor-pointer shadow-sm"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-black text-white border border-white/15 hover:bg-neutral-900 hover:border-white/40 transition-all cursor-pointer shadow-sm"
                     >
                       {guardandoBio ? (
                         <Loader2 size={13} className="animate-spin" />
@@ -699,7 +699,7 @@ export default function SocialPage() {
 
               {rutinas.length === 0 ? (
                 <div className={`text-center py-10 rounded-2xl border border-dashed ${
-                  isLight ? 'bg-white border-neutral-200 text-neutral-600' : 'bg-neutral-900/30 border-neutral-800 text-neutral-400'
+                  isLight ? 'bg-white border-neutral-200 text-neutral-600' : 'bg-black border-white/10 text-neutral-400 hover:border-white/50 transition-colors duration-300'
                 }`}>
                   <p className="text-xs">
                     {locale === 'es'
@@ -708,10 +708,10 @@ export default function SocialPage() {
                   </p>
                   <Link
                     to="/mis-rutinas"
-                    className={`inline-block mt-3 px-3 py-1.5 text-xs font-bold rounded-lg border ${
+                    className={`inline-block mt-3 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${
                       isLight
                         ? 'bg-neutral-900 text-white border-neutral-900'
-                        : 'bg-neutral-800 text-white border-neutral-700'
+                        : 'bg-black text-white border-white/15 hover:bg-neutral-900'
                     }`}
                   >
                     {locale === 'es' ? 'Crear primera rutina' : 'Create first routine'}
@@ -725,7 +725,7 @@ export default function SocialPage() {
                       className={`flex items-center justify-between p-3 sm:p-4 rounded-xl gap-3 border transition-all ${
                         isLight
                           ? 'bg-white border-neutral-200/90 shadow-sm text-neutral-900'
-                          : 'bg-neutral-900/60 border-neutral-800 text-white'
+                          : 'bg-black border-white/10 text-white hover:border-white'
                       }`}
                     >
                       <div className="min-w-0">

@@ -69,17 +69,11 @@ export default function BotonSeguir({
             ? 'bg-red-500/15 border border-red-500/30 text-red-500'
             : isLight
             ? 'bg-neutral-100 border border-neutral-200 text-neutral-700 shadow-sm'
-            : 'bg-neutral-800/80 border border-neutral-700/80 text-neutral-200'
-          : 'shadow-md'
+            : 'bg-black/60 border border-white/10 text-neutral-300'
+          : isLight
+          ? 'bg-black text-white border border-neutral-900 hover:bg-neutral-900 shadow-sm'
+          : 'bg-black border border-white/20 text-white hover:bg-neutral-900 hover:border-white/35 shadow-sm'
       } ${className}`}
-      style={
-        !siguiendo
-          ? {
-              backgroundColor: 'var(--color-primary)',
-              color: '#000000',
-            }
-          : undefined
-      }
       title={
         siguiendo
           ? locale === 'es'
@@ -91,7 +85,7 @@ export default function BotonSeguir({
       }
     >
       {cargando ? (
-        <Loader2 size={isSmall ? 12 : 14} className="animate-spin" />
+        <Loader2 size={isSmall ? 12 : 14} className="animate-spin text-white" />
       ) : siguiendo ? (
         hovered ? (
           <span>{locale === 'es' ? 'Dejar de seguir' : 'Unfollow'}</span>
@@ -103,8 +97,8 @@ export default function BotonSeguir({
         )
       ) : (
         <>
-          <UserPlus size={isSmall ? 12 : 14} />
-          <span>{locale === 'es' ? 'Seguir' : 'Follow'}</span>
+          <UserPlus size={isSmall ? 12 : 14} className="text-white" />
+          <span className="text-white font-bold">{locale === 'es' ? 'Seguir' : 'Follow'}</span>
         </>
       )}
     </button>

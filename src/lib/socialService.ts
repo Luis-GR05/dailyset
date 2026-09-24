@@ -441,6 +441,8 @@ export async function getUsuariosSugeridos(
         tipoSugerencia = 'creador_activo';
       } else if (segCount >= 10) {
         tipoSugerencia = 'popular';
+      } else if (p.created_at && (Date.now() - new Date(p.created_at).getTime()) < 1000 * 60 * 60 * 24 * 7) {
+        tipoSugerencia = 'nuevo';
       }
 
       return {

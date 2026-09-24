@@ -4,11 +4,10 @@ import { Input, Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from "../context/AuthContext";
-import { User } from 'lucide-react';
 
 export default function LoginPage() {
   const { t, locale } = useI18n();
-  const { login, iniciarComoInvitado } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -228,24 +227,6 @@ export default function LoginPage() {
                   )}
                 </button>
 
-                <div className="relative flex items-center justify-center my-4">
-                  <div className="h-[1px] w-full bg-white/10" />
-                  <span className="bg-[#0a0a0a] px-3 text-[10px] uppercase font-black tracking-widest text-neutral-500">
-                    {locale === 'es' ? 'O bien' : 'Or'}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    iniciarComoInvitado();
-                    navigate('/perfil');
-                  }}
-                  className="w-full py-3.5 px-4 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/25 transition-all text-xs font-black uppercase tracking-widest text-neutral-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-sm"
-                >
-                  <User size={15} className="text-[var(--color-primary)]" />
-                  <span>{locale === 'es' ? 'Continuar como Invitado' : 'Continue as Guest'}</span>
-                </button>
               </div>
             </form>
 

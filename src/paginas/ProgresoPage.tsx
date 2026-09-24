@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AppLayout, Card } from '../componentes';
+import { AppLayout, Card, TituloPagina } from '../componentes';
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from '../context/HistorialContext';
 import LineChartElement from '../componentes/charts/LineChartElement';
@@ -53,10 +53,7 @@ export default function ProgresoPage() {
     return (
         <AppLayout>
             <div className="space-y-8">
-                <header>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter italic">{t.progress.title}</h1>
-                    <p className="text-neutral-400">{t.progress.subtitle}</p>
-                </header>
+                <TituloPagina titulo={t.progress.title} subtitulo={t.progress.subtitle} />
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {metricasCards.map((metric, i) => (

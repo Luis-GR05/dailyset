@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { AppLayout, Card, ImagenPlaceholder } from "../componentes";
+import { AppLayout, Card, ImagenPlaceholder, TituloPagina } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from "../context/I18nContext";
 import { Share2 } from 'lucide-react';
@@ -61,17 +61,15 @@ export default function HistorialDiaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-          <Link to="/historial" className="self-start md:self-auto">
-            <button className="text-white hover:text-neutral-300 transition-all p-2 -ml-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center gap-4">
+          <Link to="/historial" className="shrink-0">
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           </Link>
-          <Card className="px-6 py-4 flex-1 w-full" hoverable={false}>
-            <h1 className="text-lg md:text-xl font-bold text-white text-center">{capitalize(fechaLegible)}</h1>
-          </Card>
+          <TituloPagina titulo={capitalize(fechaLegible)} />
         </div>
 
         <div className="space-y-4">

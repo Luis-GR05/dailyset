@@ -53,10 +53,10 @@ export default function ResumenEstadisticas({ volumenTotalKg, intensidad, discip
 
             <Card className="p-4 text-center flex flex-col items-center justify-center" hoverable={false}>
                 <div className="flex items-center gap-1.5 text-neutral-400 mb-1.5">
-                    <Target size={13} className="text-[var(--color-primary)]" />
+                    <Target size={13} className="text-white" />
                     <h3 className="text-xs uppercase font-bold tracking-wider">{t.history.discipline}</h3>
                 </div>
-                <p className="text-xl font-black leading-tight" style={{ color: 'var(--color-primary)' }}>{disciplinaPct}%</p>
+                <p className="text-xl font-black leading-tight text-white">{disciplinaPct}%</p>
             </Card>
         </div>
     );

@@ -7,15 +7,9 @@ import {
   CheckCircle2,
   Target,
   Lock,
-  Sparkles,
-  Eye,
-  Shield,
-  Star,
   Crown,
 } from 'lucide-react';
 import type { NivelConfig } from '../../paginas/PerfilPage';
-import MarcoAvatarNivel from './MarcoAvatarNivel';
-import DiamanteIcon from '../shared/DiamanteIcon';
 
 export interface GamificacionRachaProps {
   locale: string;
@@ -65,7 +59,6 @@ export default function GamificacionRacha({
   onIniciarEntrenamiento,
 }: GamificacionRachaProps) {
   const [seccionGamificacion, setSeccionGamificacion] = useState<'racha' | 'camino' | 'insignias'>('racha');
-  const [marcoPreviewNivel, setMarcoPreviewNivel] = useState<number>(nivelActual.nivel);
 
   return (
     <div className="space-y-4">
@@ -243,62 +236,6 @@ export default function GamificacionRacha({
       {/* 2. PESTAÑA NIVELES Y CAMINO */}
       {seccionGamificacion === 'camino' && (
         <div className="space-y-6">
-          {/* Selector de marcos (1 a 7) */}
-          <div className="card p-5 sm:p-6 backdrop-blur-xl border border-white/10">
-            <span className="text-xs font-black uppercase tracking-wider text-neutral-300 block mb-3 text-center sm:text-left">
-              {locale === 'es' ? 'Toca un nivel para probar su marco:' : 'Tap a level to preview its frame:'}
-            </span>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-              {niveles.map((lvl) => {
-                const esSeleccionado = lvl.nivel === marcoPreviewNivel;
-                const esActual = lvl.nivel === nivelActual.nivel;
-
-                return (
-                  <button
-                    key={lvl.nivel}
-                    type="button"
-                    onClick={() => setMarcoPreviewNivel(lvl.nivel)}
-                    className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer text-center relative ${
-                      esSeleccionado
-                        ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)] scale-102'
-                        : 'bg-white/[0.03] border-white/10 hover:bg-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    {esActual && (
-                      <span className="absolute -top-1.5 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] ring-2 ring-black" />
-                    )}
-
-                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-300">
-                      {locale === 'es' ? `Nvl ${lvl.nivel}` : `Lvl ${lvl.nivel}`}
-                    </span>
-
-                    {/* Mini icono vectorial del marco (sin emojis) */}
-                    <span className="my-1 flex items-center justify-center h-5">
-                      {lvl.nivel === 1 && <Zap size={16} className="text-yellow-400 fill-yellow-400/40" />}
-                      {lvl.nivel === 2 && <Shield size={16} className="text-amber-600 fill-amber-600/40" />}
-                      {lvl.nivel === 3 && <Flame size={16} className="text-slate-300 fill-slate-300/40" />}
-                      {lvl.nivel === 4 && <Star size={16} className="text-amber-400 fill-amber-400/40" />}
-                      {lvl.nivel === 5 && <Award size={16} className="text-indigo-400 fill-indigo-400/40" />}
-                      {lvl.nivel === 6 && <DiamanteIcon size={16} className="text-cyan-400 stroke-cyan-400 fill-cyan-400/40" />}
-                      {lvl.nivel === 7 && <Crown size={16} className="text-yellow-400 fill-yellow-400/50" />}
-                    </span>
-
-                    <span className="text-[9px] font-black uppercase truncate max-w-full text-neutral-400 leading-tight">
-                      {lvl.nivel === 1 && 'Chispa'}
-                      {lvl.nivel === 2 && 'Bronce'}
-                      {lvl.nivel === 3 && 'Hierro'}
-                      {lvl.nivel === 4 && 'Oro'}
-                      {lvl.nivel === 5 && 'Platino'}
-                      {lvl.nivel === 6 && 'Diamante'}
-                      {lvl.nivel === 7 && 'Corona'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Timeline Detallado de Niveles */}
           <div className="card p-6 md:p-8 backdrop-blur-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
@@ -317,7 +254,7 @@ export default function GamificacionRacha({
               </div>
 
               <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl self-start sm:self-auto">
-                <Target size={18} className="text-[var(--color-primary)]" />
+                <Target size={18} className="text-white" />
                 <div>
                   <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider block">
                     {locale === 'es' ? 'Total Asistencias' : 'Total Workouts'}
@@ -351,18 +288,22 @@ export default function GamificacionRacha({
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-start sm:items-center gap-4">
-                        {/* Mini marco avatar en cada tarjeta de nivel */}
                         <div
-                          onClick={() => setMarcoPreviewNivel(lvl.nivel)}
-                          className="shrink-0 cursor-pointer group/frame relative transition-transform hover:scale-110 active:scale-95"
-                          title={locale === 'es' ? 'Haz clic para probar este marco' : 'Click to preview this frame'}
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
+                            esActual
+                              ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]'
+                              : superado
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                              : 'bg-white/5 border-white/10 text-neutral-400'
+                          }`}
                         >
-                          <MarcoAvatarNivel
-                            nivel={lvl.nivel}
-                            size="sm"
-                            mostrarInsignia={false}
-                            mostrarBrillo={esActual || marcoPreviewNivel === lvl.nivel}
-                          />
+                          {superado ? (
+                            <CheckCircle2 size={20} />
+                          ) : bloqueado ? (
+                            <Lock size={18} />
+                          ) : (
+                            <Crown size={20} />
+                          )}
                         </div>
 
                         <div>
@@ -392,35 +333,16 @@ export default function GamificacionRacha({
                         </div>
                       </div>
 
-                      {/* Requisito de sesiones y botón Probar */}
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pl-14 sm:pl-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-white/5">
-                        <div className="text-left sm:text-right">
-                          <span className="text-[10px] font-mono text-neutral-400 block font-bold">
-                            {lvl.nivel === 7 ? '100+ ' : `${lvl.minSesiones}-${lvl.maxSesiones} `}
-                            {locale === 'es' ? 'entrenamientos' : 'workouts'}
-                          </span>
-                          <span className="text-[10px] font-bold text-neutral-400 flex items-center sm:justify-end gap-1 mt-0.5">
-                            <Zap size={11} className="text-amber-400" />
-                            {locale === 'es' ? lvl.beneficioEs : lvl.beneficioEn}
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setMarcoPreviewNivel(lvl.nivel)}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer ${
-                            marcoPreviewNivel === lvl.nivel
-                              ? 'bg-[var(--color-primary)] text-black font-black'
-                              : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10'
-                          }`}
-                        >
-                          <Eye size={11} />
-                          <span>
-                            {marcoPreviewNivel === lvl.nivel
-                              ? (locale === 'es' ? 'Probando' : 'Testing')
-                              : (locale === 'es' ? 'Probar Marco' : 'Try Frame')}
-                          </span>
-                        </button>
+                      {/* Requisito de sesiones y beneficio */}
+                      <div className="text-left sm:text-right shrink-0 pl-14 sm:pl-0">
+                        <span className="text-[10px] font-mono text-neutral-400 block font-bold">
+                          {lvl.nivel === 7 ? '100+ ' : `${lvl.minSesiones}-${lvl.maxSesiones} `}
+                          {locale === 'es' ? 'entrenamientos' : 'workouts'}
+                        </span>
+                        <span className="text-[10px] font-bold text-neutral-400 flex items-center sm:justify-end gap-1 mt-0.5">
+                          <Zap size={11} className="text-amber-400" />
+                          {locale === 'es' ? lvl.beneficioEs : lvl.beneficioEn}
+                        </span>
                       </div>
                     </div>
 

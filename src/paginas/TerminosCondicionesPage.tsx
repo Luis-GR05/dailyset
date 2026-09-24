@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import { 
   Scale, 
   HeartPulse, 
-  ShieldAlert, 
   UserCheck, 
   FileText, 
-  CheckCircle2, 
   ArrowLeft, 
   Globe, 
   Ban, 

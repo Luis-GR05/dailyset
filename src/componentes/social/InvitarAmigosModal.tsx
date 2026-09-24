@@ -88,8 +88,8 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-2xl ${
               isLight
-                ? 'bg-[var(--color-primary)]/20 text-neutral-900 border border-[var(--color-primary)]/30'
-                : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                ? 'bg-neutral-100 text-neutral-900 border border-neutral-200'
+                : 'bg-black text-white border border-white/10'
             }`}>
               <UserPlus size={22} />
             </div>
@@ -123,7 +123,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             className={`rounded-2xl p-5 border text-center relative overflow-hidden ${
               isLight
                 ? 'bg-neutral-50 border-neutral-200 shadow-sm'
-                : 'bg-neutral-900 border-neutral-800'
+                : 'bg-black border-white/10'
             }`}
           >
             <div className="absolute top-2 right-2 opacity-10 pointer-events-none">
@@ -137,7 +137,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             </span>
 
             <div className="flex items-center justify-center gap-2 my-2">
-              <span className="font-mono font-black text-2xl sm:text-3xl tracking-wide text-[var(--color-primary)]">
+              <span className={`font-mono font-black text-2xl sm:text-3xl tracking-wide ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                 @{codigoInvitacion}
               </span>
             </div>
@@ -191,7 +191,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
                     : 'bg-neutral-950 border-neutral-800 text-neutral-300'
                 }`}
               >
-                <Link2 size={14} className="shrink-0 text-[var(--color-primary)]" />
+                <Link2 size={14} className={`shrink-0 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`} />
                 <span className="truncate">{enlaceInvitacion}</span>
               </div>
 
@@ -219,13 +219,13 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
           <button
             type="button"
             onClick={handleCompartirNativo}
-            className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
-            style={{
-              backgroundColor: 'var(--color-primary)',
-              color: '#000000',
-            }}
+            className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer ${
+              isLight
+                ? 'bg-black text-white hover:bg-neutral-800'
+                : 'bg-black text-white border border-white/15 hover:bg-neutral-900 hover:border-white/30'
+            }`}
           >
-            <Share2 size={16} fill="#000000" />
+            <Share2 size={16} className="text-white" />
             <span>
               {locale === 'es' ? 'Compartir por WhatsApp o Redes' : 'Share on WhatsApp or Social Media'}
             </span>
@@ -236,7 +236,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             isLight ? 'bg-neutral-50 border-neutral-200/80 text-neutral-600' : 'bg-neutral-950/60 border-neutral-800 text-neutral-400'
           }`}>
             <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
-              <Users size={14} className="text-[var(--color-primary)]" />
+              <Users size={14} className={isLight ? 'text-neutral-700' : 'text-neutral-300'} />
               <span>{locale === 'es' ? '¿Cómo funciona la invitación?' : 'How does the invite work?'}</span>
             </div>
             <ul className="space-y-1 list-disc pl-4 text-[11px] leading-relaxed">

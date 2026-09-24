@@ -8,10 +8,10 @@ import { useTheme } from "../context/ThemeContext";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   Sun, Moon, Globe, Activity, Scale, Ruler, Calendar,
-  Target, Zap, User as UserIcon, Settings, Lock, Eye, EyeOff, Mail,
+  Target, Zap, User as UserIcon, Lock, Eye, EyeOff, Mail,
   Phone, KeyRound, HelpCircle, CheckCircle2, AlertCircle,
   Download, Trash2, ShieldCheck, AlertTriangle, FileSpreadsheet, Loader2,
-  Ban, Check, X, Headphones,
+  Ban, Check, X, Headphones, ArrowLeft,
 } from "lucide-react";
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
@@ -30,16 +30,7 @@ export default function PerfilConfigPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  const initialTab: Tab = location.pathname.includes('/datos') || searchParams.get('tab') === 'datos' ? 'datos' : 'cuenta';
-  const [tab, setTab] = useState<Tab>(initialTab);
-
-  useEffect(() => {
-    if (location.pathname.includes('/datos') || searchParams.get('tab') === 'datos') {
-      setTab('datos');
-    } else if (location.pathname.includes('/configuracion') || searchParams.get('tab') === 'cuenta') {
-      setTab('cuenta');
-    }
-  }, [location.pathname, searchParams]);
+  const tab: Tab = location.pathname.includes('/datos') || searchParams.get('tab') === 'datos' ? 'datos' : 'cuenta';
 
   // ── Cuenta ──────────────────────────────────────────────────────────────────
   const [nombre, setNombre] = useState(user?.nombre ?? '');
@@ -517,30 +508,16 @@ export default function PerfilConfigPage() {
   return (
     <AppLayout>
       <div className="space-y-6 pb-10 max-w-2xl mx-auto">
-        <TituloPagina titulo={tab === 'datos' ? (locale === 'es' ? 'Datos Personales' : 'Personal Data') : t.profile.accountSettings} />
-
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 rounded-2xl" style={{ background: 'var(--color-neutral-800)' }}>
-          {([
-            { id: 'cuenta', label: locale === 'es' ? 'Configuración de Cuenta' : 'Account Settings', icon: <Settings size={13} /> },
-            { id: 'datos', label: locale === 'es' ? 'Datos Personales' : 'Personal Data', icon: <UserIcon size={13} /> },
-          ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(({ id, label, icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                setTab(id);
-                navigate(id === 'datos' ? '/perfil/datos' : '/perfil/configuracion', { replace: true });
-              }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
-              style={tab === id
-                ? { background: 'var(--color-neutral-700)', color: 'var(--color-primary)', border: '1px solid rgba(255,255,255,0.08)' }
-                : { color: 'var(--color-neutral-2000)' }
-              }
-            >
-              {icon}
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-4">
+          <TituloPagina titulo={tab === 'datos' ? (locale === 'es' ? 'Datos Personales' : 'Personal Data') : (locale === 'es' ? 'Configuración de Cuenta' : 'Account Settings')} />
+          <button
+            type="button"
+            onClick={() => navigate('/perfil')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <ArrowLeft size={14} />
+            <span>{locale === 'es' ? 'Volver al Perfil' : 'Back to Profile'}</span>
+          </button>
         </div>
 
         {/* ══ TAB: CONFIGURACIÓN DE CUENTA ══════════════════════════════════════ */}
@@ -1161,13 +1138,29 @@ export default function PerfilConfigPage() {
               </div>
             </div>
 
-            {/* Cerrar sesión */}
-            <button
-              onClick={handleCerrarSesion}
-              className="w-full border border-red-500/30 text-red-500 py-4 rounded-2xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-red-500/10 transition-all active:scale-95 cursor-pointer"
-            >
-              {t.profile.logout}
-            </button>
+            {/* Cerrar sesión y Eliminar cuenta */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCerrarSesion}
+                className="w-full border border-white/10 text-neutral-300 py-3.5 rounded-2xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-white/5 transition-all active:scale-95 cursor-pointer"
+              >
+                {t.profile.logout}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmacionTexto('');
+                  setErrorEliminar('');
+                  setModalEliminarAbierto(true);
+                }}
+                className="w-full border border-red-500/30 text-red-400 py-3.5 rounded-2xl font-black italic uppercase text-[10px] tracking-[0.2em] hover:bg-red-500/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Trash2 size={13} />
+                <span>{locale === 'es' ? 'Eliminar cuenta' : 'Delete account'}</span>
+              </button>
+            </div>
           </div>
         )}
 

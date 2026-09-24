@@ -13,20 +13,11 @@ import {
   Zap,
   Timer,
   BarChart3,
+  Star,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Matriz de 3x3 puntos decorativa característica del estilo de las referencias
-function DotMatrix({ className = "" }: { className?: string }) {
-  return (
-    <div className={`grid grid-cols-3 gap-1 w-5 h-5 ${className}`}>
-      {[...Array(9)].map((_, i) => (
-        <span key={i} className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-80" />
-      ))}
-    </div>
-  );
-}
 
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
@@ -171,37 +162,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Elementos inferiores sobre la foto */}
-          <div className="relative z-10 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4">
-            {/* Widget flotante */}
-            <div className="bg-black/85 backdrop-blur-xl border border-white/15 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 max-w-[270px] sm:max-w-xs shadow-2xl">
-              <DotMatrix />
-              <div>
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
-                  {locale === "es" ? "Tu Centro de Entrenamiento" : "Your Workout Hub"}
-                </span>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-base sm:text-xl font-black text-white">4.9 ★</span>
-                  <span className="text-[11px] sm:text-xs text-neutral-400">
-                    {locale === "es" ? "Comunidad de Atletas" : "Athlete Community"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Botón CTA principal */}
-            <div className="flex items-center gap-4">
-              <Link to="/registro">
-                <button
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-xs uppercase tracking-widest text-black flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_30px_rgba(219,240,89,0.35)] hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: "var(--color-primary)" }}
-                >
-                  <span>{locale === "es" ? "EMPEZAR HOY" : "START TODAY"}</span>
-                  <ArrowUpRight size={16} />
-                </button>
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -489,7 +449,11 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2 text-neutral-300">
                   <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
-                  <span>{locale === "es" ? "4.9 ★ en ambas tiendas" : "4.9 ★ on both stores"}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span>4.9</span>
+                    <Star size={13} className="text-amber-400 fill-amber-400 inline" />
+                    <span>{locale === "es" ? "en ambas tiendas" : "on both stores"}</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -528,7 +492,7 @@ export default function LandingPage() {
 
                   <div className="p-3 rounded-2xl bg-neutral-950/80 border border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--color-primary)] shrink-0">
                         <Timer size={16} />
                       </div>
                       <div>
@@ -553,7 +517,8 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 text-center">
+                <div className="pt-2 text-center flex items-center justify-center gap-1.5">
+                  <Smartphone size={13} className="text-[var(--color-primary)]" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 font-mono">
                     {locale === "es" ? "Disponible para iPhone y Android" : "Available for iPhone & Android"}
                   </span>
@@ -626,18 +591,7 @@ export default function LandingPage() {
                   : "YOUR JOURNEY TO MASTERY STARTS HERE AND NOW"}
               </h2>
 
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Link to="/registro">
-                  <button className="px-6 py-2.5 rounded-full bg-black text-white font-black text-xs uppercase tracking-widest hover:bg-neutral-900 transition-all cursor-pointer">
-                    {locale === "es" ? "Crear Cuenta Gratis" : "Create Free Account"}
-                  </button>
-                </Link>
-                <Link to="/login">
-                  <button className="px-6 py-2.5 rounded-full border-2 border-black text-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-all cursor-pointer">
-                    {locale === "es" ? "Iniciar Sesión" : "Login"}
-                  </button>
-                </Link>
-              </div>
+
 
             </div>
 
@@ -715,43 +669,6 @@ export default function LandingPage() {
             </h1>
           </div>
 
-          {/* Badges de Descarga en Tiendas (App Store & Google Play) abajo del todo */}
-          <div className="flex justify-center py-4">
-            <div className="flex items-center gap-2.5 bg-black text-white border border-black/20 p-2 rounded-2xl shadow-xl">
-              <div className="px-2 text-left">
-                <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">
-                  {locale === "es" ? "Disponible en" : "Available on"}
-                </span>
-                <span className="text-xs font-black text-white font-mono">iOS & Android</span>
-              </div>
-              <a
-                href="https://www.apple.com/app-store/"
-                target="_blank"
-                rel="noreferrer"
-                className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
-                title="Descargar en Apple App Store"
-              >
-                <img
-                  src="/Imagenes/Apple_Store.png"
-                  alt="Apple App Store"
-                  className="h-5 sm:h-6 w-auto object-contain"
-                />
-              </a>
-              <a
-                href="https://play.google.com/store"
-                target="_blank"
-                rel="noreferrer"
-                className="bg-white hover:bg-neutral-100 px-3 py-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center shadow h-9"
-                title="Disponible en Google Play"
-              >
-                <img
-                  src="/Imagenes/Google_Play_2022_logo.svg.png"
-                  alt="Google Play"
-                  className="h-4 sm:h-5 w-auto object-contain"
-                />
-              </a>
-            </div>
-          </div>
 
           {/* Barra final de Copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-black/70 pt-2 border-t border-black/10 gap-2">

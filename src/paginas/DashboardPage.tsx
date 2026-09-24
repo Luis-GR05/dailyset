@@ -316,23 +316,23 @@ export default function DashboardPage() {
         <section>
           <div
             onClick={() => setModalCifrasAbierto(true)}
-            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-black border border-white/10 hover:border-white/20 transition-all cursor-pointer shadow-sm hover:shadow-md"
+            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-black border border-white/10 hover:border-white/50 transition-colors duration-300 cursor-pointer shadow-sm hover:shadow-md"
           >
             <div className="relative flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-2xl bg-white/5 text-white border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <Sparkles size={20} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/5 text-white border border-white/10">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[var(--color-primary)] text-black">
                       {locale === 'es' ? 'Tu Semana en Cifras' : 'Your Week in Numbers'}
                     </span>
                     <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
                       {statsCalculadas.sesionesSemanaCount} {locale === 'es' ? 'entrenos esta semana' : 'workouts this week'}
                     </span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-white mt-1 group-hover:text-neutral-200 transition-colors truncate">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white mt-1 group-hover:text-[var(--color-primary)] transition-colors truncate">
                     {locale === 'es'
                       ? 'Descubre tus récords semanales y compártelos'
                       : 'Discover your weekly milestones and share them'}
@@ -341,7 +341,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 border border-white/10 group-hover:bg-white group-hover:text-black text-white transition-all">
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 border border-white/10 group-hover:bg-[var(--color-primary)] group-hover:text-black text-white transition-all">
                   <Share2 size={13} />
                   <span>{locale === 'es' ? 'Ver resumen' : 'View wrapped'}</span>
                 </span>

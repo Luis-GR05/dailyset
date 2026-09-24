@@ -4,13 +4,9 @@ import { AppLayout, TituloPagina } from '../componentes';
 import { useI18n } from '../context/I18nContext';
 import ChatSoporte from '../componentes/soporte/ChatSoporte';
 import { 
-  Headphones, 
   Server, 
-  ShieldCheck, 
   Mail, 
   ArrowLeft, 
-  CheckCircle2, 
-  FileText,
   LifeBuoy,
 } from 'lucide-react';
 

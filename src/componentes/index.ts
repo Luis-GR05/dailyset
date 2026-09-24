@@ -26,3 +26,4 @@ export { default as NotificacionesDropdown } from './ui/NotificacionesDropdown';
 export { default as TuSemanaEnCifrasModal } from './estadisticas/TuSemanaEnCifrasModal';
 export { default as InvitarAmigosModal } from './social/InvitarAmigosModal';
 export { default as ModalReportar } from './social/ModalReportar';
+export { default as CookieBanner } from './ui/CookieBanner';

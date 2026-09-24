@@ -2,7 +2,7 @@
 // Pantalla interactiva "Tu semana en cifras" y "Tu mes en cifras" diseñada para compartir en redes sociales
 
 import { useState, useMemo, useRef, useCallback } from 'react';
-import { useHistorial, type Sesion } from '../../context/HistorialContext';
+import { useHistorial } from '../../context/HistorialContext';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../context/I18nContext';
 import Logo from '../shared/Logo';
@@ -23,7 +23,6 @@ import {
   Download,
   Send,
   Smartphone,
-  ExternalLink,
 } from 'lucide-react';
 
 interface TuSemanaEnCifrasModalProps {
@@ -153,29 +152,33 @@ export default function TuSemanaEnCifrasModal({
     const ejerciciosMap = new Map<string, { veces: number; volumen: number }>();
 
     for (const sesion of sesionesPeriodo) {
-      minutosTotal += sesion.duracionSegundos ? Math.round(sesion.duracionSegundos / 60) : 0;
-      volumenTotal += Number(sesion.volumenTotalKg) || 0;
+      minutosTotal += sesion.duracionMin || ((sesion as any).duracionSegundos ? Math.round((sesion as any).duracionSegundos / 60) : 0);
+      volumenTotal += Number((sesion as any).volumenTotalKg) || 0;
 
-      if (sesion.ejerciciosRealizados) {
-        for (const ej of sesion.ejerciciosRealizados) {
-          const nombre = ej.nombre || 'Ejercicio';
-          const prev = ejerciciosMap.get(nombre) || { veces: 0, volumen: 0 };
-          const setsCount = ej.series ? ej.series.length : 0;
-          seriesTotal += setsCount;
+      const ejerciciosLista = sesion.ejercicios || (sesion as any).ejerciciosRealizados || [];
+      for (const ej of ejerciciosLista) {
+        const nombre = ej.nombre || 'Ejercicio';
+        const prev = ejerciciosMap.get(nombre) || { veces: 0, volumen: 0 };
+        const setsCount = ej.series ? ej.series.length : 0;
+        seriesTotal += setsCount;
 
-          let volEj = 0;
-          if (ej.series) {
-            for (const s of ej.series) {
-              repsTotal += s.repeticiones || 0;
-              volEj += (s.peso || 0) * (s.repeticiones || 0);
-            }
+        let volEj = 0;
+        if (ej.series) {
+          for (const s of ej.series as any[]) {
+            const reps = s.reps ?? s.repeticiones ?? 0;
+            const peso = s.kg ?? s.peso ?? 0;
+            repsTotal += reps;
+            volEj += peso * reps;
           }
-
-          ejerciciosMap.set(nombre, {
-            veces: prev.veces + 1,
-            volumen: prev.volumen + volEj,
-          });
         }
+        if (!((sesion as any).volumenTotalKg)) {
+          volumenTotal += volEj;
+        }
+
+        ejerciciosMap.set(nombre, {
+          veces: prev.veces + 1,
+          volumen: prev.volumen + volEj,
+        });
       }
     }
 

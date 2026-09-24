@@ -17,11 +17,14 @@ import {
   Calendar,
   CheckCircle2,
   ArrowLeft,
-  Headphones,
+  Trash2,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
 import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
 import ChatSoporte from '../componentes/soporte/ChatSoporte';
+import { supabase } from '../lib/supabaseClient';
 
 export interface NivelConfig {
   nivel: number;
@@ -35,8 +38,6 @@ export interface NivelConfig {
   descEn: string;
   beneficioEs: string;
   beneficioEn: string;
-  marcoDescEs: string;
-  marcoDescEn: string;
 }
 
 // Progresión de niveles basada exclusivamente en asistencia y días de entrenamiento cumplidos
@@ -53,8 +54,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Starting the daily training habit.',
     beneficioEs: 'Seguimiento de racha activado',
     beneficioEn: 'Streak tracking activated',
-    marcoDescEs: 'Marco Amarillo Eléctrico con Chispas y Rayos',
-    marcoDescEn: 'Electric Yellow Frame with Sparks & Lightning',
   },
   {
     nivel: 2,
@@ -68,8 +67,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Demonstrated consistency attending every scheduled workout.',
     beneficioEs: 'Insignia Bronce de Disciplina',
     beneficioEn: 'Bronze Discipline Badge',
-    marcoDescEs: 'Marco de Bronce Forjado con Remaches',
-    marcoDescEn: 'Forged Bronze Frame with Rivets',
   },
   {
     nivel: 3,
@@ -83,8 +80,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Forged discipline. Fulfilling every routine day.',
     beneficioEs: 'Multiplicador de consistencia semanal',
     beneficioEn: 'Weekly consistency multiplier',
-    marcoDescEs: 'Marco de Acero & Plata Templada con Destellos',
-    marcoDescEn: 'Tempered Steel & Chrome Silver Frame',
   },
   {
     nivel: 4,
@@ -98,8 +93,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Total commitment to training. The habit is second nature.',
     beneficioEs: 'Rango de Oro en estadísticas',
     beneficioEn: 'Gold rank on statistics',
-    marcoDescEs: 'Marco de Oro 24K con Laureles de Victoria',
-    marcoDescEn: '24K Gold Frame with Victory Laurels',
   },
   {
     nivel: 5,
@@ -113,8 +106,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Impeccable attendance. Part of the top 5% most disciplined.',
     beneficioEs: 'Insignia Platino exclusiva',
     beneficioEn: 'Exclusive Platinum badge',
-    marcoDescEs: 'Marco Platino Holográfico con Alas Cósmicas',
-    marcoDescEn: 'Holographic Platinum Frame with Cosmic Wings',
   },
   {
     nivel: 6,
@@ -128,8 +119,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Unbreakable discipline and impeccable dedication.',
     beneficioEs: 'Aura de Diamante en perfil',
     beneficioEn: 'Diamond aura on profile',
-    marcoDescEs: 'Marco Diamante Cristalino con Prismas',
-    marcoDescEn: 'Crystalline Diamond Frame with Prisms',
   },
   {
     nivel: 7,
@@ -143,8 +132,6 @@ const NIVELES: NivelConfig[] = [
     descEn: 'Total habit mastery and absolute consistency.',
     beneficioEs: 'Rango Máximo Honorífico',
     beneficioEn: 'Honorary Maximum Rank',
-    marcoDescEs: 'Marco Imperial con Corona Real de Oro y Rubíes',
-    marcoDescEn: 'Imperial Frame with Golden Royal Crown & Rubies',
   },
 ];
 
@@ -386,7 +373,7 @@ export default function PerfilPage() {
     {
       etiqueta: locale === 'es' ? 'DISCIPLINA' : 'DISCIPLINE',
       valor: `${metricas.disciplinaPct}%`,
-      icono: <Target size={15} className="text-neutral-300" />,
+      icono: <Target size={15} className="text-white" />,
       destacado: false,
     },
   ], [totalSesiones, streakData.rachaActual, metricas.disciplinaPct, locale]);
@@ -450,11 +437,68 @@ export default function PerfilPage() {
       ruta: null,
       flecha: false,
       esRojo: true,
+      esLogout: true,
+    },
+    {
+      nombre: (locale === 'es' ? 'Eliminar cuenta' : 'Delete account').toUpperCase(),
+      ruta: null,
+      flecha: false,
+      esRojo: true,
+      esEliminar: true,
     },
   ];
 
+  const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [confirmacionTexto, setConfirmacionTexto] = useState('');
+  const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState('');
+
+  const handleEliminarCuenta = async () => {
+    const palabra = confirmacionTexto.trim().toUpperCase();
+    if (palabra !== 'ELIMINAR' && palabra !== 'DELETE') {
+      setErrorEliminar(locale === 'es' ? 'Escribe la palabra exacta para confirmar' : 'Type the exact word to confirm');
+      return;
+    }
+    if (!user?.id) return;
+    setEliminandoCuenta(true);
+    setErrorEliminar('');
+
+    try {
+      await supabase.from('social_seguidores').delete().or(`seguidor_id.eq.${user.id},seguido_id.eq.${user.id}`);
+      
+      const { data: userSessions } = await supabase
+        .from('sesiones_entrenamiento')
+        .select('id')
+        .eq('usuario_id', user.id);
+      
+      if (userSessions && userSessions.length > 0) {
+        const sessionIds = userSessions.map(s => s.id);
+        await supabase.from('series').delete().in('sesion_id', sessionIds);
+      }
+
+      await supabase.from('sesiones_entrenamiento').delete().eq('usuario_id', user.id);
+      await supabase.from('rutinas').delete().eq('usuario_id', user.id);
+      await supabase.from('perfiles').delete().eq('id', user.id);
+
+      localStorage.clear();
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Error al eliminar cuenta:', err);
+      setErrorEliminar(locale === 'es' ? 'Error al procesar la eliminación. Contacta con soporte.' : 'Error deleting account. Please contact support.');
+    } finally {
+      setEliminandoCuenta(false);
+    }
+  };
+
   const handleAction = async (opcion: typeof opciones[0]) => {
-    if (opcion.esRojo) {
+    if ((opcion as any).esEliminar) {
+      setConfirmacionTexto('');
+      setErrorEliminar('');
+      setModalEliminarAbierto(true);
+      return;
+    }
+    if ((opcion as any).esLogout || opcion.esRojo) {
       if (confirm(locale === 'es' ? '¿Cerrar sesión en DailySet Elite?' : 'Sign out of DailySet Elite?')) {
         await logout();
         navigate('/login');
@@ -692,6 +736,7 @@ export default function PerfilPage() {
                 </div>
               </button>
             ))}
+          </div>
         </div>
 
         {/* Modal de Chat de Soporte Técnico */}
@@ -705,6 +750,95 @@ export default function PerfilPage() {
               onClick={e => e.stopPropagation()}
             >
               <ChatSoporte onCerrar={() => setMostrarChatSoporte(false)} />
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Confirmación para Eliminar Cuenta */}
+        {modalEliminarAbierto && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => !eliminandoCuenta && setModalEliminarAbierto(false)}
+          >
+            <div
+              className="w-full max-w-md bg-neutral-900 border border-red-500/30 rounded-3xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 text-red-500">
+                <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                    {locale === 'es' ? '¿Eliminar Cuenta Definitivamente?' : 'Delete Account Permanently?'}
+                  </h3>
+                  <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">
+                    {locale === 'es' ? 'Acción Irreversible · RGPD Art. 17' : 'Irreversible Action · GDPR Art. 17'}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-neutral-300 leading-relaxed">
+                {locale === 'es'
+                  ? 'Esta acción eliminará de forma permanente tu perfil, todas tus rutinas, historial de entrenamientos, series registradas y datos sociales. No se podrá recuperar la información.'
+                  : 'This action will permanently delete your profile, all your routines, workout history, logged sets, and social data. This cannot be undone.'}
+              </p>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-neutral-300 block">
+                  {locale === 'es'
+                    ? 'Para confirmar, escribe "ELIMINAR" a continuación:'
+                    : 'To confirm, type "DELETE" below:'}
+                </label>
+                <input
+                  type="text"
+                  value={confirmacionTexto}
+                  onChange={e => setConfirmacionTexto(e.target.value)}
+                  placeholder={locale === 'es' ? 'ELIMINAR' : 'DELETE'}
+                  disabled={eliminandoCuenta}
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-700 text-white font-mono text-sm placeholder-neutral-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
+                  autoFocus
+                />
+              </div>
+
+              {errorEliminar && (
+                <p className="text-xs text-red-400 font-medium">
+                  {errorEliminar}
+                </p>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setModalEliminarAbierto(false)}
+                  disabled={eliminandoCuenta}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  {locale === 'es' ? 'Cancelar' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEliminarCuenta}
+                  disabled={
+                    eliminandoCuenta ||
+                    (confirmacionTexto.trim().toUpperCase() !== 'ELIMINAR' &&
+                      confirmacionTexto.trim().toUpperCase() !== 'DELETE')
+                  }
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-red-600 hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-lg transition-all cursor-pointer"
+                >
+                  {eliminandoCuenta ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>{locale === 'es' ? 'Eliminando...' : 'Deleting...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={14} />
+                      <span>{locale === 'es' ? 'Eliminar cuenta' : 'Delete account'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

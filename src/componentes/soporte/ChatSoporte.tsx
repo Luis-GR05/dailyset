@@ -4,18 +4,13 @@ import { useI18n } from '../../context/I18nContext';
 import {
   Send,
   Headphones,
-  CheckCircle2,
   Clock,
-  Trash2,
   Copy,
   Check,
   Mail,
-  HelpCircle,
   FileSpreadsheet,
-  Zap,
   ShieldCheck,
   RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 
 export interface MensajeSoporte {
@@ -64,7 +59,6 @@ export default function ChatSoporte({ onCerrar }: { onCerrar?: () => void }) {
   const [inputTexto, setInputTexto] = useState('');
   const [escribiendo, setEscribiendo] = useState(false);
   const [ticketCopiado, setTicketCopiado] = useState(false);
-  const [ticketActual, setTicketActual] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -134,7 +128,6 @@ export default function ChatSoporte({ onCerrar }: { onCerrar?: () => void }) {
 
     if (q.includes('humano') || q.includes('agente') || q.includes('persona') || q.includes('ticket') || q.includes('reportar') || q.includes('error') || q.includes('bug')) {
       const numTicket = `TK-${Math.floor(100000 + Math.random() * 900000)}`;
-      setTicketActual(numTicket);
       return {
         texto: es
           ? `He generado tu número de incidencia oficial: ${numTicket}.\n\nTu reporte ha quedado registrado para nuestro equipo de ingenieros. Si lo prefieres, puedes enviarnos los detalles por correo a soporte@dailyset.app mencionando tu ticket para una respuesta prioritaria en menos de 24 horas.`
