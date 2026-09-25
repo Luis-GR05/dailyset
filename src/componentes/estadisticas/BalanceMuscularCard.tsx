@@ -27,7 +27,7 @@ export default function BalanceMuscularCard({
   const { locale } = useI18n();
 
   // Calcular volumen por grupo muscular a partir del historial
-  const { datosRadar, totalVolumen, ratioPushPull, grupoPredominante } = useMemo(() => {
+  const { datosRadar, ratioPushPull, grupoPredominante } = useMemo(() => {
     const grupos: Record<string, number> = {
       Pecho: 0,
       Espalda: 0,

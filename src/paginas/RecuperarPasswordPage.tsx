@@ -1,7 +1,7 @@
 // src/paginas/RecuperarPasswordPage.tsx
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Loader2, Sparkles, Send } from 'lucide-react';
+import { Mail, ArrowLeft, AlertCircle, Loader2, Sparkles, Send } from 'lucide-react';
 import { Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';

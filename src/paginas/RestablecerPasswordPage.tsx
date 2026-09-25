@@ -245,6 +245,7 @@ export default function RestablecerPasswordPage() {
 
         // Si la sesión expiró pero conocemos la cuenta de email, fallback con supabaseAdmin
         if (
+          supabaseAdmin &&
           (msgLower.includes('auth session missing') ||
             msgLower.includes('jwt expired') ||
             msgLower.includes('session not found')) &&

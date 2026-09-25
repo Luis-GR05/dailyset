@@ -8,6 +8,7 @@ import { useSocial } from '../context/SocialContext';
 import { useAuth } from '../context/AuthContext';
 import { useRutinas } from '../context/RutinasContext';
 import { useI18n } from '../context/I18nContext';
+import { useTheme } from '../context/ThemeContext';
 import RutinaPublicaCard from '../componentes/social/RutinaPublicaCard';
 import PerfilPublicoCard from '../componentes/social/PerfilPublicoCard';
 import ModalPerfilPublico from '../componentes/social/ModalPerfilPublico';
@@ -32,12 +33,6 @@ import {
 } from 'lucide-react';
 
 type TabSocial = 'feed' | 'explorar' | 'mi_perfil';
-export type SocialThemeMode = 'auto' | 'light' | 'dark';
-
-const getDevicePrefersDark = (): boolean => {
-  if (typeof window === 'undefined' || !window.matchMedia) return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-};
 
 export default function SocialPage() {
   const { user } = useAuth();
@@ -57,6 +52,7 @@ export default function SocialPage() {
     refrescarFeed,
   } = useSocial();
   const { locale } = useI18n();
+  const { theme } = useTheme();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabActiva, setTabActiva] = useState<TabSocial>('feed');
@@ -64,34 +60,8 @@ export default function SocialPage() {
   // Modal de Invitación
   const [mostrarInvitarModal, setMostrarInvitarModal] = useState(false);
 
-  // Estado del tema para Social (Fondo blanco por defecto, con detección automática de modo oscuro)
-  const [themeMode] = useState<SocialThemeMode>(() => {
-    const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
-    if (guardado === 'auto' || guardado === 'light' || guardado === 'dark') {
-      return guardado as SocialThemeMode;
-    }
-    return 'auto';
-  });
-
-  const [isDarkEffective, setIsDarkEffective] = useState<boolean>(() => {
-    const guardado = typeof window !== 'undefined' ? localStorage.getItem('dailyset_social_theme_mode') : null;
-    if (guardado === 'dark') return true;
-    if (guardado === 'light') return false;
-    return getDevicePrefersDark();
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const listener = (e: MediaQueryListEvent) => {
-      if (themeMode === 'auto') {
-        setIsDarkEffective(e.matches);
-      }
-    };
-    mq.addEventListener('change', listener);
-    return () => mq.removeEventListener('change', listener);
-  }, [themeMode]);
-
+  // Sincronizado con ThemeContext
+  const isDarkEffective = theme === 'dark';
   const isLight = !isDarkEffective;
 
   // Estado para el modal de visualización de perfil

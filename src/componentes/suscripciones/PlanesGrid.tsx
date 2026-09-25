@@ -1,6 +1,5 @@
 // src/componentes/suscripciones/PlanesGrid.tsx
-import { useState } from 'react';
-import { Check, Zap, Crown, Sparkles, ArrowRight, ShieldCheck, Star } from 'lucide-react';
+import { Check, Zap, Crown, Sparkles, ArrowRight, Star } from 'lucide-react';
 import { DESGLOSE_FINANCIERO } from '../../data/planesSuscripcion';
 import type { CicloFacturacion, DesgloseFinanciero, TipoPlan } from '../../types/suscripcion';
 import { useI18n } from '../../context/I18nContext';
@@ -137,8 +136,6 @@ export default function PlanesGrid({
           const esUltra = plan.planId === 'ultra';
 
           // Precios dinámicos según ciclo
-          const precioDisplay =
-            ciclo === 'mensual' ? plan.precioMensualTexto : plan.precioAnualTexto;
           const precioNum =
             ciclo === 'mensual' ? plan.precioMensual : plan.precioAnual;
 

@@ -45,7 +45,7 @@ export default function CalculadoraMacrosWizard() {
 
   // ── PASO 2: ACTIVIDAD ──
   const [nivelActividad, setNivelActividad] = useState<NivelActividad>(
-    user?.nivelActividad || 'moderado'
+    (user?.nivelActividad as NivelActividad) || 'moderado'
   );
 
   // ── PASO 3: OBJETIVO ──
@@ -61,7 +61,7 @@ export default function CalculadoraMacrosWizard() {
     if (user?.pesoKg) setPeso(user.pesoKg);
     if (user?.alturaCm) setAltura(user.alturaCm);
     if (user?.genero && user.genero !== 'otro') setGenero(user.genero);
-    if (user?.nivelActividad) setNivelActividad(user.nivelActividad);
+    if (user?.nivelActividad) setNivelActividad(user.nivelActividad as NivelActividad);
   }, [user]);
 
   // ── CÁLCULOS MATEMÁTICOS CORRELACIONADOS ──

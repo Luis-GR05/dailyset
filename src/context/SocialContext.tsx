@@ -191,6 +191,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
     const actualmenteSiguiendo = seguidosIds.includes(targetUserId);
 
+    // Límite de seguidos según plan (Free: 20 max, Pro/Ultra: ilimitado)
+    const plan = user.plan || 'free';
+    const esPro = plan === 'pro' || plan === 'ultra';
+    if (!actualmenteSiguiendo && !esPro && seguidosIds.length >= 20) {
+      throw new Error('LIMIT_SEGUIDOS_FREE');
+    }
+
     setSeguidosIds(prev =>
       actualmenteSiguiendo ? prev.filter(id => id !== targetUserId) : [...prev, targetUserId]
     );

@@ -11,6 +11,7 @@ import YearPicker from '../componentes/ui/YearPicker';
 import ProgresionEjercicioCard from '../componentes/estadisticas/ProgresionEjercicioCard';
 import BalanceMuscularCard from '../componentes/estadisticas/BalanceMuscularCard';
 import ComparativaRendimientoCard from '../componentes/estadisticas/ComparativaRendimientoCard';
+import { kgToDisplay, getUnidadPeso } from '../lib/unidades';
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -68,9 +69,10 @@ export default function EstadisticasPage() {
   } = useMemo(() => {
     const totalEntrenos = sesionesDelAnio.length;
     const totalMin = sesionesDelAnio.reduce((t, s) => t + (s.duracionMin ?? 0), 0);
+    const totalVol = sesionesDelAnio.reduce((t, s) => t + calcularVolumenSesion(s.ejercicios), 0);
 
-    // Estimación sencilla para fuerza general: ~5 kcal/min.
-    const kcal = Math.round(totalMin * 5);
+    // Fórmula estandarizada en todo DailySet: tiempo + volumen movido
+    const kcal = Math.round(totalMin * 6.5 + totalVol * 0.03);
 
     const mesesVolumen = Array.from({ length: 12 }, (_, m) => {
       const d = new Date(anioSeleccionado, m, 1);
@@ -81,7 +83,7 @@ export default function EstadisticasPage() {
           return dt.getMonth() === m;
         })
         .reduce((t, s) => t + calcularVolumenSesion(s.ejercicios), 0);
-      return { name, value: Math.round(volumen) };
+      return { name, value: Math.round(kgToDisplay(volumen, user?.unidadesKg ?? true)) };
     });
 
     const mesesEntrenos = Array.from({ length: 12 }, (_, m) => {
@@ -204,7 +206,7 @@ export default function EstadisticasPage() {
           {hayDatos ? (
             <LineChartElement
               items={mesesVolumen}
-              title={locale === 'es' ? 'Volumen por mes (kg)' : 'Monthly volume (kg)'}
+              title={locale === 'es' ? `Volumen por mes (${getUnidadPeso(user?.unidadesKg ?? true)})` : `Monthly volume (${getUnidadPeso(user?.unidadesKg ?? true)})`}
               height={220}
               showGrid={false}
               lineColor="var(--color-primary)"

@@ -1,5 +1,5 @@
 // src/componentes/suscripciones/TablaDesgloseFinanciero.tsx
-import { Zap, Crown, Sparkles, TrendingDown, Info, ShieldCheck } from 'lucide-react';
+import { Zap, Crown, Sparkles, TrendingDown, Info } from 'lucide-react';
 import { DESGLOSE_FINANCIERO } from '../../data/planesSuscripcion';
 import { useI18n } from '../../context/I18nContext';
 import type { TipoPlan } from '../../types/suscripcion';

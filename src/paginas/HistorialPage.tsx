@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card, BotonPrimario } from "../componentes";
 import { useHistorial } from "../context/HistorialContext";
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
+import { formatPeso } from '../lib/unidades';
 import MesCalendario from '../componentes/ui/MesCalendario';
 import MonthYearPicker from '../componentes/ui/MonthYearPicker';
 import YearPicker from '../componentes/ui/YearPicker';
@@ -26,10 +28,24 @@ export default function HistorialPage() {
   // Modo de vista: 'mes' (por defecto muestra sólo el mes actual) | 'anio' (vista del año entero)
   const [vista, setVista] = useState<'mes' | 'anio'>('mes');
 
+  const { user } = useAuth();
+  const plan = user?.plan || 'free';
+  const unidadesKg = user?.unidadesKg ?? true;
+  const diasPermitidos = plan === 'ultra' ? Infinity : (plan === 'pro' ? 365 : 45);
+
   // Mes y año actualmente inspeccionados (por defecto el mes actual)
   const ahora = useMemo(() => new Date(), []);
   const [mesActual, setMesActual] = useState(ahora.getMonth());
   const [anioActual, setAnioActual] = useState(ahora.getFullYear());
+
+  // Comprobar si el periodo seleccionado está fuera del rango del plan (Free: 45d, Pro: 365d, Ultra: ilimitado)
+  const estaFueraDelRango = useMemo(() => {
+    if (diasPermitidos === Infinity) return false;
+    const finDelMes = new Date(anioActual, mesActual + 1, 0, 23, 59, 59);
+    const ahoraMs = Date.now();
+    const diffDias = Math.floor((ahoraMs - finDelMes.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDias > diasPermitidos;
+  }, [anioActual, mesActual, diasPermitidos]);
 
   // Año inspeccionado en la vista anual
   const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
@@ -325,9 +341,9 @@ export default function HistorialPage() {
                   <span>{locale === 'es' ? 'Volumen Total' : 'Volume'}</span>
                 </div>
                 <p className="text-2xl font-black text-white leading-none">
-                  {metricasMes.volumenKg >= 1000
+                  {unidadesKg && metricasMes.volumenKg >= 1000
                     ? `${(metricasMes.volumenKg / 1000).toFixed(1)} Ton`
-                    : `${metricasMes.volumenKg} kg`}
+                    : formatPeso(metricasMes.volumenKg, unidadesKg)}
                 </p>
                 <p className="text-[11px] text-neutral-400 mt-1.5">
                   {locale === 'es' ? 'peso movido en el mes' : 'moved this month'}
@@ -446,7 +462,28 @@ export default function HistorialPage() {
                   )}
                 </div>
 
-                {sesionesAMostrar.length > 0 ? (
+                {estaFueraDelRango ? (
+                  <div className="p-8 rounded-2xl border border-white/10 bg-neutral-900/60 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto">
+                      <Clock size={24} />
+                    </div>
+                    <h4 className="text-lg font-bold text-white">
+                      {locale === 'es' ? 'Historial restringido por tu plan' : 'History restricted by plan'}
+                    </h4>
+                    <p className="text-sm text-neutral-400 max-w-md mx-auto">
+                      {locale === 'es'
+                        ? `Tu plan actual (${plan.toUpperCase()}) te permite consultar hasta ${diasPermitidos} días de historial. Actualiza a Pro (365 días) o Ultra (ilimitado) para explorar todos tus entrenamientos anteriores.`
+                        : `Your current plan (${plan.toUpperCase()}) lets you view up to ${diasPermitidos} days of history. Upgrade to Pro (365 days) or Ultra (unlimited) to view older workouts.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/suscripciones?tab=planes')}
+                      className="btn btn-primary text-xs uppercase tracking-wider font-black py-2.5 px-6 rounded-xl cursor-pointer"
+                    >
+                      {locale === 'es' ? 'Desbloquear Historial Completo' : 'Unlock Full History'}
+                    </button>
+                  </div>
+                ) : sesionesAMostrar.length > 0 ? (
                   <div className="space-y-3">
                     {sesionesAMostrar.map((sesion) => {
                       const volSesion = sesion.ejercicios.reduce((tot, ej) =>
@@ -478,7 +515,7 @@ export default function HistorialPage() {
                             <div className="flex sm:flex-col items-end justify-between sm:justify-center">
                               <span className="text-xs text-neutral-400 uppercase font-bold tracking-wider">{locale === 'es' ? 'Volumen' : 'Volume'}</span>
                               <span className="text-sm sm:text-base font-black text-white font-mono">
-                                {volSesion >= 1000 ? `${(volSesion / 1000).toFixed(1)}k` : volSesion} <span className="text-xs text-[var(--color-primary)]">kg</span>
+                                {formatPeso(volSesion, unidadesKg)}
                               </span>
                             </div>
                           </div>
@@ -625,9 +662,9 @@ export default function HistorialPage() {
                   {locale === 'es' ? 'Volumen Anual' : 'Annual Volume'}
                 </div>
                 <p className="text-2xl font-black text-white">
-                  {metricasAnio.volumenTotalKg >= 1000
+                  {unidadesKg && metricasAnio.volumenTotalKg >= 1000
                     ? `${(metricasAnio.volumenTotalKg / 1000).toFixed(1)} Ton`
-                    : `${metricasAnio.volumenTotalKg} kg`}
+                    : formatPeso(metricasAnio.volumenTotalKg, unidadesKg)}
                 </p>
                 <p className="text-[11px] text-neutral-500 mt-1">{locale === 'es' ? 'peso total movido' : 'total weight moved'}</p>
               </div>
@@ -706,7 +743,7 @@ export default function HistorialPage() {
                       <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs">
                         {tieneSesiones ? (
                           <span className="font-mono text-neutral-300 font-bold">
-                            {m.volumenKg >= 1000 ? `${(m.volumenKg / 1000).toFixed(1)}k` : m.volumenKg} <span className="text-neutral-500 font-normal">kg</span>
+                            {formatPeso(m.volumenKg, unidadesKg)}
                           </span>
                         ) : (
                           <span className="text-neutral-500 text-[11px]">—</span>

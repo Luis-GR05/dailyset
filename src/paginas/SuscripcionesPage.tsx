@@ -1,6 +1,6 @@
 // src/paginas/SuscripcionesPage.tsx
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout, TituloPagina } from '../componentes';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -20,17 +20,14 @@ import {
   TrendingDown,
   Layers,
   HelpCircle,
-  ArrowRight,
-  ShieldCheck,
-  Calendar,
 } from 'lucide-react';
 
 type TabSeccion = 'planes' | 'matriz' | 'cuotas' | 'faq';
 
 export default function SuscripcionesPage() {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { locale } = useI18n();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const tabQuery = searchParams.get('tab') as TabSeccion | null;
   const [tabActiva, setTabActiva] = useState<TabSeccion>(

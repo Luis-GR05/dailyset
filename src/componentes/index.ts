@@ -1,5 +1,3 @@
-export { default as LoginForm } from './forms/LoginForm';
-export { default as RegisterForm } from './forms/FormularioRegistro';
 export { default as FormularioEjercicio } from './forms/FormularioEjercicio';
 export { default as FormularioRutina } from './forms/FormularioRutina';
 export { default as EditarEjerciciosRutina } from './forms/EditarEjerciciosRutina';
@@ -20,8 +18,6 @@ export { default as FiltroBoton } from './ui/FiltroBoton';
 export { default as Footer } from './Footer';
 export { default as LandingHeader } from './Header';
 export { default as MesCalendario } from './ui/MesCalendario';
-export { default as MonthCard } from './ui/MonthCard';
-export { default as ResumenEstadisticas } from './ui/ResumenEstadisticas';
 export { default as NotificacionesDropdown } from './ui/NotificacionesDropdown';
 export { default as TuSemanaEnCifrasModal } from './estadisticas/TuSemanaEnCifrasModal';
 export { default as InvitarAmigosModal } from './social/InvitarAmigosModal';

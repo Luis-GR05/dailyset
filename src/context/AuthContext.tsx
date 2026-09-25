@@ -27,6 +27,8 @@ export interface User {
   alturaCm?: number | null;
   edad?: number | null;
   genero?: 'masculino' | 'femenino' | 'otro' | null;
+  nivelActividad?: 'sedentario' | 'ligero' | 'moderado' | 'intenso' | 'muy_intenso' | string | null;
+  objetivo?: 'definicion' | 'volumen' | 'mantenimiento' | 'fuerza' | string | null;
   // Plan de suscripción
   plan?: 'free' | 'pro' | 'ultra';
   cicloFacturacion?: 'mensual' | 'anual';

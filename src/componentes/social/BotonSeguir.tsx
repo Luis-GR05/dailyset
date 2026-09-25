@@ -45,8 +45,17 @@ export default function BotonSeguir({
     try {
       const nuevoEstado = await toggleSeguir(targetUserId);
       onFollowChange?.(nuevoEstado);
-    } catch (err) {
-      console.error('Error al toggle de seguimiento:', err);
+    } catch (err: any) {
+      if (err?.message === 'LIMIT_SEGUIDOS_FREE') {
+        const msg = locale === 'es'
+          ? 'Has alcanzado el límite de 20 atletas seguidos en el plan Gratuito. ¿Deseas ver los planes Pro y Ultra para seguir atletas sin límites?'
+          : 'You reached the limit of 20 followed athletes on the Free plan. Would you like to view Pro and Ultra plans for unlimited follows?';
+        if (window.confirm(msg)) {
+          window.location.href = '/suscripciones?tab=planes';
+        }
+      } else {
+        console.error('Error al toggle de seguimiento:', err);
+      }
     } finally {
       setCargando(false);
     }

@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useHistorial } from '../context/HistorialContext';
 import { useRutinas } from '../context/RutinasContext';
+import { formatPeso, kgToDisplay, getUnidadPeso } from '../lib/unidades';
 import {
   ChevronRight,
   Flame,
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { sesiones } = useHistorial();
   const { rutinas } = useRutinas();
+  const unidadesKg = user?.unidadesKg ?? true;
 
   // Estado para abrir la pantalla "Tu semana en cifras"
   const [modalCifrasAbierto, setModalCifrasAbierto] = useState(false);
@@ -500,9 +502,9 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between gap-4 mt-2">
                 <div>
                   <p className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    {statsCalculadas.volumenSemana >= 1000
+                    {unidadesKg && statsCalculadas.volumenSemana >= 1000
                       ? `${(statsCalculadas.volumenSemana / 1000).toFixed(1)} Ton`
-                      : `${statsCalculadas.volumenSemana} kg`}
+                      : formatPeso(statsCalculadas.volumenSemana, unidadesKg)}
                   </p>
                   <p className="text-xs text-neutral-400 font-medium mt-1">
                     {statsCalculadas.sesionesSemanaCount} {locale === 'es' ? 'sesiones esta semana' : 'sessions this week'} · {statsCalculadas.seriesSemana} {locale === 'es' ? 'series' : 'sets'}
@@ -514,7 +516,7 @@ export default function DashboardPage() {
                   {actividadSemanal.map((dia, idx) => {
                     const esDiaActual = idx === hoyDiaIndex;
                     return (
-                      <div key={idx} className="flex flex-col items-center gap-1.5" title={`${dia.volumen} kg`}>
+                      <div key={idx} className="flex flex-col items-center gap-1.5" title={formatPeso(dia.volumen, unidadesKg)}>
                         <div
                           className="w-3 sm:w-4 rounded-full transition-all duration-300"
                           style={{
@@ -613,7 +615,7 @@ export default function DashboardPage() {
                 <span>{locale === 'es' ? 'Mejor peso' : 'Best PR'}</span>
               </div>
               <p className="text-xl sm:text-2xl font-black text-white">
-                {statsCalculadas.maxKg} <span className="text-xs text-neutral-400 font-normal">kg</span>
+                {kgToDisplay(statsCalculadas.maxKg, unidadesKg)} <span className="text-xs text-neutral-400 font-normal">{getUnidadPeso(unidadesKg)}</span>
               </p>
             </div>
 

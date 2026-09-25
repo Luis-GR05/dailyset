@@ -15,6 +15,7 @@ import {
     Lock, Globe
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import { RUTINAS_PREDEFINIDAS, NIVEL_COLOR, getCategoriaColor, type RutinaTemplate } from '../data/rutinasPredefinidas';
 
 type Modal =
@@ -123,6 +124,21 @@ function generarRutinaIA(answers: WizardAnswers, ejerciciosDB: Ejercicio[], loca
 export default function MisRutinasPage() {
     const { rutinas, cargando, error, carga, refrescar, agregarRutina, editarRutina, eliminarRutina, actualizarEjerciciosRutina, togglePrivacidad } = useRutinas();
     const { t, locale } = useI18n();
+    const { user } = useAuth();
+
+    // Límites de rutinas según plan: Free (4), Pro (12), Ultra (ilimitadas)
+    const plan = user?.plan || 'free';
+    const maxRutinas = plan === 'ultra' ? Infinity : (plan === 'pro' ? 12 : 4);
+    const puedeCrearMasRutinas = rutinas.length < maxRutinas;
+    const [modalLimiteAbierto, setModalLimiteAbierto] = useState(false);
+
+    const intentarCrearRutina = () => {
+        if (!puedeCrearMasRutinas) {
+            setModalLimiteAbierto(true);
+            return;
+        }
+        setModal({ tipo: 'crear' });
+    };
 
     // Pestaña principal: 'mis_rutinas' o 'preestablecidas'
     const [tabActiva, setTabActiva] = useState<'mis_rutinas' | 'preestablecidas' | 'ia'>('mis_rutinas');
@@ -219,6 +235,10 @@ export default function MisRutinasPage() {
 
     // Adoptar una rutina predefinida (por defecto PRIVADA)
     const handleCogerRutina = async (plantilla: RutinaTemplate) => {
+        if (!puedeCrearMasRutinas) {
+            setModalLimiteAbierto(true);
+            return;
+        }
         setAdoptandoId(plantilla.id);
         try {
             await agregarRutina({
@@ -252,14 +272,28 @@ export default function MisRutinasPage() {
                 {/* Cabecera principal */}
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <TituloPagina titulo={t.routines.title} />
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <TituloPagina titulo={t.routines.title} />
+                            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-300">
+                                {rutinas.length} / {maxRutinas === Infinity ? '∞' : maxRutinas} {locale === 'es' ? 'rutinas' : 'routines'} ({plan.toUpperCase()})
+                            </span>
+                            {plan !== 'ultra' && (
+                                <Link
+                                    to="/suscripciones?tab=planes"
+                                    className="text-[11px] font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1"
+                                >
+                                    <Sparkles size={12} />
+                                    {locale === 'es' ? 'Desbloquear ilimitadas' : 'Unlock unlimited'}
+                                </Link>
+                            )}
+                        </div>
                         <p className="text-sm mt-1" style={{ color: 'var(--color-neutral-2000)' }}>
                             {locale === 'es'
                                 ? 'Diseña tus entrenamientos personalizados o elige entre nuestras rutinas preestablecidas.'
                                 : 'Design custom workouts or pick from our pre-built routines.'}
                         </p>
                     </div>
-                    <div onClick={() => setModal({ tipo: 'crear' })} className="cursor-pointer">
+                    <div onClick={intentarCrearRutina} className="cursor-pointer">
                         <BotonPrimario>+ {t.routines.newRoutine}</BotonPrimario>
                     </div>
                 </div>
@@ -401,7 +435,7 @@ export default function MisRutinasPage() {
                                 </div>
                                 <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
                                     <button
-                                        onClick={() => setModal({ tipo: 'crear' })}
+                                        onClick={intentarCrearRutina}
                                         className="btn btn-secondary text-sm font-semibold flex items-center gap-2"
                                     >
                                         <Plus size={16} />
@@ -1152,6 +1186,10 @@ export default function MisRutinasPage() {
                                     <button
                                         onClick={async () => {
                                             if (!rutinaIA) return;
+                                            if (!puedeCrearMasRutinas) {
+                                                setModalLimiteAbierto(true);
+                                                return;
+                                            }
                                             setGuardandoIA(true);
                                             try {
                                                 await agregarRutina({
@@ -1235,6 +1273,46 @@ export default function MisRutinasPage() {
                                     {t.routines.delete}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Límite de Rutinas alcanzado */}
+            {modalLimiteAbierto && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setModalLimiteAbierto(false)}>
+                    <div className="bg-[#121214] border border-white/10 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setModalLimiteAbierto(false)}
+                            className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto">
+                            <Lock size={24} />
+                        </div>
+                        <h3 className="text-xl font-black text-white">
+                            {locale === 'es' ? 'Límite de Rutinas Alcanzado' : 'Routine Limit Reached'}
+                        </h3>
+                        <p className="text-sm text-neutral-300">
+                            {locale === 'es'
+                                ? `Tu plan actual (${plan.toUpperCase()}) permite un máximo de ${maxRutinas} rutinas guardadas. Para desbloquear más rutinas, actualiza a Pro (12 rutinas) o Ultra (ilimitadas).`
+                                : `Your current plan (${plan.toUpperCase()}) allows up to ${maxRutinas} saved routines. Upgrade to Pro (12 routines) or Ultra (unlimited) to create more.`}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                            <Link
+                                to="/suscripciones?tab=planes"
+                                onClick={() => setModalLimiteAbierto(false)}
+                                className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Sparkles size={16} />
+                                {locale === 'es' ? 'Ver Planes de Suscripción' : 'View Subscription Plans'}
+                            </Link>
+                            <button
+                                onClick={() => setModalLimiteAbierto(false)}
+                                className="py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-400 hover:text-white border border-neutral-800 transition-all"
+                            >
+                                {locale === 'es' ? 'Cerrar' : 'Close'}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -11,7 +11,6 @@ import {
   Search,
   Check,
   X,
-  HelpCircle,
   Layers,
 } from 'lucide-react';
 import { MATRIZ_FUNCIONALIDADES } from '../../data/planesSuscripcion';

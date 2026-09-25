@@ -10,9 +10,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Lock,
-  ArrowRight,
   Loader2,
-  Calendar,
 } from 'lucide-react';
 import type { CicloFacturacion, DesgloseFinanciero } from '../../types/suscripcion';
 import { useI18n } from '../../context/I18nContext';
@@ -59,8 +57,6 @@ export default function ModalContratarPlan({
   // Cálculos financieros
   const precioFinal =
     ciclo === 'mensual' ? plan.precioMensual : plan.precioAnual;
-  const precioSinDescuento =
-    ciclo === 'anual' ? Number((plan.precioMensual * 12).toFixed(2)) : plan.precioMensual;
   const ahorro =
     ciclo === 'anual' && plan.ahorroAnual > 0 ? plan.ahorroAnual : 0;
   const ivaIncluido = (precioFinal * 0.21).toFixed(2);

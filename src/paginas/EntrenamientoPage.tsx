@@ -10,6 +10,7 @@ import { useHistorial } from '../context/HistorialContext';
 import { useWakeLock } from '../hooks/useWakeLock';
 import TemporizadorDescanso from '../componentes/entrenamiento/TemporizadorDescanso';
 import TarjetaCompartirModal, { type DatosCompartirSesion } from '../componentes/compartir/TarjetaCompartirModal';
+import { formatPeso, getUnidadPeso } from '../lib/unidades';
 import {
     obtenerSesionActiva,
     guardarProgresoSesion,
@@ -103,6 +104,7 @@ export default function EntrenamientoPage() {
     const { crearSesion } = useHistorial();
 
     const userId = user?.id || 'anonimo';
+    const unidadesKg = user?.unidadesKg ?? true;
 
     const state = (location.state ?? null) as EntrenamientoLocationState;
     const rutinaId = state?.rutinaId;
@@ -447,7 +449,7 @@ export default function EntrenamientoPage() {
                         <div className="h-9 px-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 flex items-center gap-2">
                             <span className="text-neutral-400 text-xs">{t.history.totalVolume}:</span>
                             <span className="text-white font-bold text-xs sm:text-sm">
-                                {Math.round(volumenTotal)} {t.history.kg}
+                                {formatPeso(volumenTotal, unidadesKg)}
                             </span>
                         </div>
 
@@ -628,7 +630,7 @@ export default function EntrenamientoPage() {
                                     <div className="grid grid-cols-4 md:grid-cols-5 gap-4 px-4 py-1 text-neutral-500 text-xs font-bold uppercase tracking-wider">
                                         <span>{t.training.set}</span>
                                         <span className="hidden md:block">{t.training.previous}</span>
-                                        <span className="text-center">{t.training.kg}</span>
+                                        <span className="text-center">{getUnidadPeso(unidadesKg)}</span>
                                         <span className="text-center">{t.training.reps}</span>
                                         <span className="text-center">{t.training.done}</span>
                                     </div>
