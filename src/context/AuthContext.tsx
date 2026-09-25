@@ -31,6 +31,7 @@ export interface User {
   plan?: 'free' | 'pro' | 'ultra';
   cicloFacturacion?: 'mensual' | 'anual';
   fechaRenovacionPlan?: string;
+  renovacionAutomatica?: boolean;
 }
 
 interface AuthContextType {
@@ -69,6 +70,7 @@ export const DEFAULT_GUEST_USER: User = {
   objetivo: "ganar_musculo",
   plan: (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || "free",
   cicloFacturacion: (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || "mensual",
+  renovacionAutomatica: localStorage.getItem("dailyset_user_renovacion") !== 'false',
 };
 
 export function getGuestUser(): User {
@@ -197,6 +199,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       plan: (prefs.plan as 'free' | 'pro' | 'ultra') || (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || 'free',
       cicloFacturacion: (prefs.cicloFacturacion as 'mensual' | 'anual') || (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || 'mensual',
       fechaRenovacionPlan: prefs.fechaRenovacionPlan as string | undefined,
+      renovacionAutomatica: (prefs.renovacionAutomatica as boolean | undefined) ?? (localStorage.getItem("dailyset_user_renovacion") !== 'false'),
     };
   } catch (err) {
     console.error("Error in fetchProfile:", err);
@@ -263,7 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = await withTimeout(fetchProfile(session.user));
           setUser(profile ?? mapAuthUser(session.user));
         } else {
-          setUser(getGuestUser());
+          setUser(null);
         }
       } catch (error: unknown) {
         console.error("Error inicializando autenticación:", error);
@@ -280,9 +283,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch {
             // ignore
           }
-          setUser(getGuestUser());
+          setUser(null);
         } else if (!hydratedFromCache) {
-          setUser(getGuestUser());
+          setUser(null);
         }
       } finally {
         if (isMounted) {
@@ -300,7 +303,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const profile = await withTimeout(fetchProfile(session.user));
           setUser(profile ?? mapAuthUser(session.user));
         } else {
-          setUser((prev) => (prev?.id === "invitado" ? prev : getGuestUser()));
+          setUser(null);
         }
       } catch (error) {
         console.error("Error en cambio de estado auth:", error);
@@ -495,6 +498,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...(data.plan !== undefined && { plan: data.plan }),
       ...(data.cicloFacturacion !== undefined && { cicloFacturacion: data.cicloFacturacion }),
       ...(data.fechaRenovacionPlan !== undefined && { fechaRenovacionPlan: data.fechaRenovacionPlan }),
+      ...(data.renovacionAutomatica !== undefined && { renovacionAutomatica: data.renovacionAutomatica }),
     };
 
     if (data.plan !== undefined) {
@@ -502,6 +506,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (data.cicloFacturacion !== undefined) {
       localStorage.setItem("dailyset_user_ciclo", data.cicloFacturacion);
+    }
+    if (data.renovacionAutomatica !== undefined) {
+      localStorage.setItem("dailyset_user_renovacion", String(data.renovacionAutomatica));
     }
 
     const dbData: Record<string, unknown> = {

@@ -98,15 +98,6 @@ export default function LandingPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            to="/suscripciones"
-            className="text-xs font-black uppercase tracking-widest text-[var(--color-primary)] hover:text-white px-3 py-2 transition-colors flex items-center gap-1.5"
-          >
-            <span>{locale === "es" ? "Planes" : "Plans"}</span>
-            <span className="text-[9px] bg-[var(--color-primary)] text-black px-1.5 py-0.5 rounded font-black hidden sm:inline">
-              -15%
-            </span>
-          </Link>
-          <Link
             to="/login"
             className="text-xs font-black uppercase tracking-widest text-neutral-300 hover:text-white px-3 py-2 transition-colors"
           >
@@ -644,7 +635,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-black/15 text-xs font-black uppercase tracking-wider text-black/80">
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Plataforma" : "Platform"}</p>
-              <p><Link to="/suscripciones" className="hover:underline font-black flex items-center gap-1">{locale === "es" ? "Planes y Cuotas" : "Plans & Rates"} <span className="bg-black text-[var(--color-primary)] text-[9px] px-1 py-0.5 rounded">-15%</span></Link></p>
+              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Planes y Cuotas" : "Plans & Rates"}</Link></p>
               <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Mis Rutinas" : "My Routines"}</Link></p>
               <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Ejercicios" : "Exercises"}</Link></p>
               <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Entrenamiento" : "Workout"}</Link></p>

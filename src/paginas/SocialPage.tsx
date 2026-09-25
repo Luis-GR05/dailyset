@@ -177,18 +177,9 @@ export default function SocialPage() {
         {/* ── Encabezado de Página ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`p-2 rounded-xl ${
-                isLight
-                  ? 'bg-[var(--color-primary)]/20 text-neutral-900 border border-[var(--color-primary)]/30'
-                  : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-              }`}>
-                <Users size={22} />
-              </span>
-              <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                {locale === 'es' ? 'Comunidad Social' : 'Social Community'}
-              </h1>
-            </div>
+            <h1 className={`text-2xl sm:text-3xl font-black tracking-tight mb-1 ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+              {locale === 'es' ? 'Comunidad Social' : 'Social Community'}
+            </h1>
             <p className={`text-sm ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
               {locale === 'es'
                 ? 'Descubre entrenamientos de otros atletas, comparte los tuyos y sigue a tu comunidad.'

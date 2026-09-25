@@ -84,6 +84,7 @@ export default function ModalContratarPlan({
         plan: plan.planId,
         cicloFacturacion: ciclo,
         fechaRenovacionPlan: fechaHoy.toISOString().split('T')[0],
+        renovacionAutomatica: true,
       });
 
       setCompletado(true);
@@ -424,7 +425,7 @@ export default function ModalContratarPlan({
                 esPro
                   ? 'bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] shadow-[0_0_30px_var(--color-primary-glow)]'
                   : esUltra
-                  ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black hover:from-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.3)]'
+                  ? 'bg-amber-400 text-black hover:bg-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.3)]'
                   : 'bg-white text-black hover:bg-neutral-200'
               }`}
             >

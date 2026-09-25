@@ -41,10 +41,10 @@ export default function TablaDesgloseFinanciero({
       </div>
 
       {/* ── Vista de Tabla en Escritorio ── */}
-      <div className="hidden md:block overflow-x-auto rounded-3xl border border-neutral-800 bg-neutral-900/60 backdrop-blur-md">
+      <div className="hidden md:block overflow-x-auto rounded-3xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-neutral-800 bg-neutral-950/80">
+            <tr className="border-b border-white/10 bg-black/60">
               <th className="py-4 px-6 text-xs font-black uppercase tracking-wider text-neutral-400">
                 {locale === 'es' ? 'Plan' : 'Plan'}
               </th>
@@ -217,12 +217,12 @@ export default function TablaDesgloseFinanciero({
           return (
             <div
               key={fila.planId}
-              className={`p-5 rounded-2xl border ${
+              className={`p-5 rounded-2xl border backdrop-blur-xl ${
                 esActual
-                  ? 'border-white/30 bg-neutral-900'
+                  ? 'border-white/30 bg-neutral-900/80'
                   : esPro
-                  ? 'border-[var(--color-primary)]/40 bg-neutral-900/90'
-                  : 'border-neutral-800 bg-neutral-900/60'
+                  ? 'border-[var(--color-primary)]/40 bg-neutral-900/60'
+                  : 'border-white/10 bg-neutral-900/60'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
@@ -260,7 +260,7 @@ export default function TablaDesgloseFinanciero({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-neutral-800 my-2">
+              <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-white/10 my-2">
                 <div>
                   <span className="text-neutral-400 block">
                     {locale === 'es' ? 'Mensual:' : 'Monthly:'}

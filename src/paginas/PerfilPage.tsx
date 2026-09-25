@@ -21,6 +21,8 @@ import {
   AlertTriangle,
   Loader2,
   ArrowRight,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
 import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
 import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
@@ -427,13 +429,6 @@ export default function PerfilPage() {
       esRojo: false,
     },
     {
-      nombre: (locale === 'es' ? 'Plan y Suscripción' : 'Plan & Subscription').toUpperCase(),
-      ruta: '/suscripciones',
-      flecha: true,
-      badge: user?.plan ? user.plan.toUpperCase() : 'FREE',
-      esRojo: false,
-    },
-    {
       nombre: (locale === 'es' ? 'Chat de Soporte Técnico' : 'Technical Support Chat').toUpperCase(),
       ruta: '/perfil/soporte',
       flecha: true,
@@ -460,6 +455,48 @@ export default function PerfilPage() {
   const [confirmacionTexto, setConfirmacionTexto] = useState('');
   const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
   const [errorEliminar, setErrorEliminar] = useState('');
+
+  // ── Gestión de Renovación Automática de Suscripción ──
+  const [guardandoRenovacion, setGuardandoRenovacion] = useState(false);
+  const [avisoRenovacion, setAvisoRenovacion] = useState<string | null>(null);
+
+  const handleToggleRenovacion = async () => {
+    if (!user) return;
+    setGuardandoRenovacion(true);
+    setAvisoRenovacion(null);
+    const nuevoEstado = user.renovacionAutomatica === false ? true : false;
+    try {
+      await updateUser({ renovacionAutomatica: nuevoEstado });
+      setAvisoRenovacion(
+        nuevoEstado
+          ? (locale === 'es'
+              ? 'Renovación automática activada correctamente.'
+              : 'Automatic renewal successfully enabled.')
+          : (locale === 'es'
+              ? 'Renovación automática cancelada. Mantendrás tu plan hasta la fecha de expiración.'
+              : 'Automatic renewal cancelled. You will keep your plan until expiration date.')
+      );
+      setTimeout(() => setAvisoRenovacion(null), 4500);
+    } catch (e) {
+      console.error('Error al actualizar renovación:', e);
+    } finally {
+      setGuardandoRenovacion(false);
+    }
+  };
+
+  const formatearFechaRenovacion = (fechaStr?: string) => {
+    if (!fechaStr) return '';
+    try {
+      const d = new Date(fechaStr);
+      return d.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return fechaStr;
+    }
+  };
 
   const handleEliminarCuenta = async () => {
     const palabra = confirmacionTexto.trim().toUpperCase();
@@ -714,86 +751,161 @@ export default function PerfilPage() {
           </div>
         </div>
 
-        {/* ── Banner de Suscripción en Perfil ── */}
-        <div className="card p-5 md:p-6 backdrop-blur-xl border border-neutral-800 bg-gradient-to-r from-neutral-900 via-neutral-900 to-neutral-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor:
-                  user?.plan === 'ultra'
-                    ? 'rgba(245, 158, 11, 0.2)'
-                    : user?.plan === 'pro'
-                    ? 'var(--color-primary-muted)'
-                    : 'rgba(255, 255, 255, 0.05)',
-                color:
-                  user?.plan === 'ultra'
-                    ? '#FBBF24'
-                    : user?.plan === 'pro'
-                    ? 'var(--color-primary)'
-                    : '#A1A1AA',
-              }}
-            >
-              {user?.plan === 'ultra' ? (
-                <Crown size={24} />
-              ) : user?.plan === 'pro' ? (
-                <Zap size={24} />
-              ) : (
-                <Sparkles size={24} />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                  {locale === 'es' ? 'Suscripción DailySet' : 'DailySet Subscription'}
-                </span>
-                <span
-                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+        {/* ── Módulo Dedicado al Plan de Suscripción Seleccionado ── */}
+        <div className="card p-5 md:p-6 backdrop-blur-xl border border-white/10 bg-neutral-900/60 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor:
                     user?.plan === 'ultra'
-                      ? 'bg-amber-400 text-black'
+                      ? 'rgba(245, 158, 11, 0.2)'
                       : user?.plan === 'pro'
-                      ? 'bg-[var(--color-primary)] text-black'
-                      : 'bg-white/10 text-neutral-300'
-                  }`}
-                >
-                  PLAN {user?.plan ? user.plan.toUpperCase() : 'FREE'}
-                </span>
+                      ? 'var(--color-primary-muted)'
+                      : 'rgba(255, 255, 255, 0.05)',
+                  color:
+                    user?.plan === 'ultra'
+                      ? '#FBBF24'
+                      : user?.plan === 'pro'
+                      ? 'var(--color-primary)'
+                      : '#A1A1AA',
+                }}
+              >
+                {user?.plan === 'ultra' ? (
+                  <Crown size={24} />
+                ) : user?.plan === 'pro' ? (
+                  <Zap size={24} />
+                ) : (
+                  <Sparkles size={24} />
+                )}
               </div>
-              <p className="text-sm font-bold text-white">
-                {user?.plan === 'ultra'
-                  ? locale === 'es'
-                    ? 'Acceso Vitalicio & Rutinas Ilimitadas'
-                    : 'Lifetime Access & Unlimited Routines'
-                  : user?.plan === 'pro'
-                  ? locale === 'es'
-                    ? 'Plan Pro Activo · Potencia y Métricas Avanzadas'
-                    : 'Active Pro Plan · Power & Advanced Analytics'
-                  : locale === 'es'
-                  ? 'Plan Free · Pásate a Pro desde 2,54 €/mes (-15%)'
-                  : 'Free Plan · Upgrade to Pro from €2.54/mo (-15%)'}
-              </p>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                    {locale === 'es' ? 'Tu Plan Seleccionado' : 'Your Selected Plan'}
+                  </span>
+                  <span
+                    className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                      user?.plan === 'ultra'
+                        ? 'bg-amber-400 text-black font-black'
+                        : user?.plan === 'pro'
+                        ? 'bg-[var(--color-primary)] text-black font-black'
+                        : 'bg-white/10 text-neutral-300 font-bold'
+                    }`}
+                  >
+                    PLAN {user?.plan ? user.plan.toUpperCase() : 'FREE'}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-white">
+                  {user?.plan === 'ultra'
+                    ? locale === 'es'
+                      ? 'Plan Ultra · Acceso Vitalicio & Rutinas Ilimitadas'
+                      : 'Ultra Plan · Lifetime Access & Unlimited Routines'
+                    : user?.plan === 'pro'
+                    ? locale === 'es'
+                      ? `Plan Pro Activo · Facturación ${user?.cicloFacturacion === 'anual' ? 'Anual (-15%)' : 'Mensual'}`
+                      : `Active Pro Plan · ${user?.cicloFacturacion === 'anual' ? 'Annual (-15%)' : 'Monthly'} Billing`
+                    : locale === 'es'
+                    ? 'Plan Free · Pásate a Pro desde 2,54 €/mes'
+                    : 'Free Plan · Upgrade to Pro from €2.54/mo'}
+                </p>
+              </div>
             </div>
+
+            <Link
+              to="/suscripciones"
+              className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+                user?.plan === 'ultra'
+                  ? 'bg-white/10 hover:bg-white/20 border border-white/15 text-white'
+                  : 'bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] shadow-sm hover:scale-105 active:scale-95'
+              }`}
+            >
+              <span>
+                {user?.plan && user.plan !== 'free'
+                  ? locale === 'es'
+                    ? 'Gestionar Planes'
+                    : 'Manage Plans'
+                  : locale === 'es'
+                  ? 'Mejorar Plan'
+                  : 'Upgrade Plan'}
+              </span>
+              <ArrowRight size={14} />
+            </Link>
           </div>
 
-          <Link
-            to="/suscripciones"
-            className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shrink-0 ${
-              user?.plan === 'ultra'
-                ? 'bg-neutral-800 text-white hover:bg-neutral-700'
-                : 'bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] shadow-[0_0_20px_var(--color-primary-glow)] hover:scale-105 active:scale-95'
-            }`}
-          >
-            <span>
-              {user?.plan === 'ultra'
-                ? locale === 'es'
-                  ? 'Ver Planes'
-                  : 'View Plans'
-                : locale === 'es'
-                ? 'Mejorar Plan'
-                : 'Upgrade Plan'}
-            </span>
-            <ArrowRight size={14} />
-          </Link>
+          {/* Ajuste de Renovación Automática del Plan */}
+          {user?.plan && user.plan !== 'free' && user.plan !== 'ultra' ? (
+            <div className="pt-3.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-white">
+                    {locale === 'es' ? 'Renovación automática:' : 'Automatic renewal:'}
+                  </span>
+                  <span
+                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                      user.renovacionAutomatica !== false
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                    }`}
+                  >
+                    {user.renovacionAutomatica !== false
+                      ? (locale === 'es' ? 'Activa' : 'Active')
+                      : (locale === 'es' ? 'Desactivada' : 'Cancelled')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-neutral-400">
+                  {user.renovacionAutomatica !== false
+                    ? (locale === 'es'
+                        ? `Tu plan se renovará automáticamente${user.fechaRenovacionPlan ? ` el ${formatearFechaRenovacion(user.fechaRenovacionPlan)}` : ''}. Puedes desactivarla aquí en cualquier momento.`
+                        : `Your plan will renew automatically${user.fechaRenovacionPlan ? ` on ${formatearFechaRenovacion(user.fechaRenovacionPlan)}` : ''}. You can cancel here anytime.`)
+                    : (locale === 'es'
+                        ? `No se te cobrará nada más. Mantendrás todas las ventajas hasta${user.fechaRenovacionPlan ? ` el ${formatearFechaRenovacion(user.fechaRenovacionPlan)}` : ' el final del periodo'}.`
+                        : `No further charges. You keep all benefits until${user.fechaRenovacionPlan ? ` ${formatearFechaRenovacion(user.fechaRenovacionPlan)}` : ' period ends'}.`)}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleToggleRenovacion}
+                disabled={guardandoRenovacion}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer shrink-0 ${
+                  user.renovacionAutomatica !== false
+                    ? 'bg-white/5 hover:bg-red-500/10 text-neutral-300 hover:text-red-400 border border-white/10 hover:border-red-500/30 active:scale-95'
+                    : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 active:scale-95'
+                }`}
+                title={user.renovacionAutomatica !== false ? 'Quitar renovación automática' : 'Activar renovación automática'}
+              >
+                {guardandoRenovacion ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : user.renovacionAutomatica !== false ? (
+                  <RotateCcw size={13} />
+                ) : (
+                  <Check size={13} />
+                )}
+                <span>
+                  {user.renovacionAutomatica !== false
+                    ? (locale === 'es' ? 'Quitar renovación' : 'Cancel renewal')
+                    : (locale === 'es' ? 'Reactivar renovación' : 'Enable renewal')}
+                </span>
+              </button>
+            </div>
+          ) : user?.plan === 'ultra' ? (
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-neutral-400">
+              <span>{locale === 'es' ? 'Acceso Vitalicio activado: Tu plan es permanente y no requiere renovaciones ni pagos futuros.' : 'Lifetime access active: Permanent plan, no renewals or future payments required.'}</span>
+            </div>
+          ) : (
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-neutral-400">
+              <span>{locale === 'es' ? 'Los planes Pro se renuevan automáticamente por defecto y puedes quitar la renovación cuando quieras desde este apartado con un solo clic.' : 'Pro plans renew automatically by default and can be cancelled anytime with a single click from this section.'}</span>
+            </div>
+          )}
+
+          {avisoRenovacion && (
+            <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-200 flex items-center gap-2 animate-in fade-in duration-200">
+              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+              <span>{avisoRenovacion}</span>
+            </div>
+          )}
         </div>
 
         {/* ── Menú de opciones de perfil ────────────────────────────────────── */}

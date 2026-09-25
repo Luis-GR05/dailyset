@@ -125,14 +125,14 @@ export default function SuscripcionesPage() {
 
           {/* Tarjeta resumen del Plan Actual del usuario */}
           <div
-            className="p-4 rounded-2xl border flex items-center gap-4 bg-neutral-900/90 shadow-md shrink-0"
+            className="p-4 rounded-2xl border flex items-center gap-4 bg-neutral-900/60 backdrop-blur-xl shadow-md shrink-0"
             style={{
               borderColor:
                 planActual === 'ultra'
                   ? 'rgba(245, 158, 11, 0.4)'
                   : planActual === 'pro'
                   ? 'var(--color-primary)'
-                  : 'var(--color-neutral-800)',
+                  : 'rgba(255, 255, 255, 0.1)',
             }}
           >
             <div

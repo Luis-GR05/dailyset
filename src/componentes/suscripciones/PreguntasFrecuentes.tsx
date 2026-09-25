@@ -35,10 +35,10 @@ export default function PreguntasFrecuentes() {
           return (
             <div
               key={idx}
-              className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+              className={`rounded-2xl border transition-all duration-200 overflow-hidden backdrop-blur-xl ${
                 isOpen
-                  ? 'border-neutral-700 bg-neutral-900/90 shadow-md'
-                  : 'border-neutral-800/80 bg-neutral-900/40 hover:border-neutral-700'
+                  ? 'border-white/20 bg-neutral-900/60 shadow-md'
+                  : 'border-white/10 bg-neutral-900/40 hover:border-white/20'
               }`}
             >
               <button
@@ -50,7 +50,7 @@ export default function PreguntasFrecuentes() {
                   {locale === 'es' ? faq.pregunta : faq.preguntaEn}
                 </span>
                 <span
-                  className={`shrink-0 w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center transition-transform duration-300 text-neutral-300 ${
+                  className={`shrink-0 w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-transform duration-300 text-neutral-300 ${
                     isOpen ? 'rotate-180 text-[var(--color-primary)] bg-[var(--color-primary)]/10' : ''
                   }`}
                 >

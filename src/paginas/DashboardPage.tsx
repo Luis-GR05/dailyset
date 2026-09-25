@@ -267,7 +267,7 @@ export default function DashboardPage() {
 
         {/* ─── 2. SELECTOR SEMANAL: DÍAS DE LA SEMANA ─── */}
         <section aria-label="Calendario semanal">
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5 md:gap-3 w-full">
+          <div className="card p-1.5 sm:p-2 grid grid-cols-7 gap-1 sm:gap-2 w-full">
             {diasSemanaBar.map((dia) => {
               const esActivo = diaSeleccionado === dia.indice;
 
@@ -275,32 +275,21 @@ export default function DashboardPage() {
                 <button
                   key={dia.indice}
                   onClick={() => setDiaSeleccionado(dia.indice)}
-                  className={`w-full flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl transition-all duration-200 cursor-pointer ${
+                  className={`w-full flex flex-col items-center justify-center py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl transition-all duration-200 cursor-pointer ${
                     esActivo
-                      ? 'shadow-lg scale-[1.02]'
-                      : 'hover:bg-neutral-800/50'
+                      ? 'bg-[var(--color-primary)] text-black shadow-md font-black'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
                   }`}
-                  style={
-                    esActivo
-                      ? {
-                          background: 'var(--color-primary)',
-                          color: '#000000',
-                        }
-                      : {
-                          background: 'transparent',
-                          color: 'var(--color-white)',
-                        }
-                  }
                 >
                   <span
-                    className={`text-[11px] font-medium leading-none mb-1 ${
+                    className={`text-[10px] sm:text-[11px] font-medium leading-none mb-1 ${
                       esActivo ? 'text-black font-extrabold' : 'text-neutral-400'
                     }`}
                   >
                     {dia.nombre}
                   </span>
                   <span
-                    className={`text-sm font-extrabold leading-none ${
+                    className={`text-xs sm:text-sm font-extrabold leading-none ${
                       esActivo ? 'text-black font-black' : 'text-white'
                     }`}
                   >
@@ -316,7 +305,7 @@ export default function DashboardPage() {
         <section>
           <div
             onClick={() => setModalCifrasAbierto(true)}
-            className="group relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-black border border-white/10 hover:border-white/50 transition-colors duration-300 cursor-pointer shadow-sm hover:shadow-md"
+            className="card card-hover group relative overflow-hidden p-4 sm:p-5 transition-all duration-300 cursor-pointer shadow-md"
           >
             <div className="relative flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
@@ -420,12 +409,12 @@ export default function DashboardPage() {
                     key={rutina.id}
                     to={destino}
                     state={estado}
-                    className="card card-hover p-4 sm:p-5 rounded-2xl border border-neutral-800/90 hover:border-[var(--color-primary)]/50 transition-all flex flex-col justify-between group relative overflow-hidden active:scale-[0.99] cursor-pointer"
+                    className="card card-hover p-4 sm:p-5 flex flex-col justify-between group relative overflow-hidden active:scale-[0.99] cursor-pointer"
                   >
                     <div>
                       {/* Fila superior: Categoría + Duración */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-neutral-800/90 text-neutral-300 border border-neutral-700/60 truncate max-w-[120px]">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 text-neutral-300 border border-white/10 truncate max-w-[120px]">
                           {rutina.categoria || (locale === 'es' ? 'General' : 'General')}
                         </span>
                         <div className="flex items-center gap-1 text-[11px] font-mono text-neutral-400">
@@ -454,16 +443,16 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Botón de acción directo */}
-                    <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between">
+                    <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
                       <span className="text-xs font-bold text-neutral-300 group-hover:text-white transition-colors">
                         {tieneEjercicios
                           ? (locale === 'es' ? 'Entrenar ahora' : 'Train now')
                           : (locale === 'es' ? 'Configurar rutina' : 'Setup routine')}
                       </span>
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all group-hover:scale-105 shadow-sm bg-black border border-white/15 text-white group-hover:border-white/30"
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all group-hover:scale-105 shadow-sm bg-white/10 border border-white/20 text-white group-hover:bg-[var(--color-primary)] group-hover:text-black group-hover:border-[var(--color-primary)]"
                       >
-                        <Play size={12} fill="#ffffff" className="text-white ml-0.5" />
+                        <Play size={12} fill="currentColor" className="ml-0.5" />
                       </div>
                     </div>
                   </Link>
@@ -569,7 +558,7 @@ export default function DashboardPage() {
                     </p>
                     <p className="text-[10px] text-neutral-400 font-medium mt-1">Kcal estimadas</p>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-neutral-300">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-neutral-200">
                     {locale === 'es' ? 'Semana' : 'Week'}
                   </span>
                 </div>
@@ -596,7 +585,7 @@ export default function DashboardPage() {
                       {locale === 'es' ? 'Minutos sesión' : 'Workout mins'}
                     </p>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-neutral-300">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-neutral-200">
                     {locale === 'es' ? 'Semana' : 'Week'}
                   </span>
                 </div>

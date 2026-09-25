@@ -75,7 +75,7 @@ export default function CookieBanner() {
                 : 'We use technical cookies and essential local storage to keep your session active, sync live workouts, and secure your personal records.'}{' '}
               <Link
                 to="/privacidad"
-                className="text-[var(--color-primary)] underline hover:opacity-80 transition-opacity font-medium ml-1"
+                className="text-white underline hover:text-neutral-300 transition-colors font-medium ml-1"
               >
                 {es ? 'Leer política completa' : 'Read full policy'}
               </Link>
@@ -90,7 +90,7 @@ export default function CookieBanner() {
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between gap-3">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5 font-bold text-neutral-200">
-                  <ShieldCheck size={14} className="text-[var(--color-primary)]" />
+                  <ShieldCheck size={14} className="text-white" />
                   <span>{es ? 'Cookies Técnicas & Esenciales' : 'Technical & Essential Cookies'}</span>
                 </div>
                 <p className="text-[11px] text-neutral-400">
@@ -120,7 +120,7 @@ export default function CookieBanner() {
                 type="button"
                 onClick={() => setAnaliticas(!analiticas)}
                 className={`w-11 h-6 rounded-full relative transition-colors duration-200 cursor-pointer shrink-0 ${
-                  analiticas ? 'bg-[var(--color-primary)]' : 'bg-neutral-700'
+                  analiticas ? 'bg-white' : 'bg-neutral-700'
                 }`}
               >
                 <div
@@ -139,7 +139,7 @@ export default function CookieBanner() {
             <button
               type="button"
               onClick={handleGuardarPersonalizadas}
-              className="flex-1 py-2.5 px-4 rounded-full bg-[var(--color-primary)] text-black font-black text-xs uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_var(--color-primary-glow)] cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 px-4 rounded-full bg-white hover:bg-neutral-200 text-black font-black text-xs uppercase tracking-wider active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Check size={14} />
               <span>{es ? 'Guardar Preferencias' : 'Save Preferences'}</span>
@@ -149,7 +149,7 @@ export default function CookieBanner() {
               <button
                 type="button"
                 onClick={handleAceptarTodas}
-                className="flex-1 py-2.5 px-4 rounded-full bg-[var(--color-primary)] text-black font-black text-xs uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_var(--color-primary-glow)] cursor-pointer"
+                className="flex-1 py-2.5 px-4 rounded-full bg-white hover:bg-neutral-200 text-black font-black text-xs uppercase tracking-wider active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
               >
                 {es ? 'Aceptar Todas' : 'Accept All'}
               </button>

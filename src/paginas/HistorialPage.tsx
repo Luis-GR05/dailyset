@@ -175,6 +175,10 @@ export default function HistorialPage() {
     ? getSesionesPorFecha(fechaSeleccionadaStr)
     : [];
 
+  const sesionesAMostrar = diaSeleccionado !== null
+    ? sesionesDiaSeleccionado
+    : sesionesDelMes;
+
   // Formato de fecha legible
   const formatearFechaLarga = (fechaStr: string) => {
     const [y, m, d] = fechaStr.split('-').map(Number);
@@ -392,100 +396,59 @@ export default function HistorialPage() {
                       <span>{locale === 'es' ? 'Descanso' : 'Rest day'}</span>
                     </div>
                   </div>
-                </Card>
-
-                {/* Desglose interactivo del día seleccionado */}
-                {diaSeleccionado !== null && (
-                  <div className="card p-5 rounded-2xl border border-[var(--color-primary)]/40 bg-neutral-900/90 animate-fadeIn">
-                    <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
-                        <h4 className="text-sm font-extrabold text-white capitalize">
+                  {/* Indicador de filtro activo si se ha seleccionado un día */}
+                  {diaSeleccionado !== null && (
+                    <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between gap-2 animate-fadeIn">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] shrink-0 animate-pulse"></span>
+                        <span className="text-xs font-bold text-white capitalize truncate">
                           {fechaSeleccionadaStr && formatearFechaLarga(fechaSeleccionadaStr)}
-                        </h4>
+                        </span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => setDiaSeleccionado(null)}
-                        className="p-1 text-neutral-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                        title={locale === 'es' ? 'Cerrar detalle' : 'Close detail'}
+                        className="text-[11px] font-bold text-neutral-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                        title={locale === 'es' ? 'Limpiar filtro' : 'Clear filter'}
                       >
-                        <X size={14} />
+                        <span>{locale === 'es' ? 'Quitar filtro' : 'Clear'}</span>
+                        <X size={12} />
                       </button>
                     </div>
-
-                    {sesionesDiaSeleccionado.length > 0 ? (
-                      <div className="mt-3 space-y-3">
-                        {sesionesDiaSeleccionado.map((sesion) => {
-                          const volTotalSesion = sesion.ejercicios.reduce((acc, ej) => {
-                            return acc + ej.series.reduce((sAcc, s) => sAcc + (s.kg || 0) * (s.reps || 0), 0);
-                          }, 0);
-
-                          return (
-                            <div key={sesion.id} className="p-3.5 rounded-xl bg-neutral-800/60 border border-neutral-700/60 space-y-2">
-                              <div className="flex items-center justify-between gap-2">
-                                <h5 className="font-bold text-white text-sm">{sesion.rutina}</h5>
-                                <span className="text-xs text-neutral-400 font-mono">{sesion.duracionMin} min</span>
-                              </div>
-
-                              <div className="flex items-center gap-3 text-xs text-neutral-300">
-                                <span>Volumen: <strong className="text-[var(--color-primary)] font-mono">{volTotalSesion} kg</strong></span>
-                                <span>·</span>
-                                <span>Ejercicios: <strong className="text-white font-mono">{sesion.ejercicios.length}</strong></span>
-                              </div>
-
-                              <div className="pt-2 flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => navigate(`/historial/${sesion.fecha}`)}
-                                  className="px-3.5 py-1.5 rounded-xl bg-[var(--color-primary)] text-black text-xs font-black uppercase tracking-wider hover:opacity-90 flex items-center gap-1.5 cursor-pointer shadow-md"
-                                >
-                                  <span>{locale === 'es' ? 'Ver sesión completa' : 'View full session'}</span>
-                                  <ArrowRight size={13} />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="py-4 text-center space-y-2.5">
-                        <p className="text-xs text-neutral-300 font-medium">
-                          {locale === 'es'
-                            ? 'No hay ningún entrenamiento registrado en este día.'
-                            : 'No workouts recorded on this day.'}
-                        </p>
-                        <p className="text-[11px] text-neutral-500">
-                          {locale === 'es'
-                            ? 'Día de descanso o sin sesión guardada en la fecha seleccionada.'
-                            : 'Rest day or no session saved for this date.'}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => navigate('/mis-rutinas')}
-                          className="mt-1 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Dumbbell size={13} style={{ color: 'var(--color-primary)' }} />
-                          <span>{locale === 'es' ? 'Ir a Mis Rutinas para entrenar' : 'Go to My Routines'}</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </Card>
               </div>
 
-              {/* Columna Derecha: Feed Detallado de Sesiones del Mes */}
+              {/* Columna Derecha: Feed Detallado de Sesiones */}
               <div className="lg:col-span-7 space-y-3.5">
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Dumbbell size={16} className="text-[var(--color-primary)]" />
-                    <span>{locale === 'es' ? 'Sesiones del Mes' : 'Month Sessions'}</span>
-                    <span className="text-xs font-normal text-neutral-400 font-mono">({sesionesDelMes.length})</span>
-                  </h3>
+                    <h3 className="text-base font-extrabold text-white">
+                      {diaSeleccionado !== null
+                        ? `${locale === 'es' ? 'Entrenamientos del' : 'Workouts for'} ${fechaSeleccionadaStr ? formatearFechaLarga(fechaSeleccionadaStr) : diaSeleccionado}`
+                        : (locale === 'es' ? 'Sesiones del Mes' : 'Month Sessions')}
+                    </h3>
+                    <span className="text-xs font-normal text-neutral-400 font-mono">
+                      ({sesionesAMostrar.length})
+                    </span>
+                  </div>
+
+                  {diaSeleccionado !== null && (
+                    <button
+                      type="button"
+                      onClick={() => setDiaSeleccionado(null)}
+                      className="text-xs text-[var(--color-primary)] hover:underline font-bold flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+                    >
+                      <span>{locale === 'es' ? 'Ver todo el mes' : 'Show all month'}</span>
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
 
-                {sesionesDelMes.length > 0 ? (
+                {sesionesAMostrar.length > 0 ? (
                   <div className="space-y-3">
-                    {sesionesDelMes.map((sesion) => {
+                    {sesionesAMostrar.map((sesion) => {
                       const volSesion = sesion.ejercicios.reduce((tot, ej) =>
                         tot + ej.series.reduce((sTot, s) => sTot + (s.kg || 0) * (s.reps || 0), 0), 0);
 
@@ -549,23 +512,39 @@ export default function HistorialPage() {
                   </div>
                 ) : (
                   <div className="card p-8 sm:p-12 text-center rounded-3xl flex flex-col items-center justify-center space-y-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500">
-                      <Dumbbell size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-400">
+                      {diaSeleccionado !== null ? <Calendar size={28} className="text-[var(--color-primary)]" /> : <Dumbbell size={28} />}
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-white">
-                        {locale === 'es' ? 'No hay entrenamientos en este mes' : 'No workouts recorded this month'}
+                        {diaSeleccionado !== null
+                          ? (locale === 'es' ? 'Día de descanso' : 'Rest day')
+                          : (locale === 'es' ? 'No hay entrenamientos en este mes' : 'No workouts recorded this month')}
                       </h4>
                       <p className="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">
-                        {locale === 'es'
-                          ? 'Inicia un nuevo entrenamiento o selecciona una rutina para comenzar a registrar tu historial.'
-                          : 'Start a new workout or pick a routine to begin building your training history.'}
+                        {diaSeleccionado !== null
+                          ? (locale === 'es'
+                              ? `No registraste ningún entrenamiento el ${fechaSeleccionadaStr ? formatearFechaLarga(fechaSeleccionadaStr) : `día ${diaSeleccionado}`}.`
+                              : `No workouts were recorded on ${fechaSeleccionadaStr ? formatearFechaLarga(fechaSeleccionadaStr) : `day ${diaSeleccionado}`}.`)
+                          : (locale === 'es'
+                              ? 'Inicia un nuevo entrenamiento o selecciona una rutina para comenzar a registrar tu historial.'
+                              : 'Start a new workout or pick a routine to begin building your training history.')}
                       </p>
                     </div>
                     <div className="pt-2">
-                      <BotonPrimario onClick={() => navigate('/mis-rutinas')}>
-                        {locale === 'es' ? 'Ir a Mis Rutinas' : 'Go to My Routines'}
-                      </BotonPrimario>
+                      {diaSeleccionado !== null ? (
+                        <button
+                          type="button"
+                          onClick={() => setDiaSeleccionado(null)}
+                          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all cursor-pointer"
+                        >
+                          {locale === 'es' ? 'Ver todas las sesiones del mes' : 'Show all month sessions'}
+                        </button>
+                      ) : (
+                        <BotonPrimario onClick={() => navigate('/mis-rutinas')}>
+                          {locale === 'es' ? 'Ir a Mis Rutinas' : 'Go to My Routines'}
+                        </BotonPrimario>
+                      )}
                     </div>
                   </div>
                 )}

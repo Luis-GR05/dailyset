@@ -30,7 +30,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
     { nombre: t.nav.history, ruta: "/historial", icon: <Calendar size={18} /> },
     { nombre: t.nav.statistics, ruta: "/estadisticas", icon: <BarChart2 size={18} /> },
     { nombre: locale === 'es' ? 'Utilidades' : 'Utilities', ruta: "/utilidades", icon: <Timer size={18} /> },
-    { nombre: locale === 'es' ? 'Suscripciones' : 'Subscriptions', ruta: "/suscripciones", icon: <Crown size={18} className="text-amber-400" /> },
+    { nombre: locale === 'es' ? 'Suscripciones' : 'Subscriptions', ruta: "/suscripciones", icon: <Crown size={18} /> },
     { nombre: t.nav.profile, ruta: "/perfil", icon: <User size={18} /> },
   ];
 

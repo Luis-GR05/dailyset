@@ -145,25 +145,13 @@ export default function PlanesGrid({
           return (
             <div
               key={plan.planId}
-              className={`relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ${
+              className={`relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 backdrop-blur-xl bg-neutral-900/60 ${
                 esPro
-                  ? 'border-2 shadow-[0_0_40px_rgba(212,251,52,0.18)] scale-[1.02] md:-translate-y-2'
+                  ? 'border border-[var(--color-primary)] shadow-[0_0_30px_rgba(212,251,52,0.15)] scale-[1.02] md:-translate-y-2'
                   : esUltra
-                  ? 'border-2 border-amber-500/50 shadow-[0_0_35px_rgba(245,158,11,0.15)]'
-                  : 'border border-neutral-800 hover:border-neutral-700'
+                  ? 'border border-amber-500/50 shadow-[0_0_25px_rgba(245,158,11,0.12)]'
+                  : 'border border-white/10 hover:border-white/20'
               }`}
-              style={{
-                backgroundColor: esPro
-                  ? '#13150f'
-                  : esUltra
-                  ? '#16130e'
-                  : 'var(--color-neutral-700)',
-                borderColor: esPro
-                  ? 'var(--color-primary)'
-                  : esUltra
-                  ? 'rgba(245, 158, 11, 0.6)'
-                  : undefined,
-              }}
             >
               {/* Badge superior para Pro y Ultra */}
               {plan.badge && (
@@ -173,7 +161,7 @@ export default function PlanesGrid({
                       esPro
                         ? 'bg-[var(--color-primary)] text-black shadow-[0_0_15px_var(--color-primary-glow)]'
                         : esUltra
-                        ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
+                        ? 'bg-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
                         : 'bg-neutral-800 text-neutral-300'
                     }`}
                   >
@@ -332,7 +320,7 @@ export default function PlanesGrid({
                       : esPro
                       ? 'bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_var(--color-primary-glow)]'
                       : esUltra
-                      ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black hover:from-amber-300 hover:to-amber-400 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(245,158,11,0.3)]'
+                      ? 'bg-amber-400 text-black hover:bg-amber-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(245,158,11,0.3)]'
                       : 'bg-white text-black hover:bg-neutral-200 hover:scale-[1.02] active:scale-[0.98]'
                   }`}
                 >

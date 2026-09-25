@@ -45,9 +45,9 @@ export default function BannerGarantia() {
       {garantias.map((item, idx) => (
         <div
           key={idx}
-          className="p-5 rounded-2xl border border-neutral-800/80 bg-neutral-900/40 backdrop-blur-md flex flex-col gap-2.5 transition-colors hover:border-neutral-700"
+          className="p-5 rounded-2xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl flex flex-col gap-2.5 transition-colors hover:border-white/20"
         >
-          <div className="w-10 h-10 rounded-xl bg-neutral-800/80 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
             {item.icono}
           </div>
           <div>

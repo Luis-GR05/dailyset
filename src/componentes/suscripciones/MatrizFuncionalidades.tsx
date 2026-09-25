@@ -108,10 +108,10 @@ export default function MatrizFuncionalidades({ planActual }: MatrizFuncionalida
       </div>
 
       {/* ── Tabla de Matriz en Escritorio ── */}
-      <div className="hidden lg:block overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/60 backdrop-blur-md">
+      <div className="hidden lg:block overflow-hidden rounded-3xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-neutral-800 bg-neutral-950/90">
+            <tr className="border-b border-white/10 bg-black/60">
               <th className="py-4 px-6 text-xs font-black uppercase tracking-wider text-neutral-400 w-1/4">
                 {locale === 'es' ? 'Módulo' : 'Module'}
               </th>
@@ -236,10 +236,10 @@ export default function MatrizFuncionalidades({ planActual }: MatrizFuncionalida
         {filtrados.map((item) => (
           <div
             key={item.moduloId}
-            className="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/80 backdrop-blur-md space-y-3"
+            className="p-5 rounded-2xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl space-y-3"
           >
-            <div className="flex items-center gap-3 pb-2 border-b border-neutral-800">
-              <div className="w-8 h-8 rounded-xl bg-neutral-800 flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 pb-2 border-b border-white/10">
+              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                 {renderIcon(item.icono)}
               </div>
               <div>

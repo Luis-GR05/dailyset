@@ -1,11 +1,16 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout, TituloPagina, CardEstadistica, TuSemanaEnCifrasModal } from "../componentes";
 import ColumnChart from "../componentes/charts/columnChart";
 import LineChartElement from "../componentes/charts/LineChartElement";
 import { useI18n } from '../context/I18nContext';
 import { useHistorial } from "../context/HistorialContext";
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Sparkles, Crown, Zap } from 'lucide-react';
 import YearPicker from '../componentes/ui/YearPicker';
+import ProgresionEjercicioCard from '../componentes/estadisticas/ProgresionEjercicioCard';
+import BalanceMuscularCard from '../componentes/estadisticas/BalanceMuscularCard';
+import ComparativaRendimientoCard from '../componentes/estadisticas/ComparativaRendimientoCard';
 
 function startOfDayMs(yyyyMmDd: string) {
   return new Date(`${yyyyMmDd}T12:00:00`).setHours(0, 0, 0, 0);
@@ -18,6 +23,14 @@ function calcularVolumenSesion(ejercicios: { series: { kg: number; reps: number 
 export default function EstadisticasPage() {
   const { t, locale } = useI18n();
   const { sesiones, metricas } = useHistorial();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const planActual = user?.plan || 'free';
+  const esPro = planActual === 'pro' || planActual === 'ultra';
+  const esUltra = planActual === 'ultra';
+
+  const irASuscripciones = () => navigate('/suscripciones?tab=planes');
 
   const localeStr = locale === 'es' ? 'es-ES' : 'en-US';
   const now = new Date();
@@ -37,15 +50,6 @@ export default function EstadisticasPage() {
 
   const [anioSeleccionado, setAnioSeleccionado] = useState(currentYear);
   const [modalCifrasAbierto, setModalCifrasAbierto] = useState(false);
-
-  const irAnioAnterior = () => setAnioSeleccionado(a => {
-    const idx = aniosDisponibles.indexOf(a);
-    return idx < aniosDisponibles.length - 1 ? aniosDisponibles[idx + 1] : a;
-  });
-  const irAnioSiguiente = () => setAnioSeleccionado(a => {
-    const idx = aniosDisponibles.indexOf(a);
-    return idx > 0 ? aniosDisponibles[idx - 1] : a;
-  });
 
   const sesionesDelAnio = useMemo(() => {
     return sesiones.filter(s => parseInt(s.fecha.split('-')[0], 10) === anioSeleccionado);
@@ -138,9 +142,6 @@ export default function EstadisticasPage() {
     { titulo: t.statistics.caloriesBurned, valor: `${kcal}` },
   ]), [t.statistics, totalEntrenos, totalMin, kcal]);
 
-  const canGoPrev = aniosDisponibles.indexOf(anioSeleccionado) < aniosDisponibles.length - 1;
-  const canGoNext = aniosDisponibles.indexOf(anioSeleccionado) > 0;
-
   return (
     <AppLayout>
       <div className="space-y-4 pb-10 max-w-5xl mx-auto">
@@ -153,8 +154,29 @@ export default function EstadisticasPage() {
             <TituloPagina titulo={locale === 'es' ? 'Estadísticas' : 'Statistics'} />
           </div>
 
-          {/* Controles de cabecera: Botón Tu semana en cifras + selector de año con calendario */}
+          {/* Controles de cabecera: Plan Badge + Botón Tu semana en cifras + selector de año */}
           <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            {planActual === 'ultra' ? (
+              <span className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-400/10 text-amber-400 border border-amber-400/30 flex items-center gap-1.5 shadow-sm font-mono">
+                <Crown size={13} />
+                <span>Plan Ultra</span>
+              </span>
+            ) : planActual === 'pro' ? (
+              <span className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/30 flex items-center gap-1.5 shadow-sm font-mono">
+                <Zap size={13} />
+                <span>Plan Pro</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={irASuscripciones}
+                className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5 cursor-pointer font-mono"
+              >
+                <Zap size={13} className="text-[var(--color-primary)]" />
+                <span>{locale === 'es' ? 'Plan Free · Mejorar' : 'Free Plan · Upgrade'}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setModalCifrasAbierto(true)}
@@ -163,26 +185,6 @@ export default function EstadisticasPage() {
               <Sparkles size={14} />
               <span>{locale === 'es' ? 'Tu semana en cifras' : 'Week wrapped'}</span>
             </button>
-
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
-              <button
-                onClick={irAnioAnterior}
-                disabled={!canGoPrev}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                title={locale === 'es' ? 'Año anterior' : 'Previous year'}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={irAnioSiguiente}
-                disabled={!canGoNext}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                title={locale === 'es' ? 'Año siguiente' : 'Next year'}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
             <YearPicker
               anio={anioSeleccionado}
               aniosDisponibles={aniosDisponibles}
@@ -271,6 +273,51 @@ export default function EstadisticasPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ── MÓDULOS DE ANALÍTICA AVANZADA (PLANES PRO & ULTRA) ── */}
+        <div className="space-y-6 pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+            <div>
+              <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] mb-0.5">
+                {locale === 'es' ? 'Métricas de Élite' : 'Elite Metrics'}
+              </p>
+              <h2 className="text-xl font-black text-white">
+                {locale === 'es' ? 'Progresión y Biomecánica Avanzada' : 'Advanced Progression & Biomechanics'}
+              </h2>
+            </div>
+            {!esUltra && (
+              <button
+                type="button"
+                onClick={irASuscripciones}
+                className="text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+              >
+                <span>{locale === 'es' ? 'Ver ventajas de PRO y ULTRA' : 'View PRO & ULTRA benefits'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Gráfica de Progresión por Ejercicio (PRO & ULTRA) */}
+          <ProgresionEjercicioCard
+            sesiones={sesiones}
+            esPro={esPro}
+            onDesbloquear={irASuscripciones}
+          />
+
+          {/* Gráficas Avanzadas (ULTRA): Balance Muscular y Comparativas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <BalanceMuscularCard
+              sesiones={sesiones}
+              esUltra={esUltra}
+              onDesbloquear={irASuscripciones}
+            />
+
+            <ComparativaRendimientoCard
+              sesiones={sesiones}
+              esUltra={esUltra}
+              onDesbloquear={irASuscripciones}
+            />
           </div>
         </div>
       </div>

@@ -44,7 +44,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user || user.id === 'invitado') return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -92,14 +92,14 @@ function App() {
                     <Route path="/ejercicios" element={<ProtectedRoute><EjerciciosPage /></ProtectedRoute>} />
                     <Route path="/ejercicios/:id" element={<ProtectedRoute><EjercicioDetallePage /></ProtectedRoute>} />
                     <Route path="/estadisticas" element={<ProtectedRoute><EstadisticasPage /></ProtectedRoute>} />
-                    <Route path="/perfil" element={<PerfilPage />} />
-                    <Route path="/perfil/racha" element={<PerfilPage />} />
-                    <Route path="/perfil/configuracion" element={<PerfilConfigPage />} />
-                    <Route path="/perfil/datos" element={<PerfilConfigPage />} />
-                    <Route path="/perfil/soporte" element={<SoporteChatPage />} />
+                    <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+                    <Route path="/perfil/racha" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+                    <Route path="/perfil/configuracion" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+                    <Route path="/perfil/datos" element={<ProtectedRoute><PerfilConfigPage /></ProtectedRoute>} />
+                    <Route path="/perfil/soporte" element={<ProtectedRoute><SoporteChatPage /></ProtectedRoute>} />
                     <Route path="/soporte" element={<Navigate to="/perfil/soporte" replace />} />
-                    <Route path="/utilidades" element={<UtilidadesPage />} />
-                    <Route path="/suscripciones" element={<SuscripcionesPage />} />
+                    <Route path="/utilidades" element={<ProtectedRoute><UtilidadesPage /></ProtectedRoute>} />
+                    <Route path="/suscripciones" element={<ProtectedRoute><SuscripcionesPage /></ProtectedRoute>} />
                     <Route path="/suscripcion" element={<Navigate to="/suscripciones" replace />} />
                     <Route path="/planes" element={<Navigate to="/suscripciones" replace />} />
 

@@ -144,12 +144,12 @@
 @layer components {
     /* ─── Tarjeta de Cristal Limpia / Frosted Glass Minimalista ─── */
     .card {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(24, 24, 28, 0.7);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 1.5rem;
-        box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.35);
         transition: all 0.2s ease;
     }
 
@@ -159,8 +159,8 @@
     }
 
     .card-hover:hover {
-        border-color: rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(32, 32, 38, 0.85);
         transform: translateY(-2px);
     }
 
