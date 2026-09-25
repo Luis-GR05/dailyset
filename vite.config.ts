@@ -32,6 +32,14 @@ export default defineConfig(({ mode }) => {
     ''
   ).trim()
 
+  const supabaseServiceKey = (
+    process.env.VITE_SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    env.VITE_SUPABASE_SERVICE_KEY ||
+    env.SUPABASE_SERVICE_KEY ||
+    ''
+  ).trim()
+
   return {
     plugins: [react(), tailwindcss()],
     envPrefix: ['VITE_', 'SUPABASE_'],
@@ -40,6 +48,8 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.SUPABASE_URL': JSON.stringify(supabaseUrl),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
       'import.meta.env.SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
+      'import.meta.env.VITE_SUPABASE_SERVICE_KEY': JSON.stringify(supabaseServiceKey),
+      'import.meta.env.SUPABASE_SERVICE_KEY': JSON.stringify(supabaseServiceKey),
     },
   }
 })

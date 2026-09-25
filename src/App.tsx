@@ -13,6 +13,8 @@ const RegistroPage = lazy(() => import('./paginas/RegistroPage'));
 const RegistroConfirmacionPage = lazy(() => import('./paginas/RegistroConfirmacionPage'));
 const PoliticaPrivacidadPage = lazy(() => import('./paginas/PoliticaPrivacidadPage'));
 const TerminosCondicionesPage = lazy(() => import('./paginas/TerminosCondicionesPage'));
+const RecuperarPasswordPage = lazy(() => import('./paginas/RecuperarPasswordPage'));
+const RestablecerPasswordPage = lazy(() => import('./paginas/RestablecerPasswordPage'));
 
 const DashboardPage = lazy(() => import('./paginas/DashboardPage'));
 const MisRutinasPage = lazy(() => import('./paginas/MisRutinasPage'));
@@ -27,6 +29,7 @@ const PerfilPage = lazy(() => import('./paginas/PerfilPage'));
 const PerfilConfigPage = lazy(() => import('./paginas/PerfilConfig'));
 const SoporteChatPage = lazy(() => import('./paginas/SoporteChatPage'));
 const UtilidadesPage = lazy(() => import('./paginas/UtilidadesPage'));
+const SuscripcionesPage = lazy(() => import('./paginas/SuscripcionesPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -74,6 +77,9 @@ function App() {
                     <Route path="/terminos" element={<TerminosCondicionesPage />} />
                     <Route path="/terminos-condiciones" element={<Navigate to="/terminos" replace />} />
                     <Route path="/terminos-y-condiciones" element={<Navigate to="/terminos" replace />} />
+                    <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
+                    <Route path="/olvide-password" element={<Navigate to="/recuperar-password" replace />} />
+                    <Route path="/restablecer-password" element={<RestablecerPasswordPage />} />
 
                     {/* Rutas privadas */}
                     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -93,6 +99,9 @@ function App() {
                     <Route path="/perfil/soporte" element={<SoporteChatPage />} />
                     <Route path="/soporte" element={<Navigate to="/perfil/soporte" replace />} />
                     <Route path="/utilidades" element={<UtilidadesPage />} />
+                    <Route path="/suscripciones" element={<SuscripcionesPage />} />
+                    <Route path="/suscripcion" element={<Navigate to="/suscripciones" replace />} />
+                    <Route path="/planes" element={<Navigate to="/suscripciones" replace />} />
 
                     {/* Confirmación de registro */}
                     <Route path="/registro-confirmacion" element={<RegistroConfirmacionPage />} />

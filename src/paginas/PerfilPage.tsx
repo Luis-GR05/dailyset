@@ -20,6 +20,7 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  ArrowRight,
 } from 'lucide-react';
 import GamificacionRacha from '../componentes/perfil/GamificacionRacha';
 import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
@@ -426,6 +427,13 @@ export default function PerfilPage() {
       esRojo: false,
     },
     {
+      nombre: (locale === 'es' ? 'Plan y Suscripción' : 'Plan & Subscription').toUpperCase(),
+      ruta: '/suscripciones',
+      flecha: true,
+      badge: user?.plan ? user.plan.toUpperCase() : 'FREE',
+      esRojo: false,
+    },
+    {
       nombre: (locale === 'es' ? 'Chat de Soporte Técnico' : 'Technical Support Chat').toUpperCase(),
       ruta: '/perfil/soporte',
       flecha: true,
@@ -706,6 +714,88 @@ export default function PerfilPage() {
           </div>
         </div>
 
+        {/* ── Banner de Suscripción en Perfil ── */}
+        <div className="card p-5 md:p-6 backdrop-blur-xl border border-neutral-800 bg-gradient-to-r from-neutral-900 via-neutral-900 to-neutral-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              style={{
+                backgroundColor:
+                  user?.plan === 'ultra'
+                    ? 'rgba(245, 158, 11, 0.2)'
+                    : user?.plan === 'pro'
+                    ? 'var(--color-primary-muted)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                color:
+                  user?.plan === 'ultra'
+                    ? '#FBBF24'
+                    : user?.plan === 'pro'
+                    ? 'var(--color-primary)'
+                    : '#A1A1AA',
+              }}
+            >
+              {user?.plan === 'ultra' ? (
+                <Crown size={24} />
+              ) : user?.plan === 'pro' ? (
+                <Zap size={24} />
+              ) : (
+                <Sparkles size={24} />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                  {locale === 'es' ? 'Suscripción DailySet' : 'DailySet Subscription'}
+                </span>
+                <span
+                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                    user?.plan === 'ultra'
+                      ? 'bg-amber-400 text-black'
+                      : user?.plan === 'pro'
+                      ? 'bg-[var(--color-primary)] text-black'
+                      : 'bg-white/10 text-neutral-300'
+                  }`}
+                >
+                  PLAN {user?.plan ? user.plan.toUpperCase() : 'FREE'}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-white">
+                {user?.plan === 'ultra'
+                  ? locale === 'es'
+                    ? 'Acceso Vitalicio & Rutinas Ilimitadas'
+                    : 'Lifetime Access & Unlimited Routines'
+                  : user?.plan === 'pro'
+                  ? locale === 'es'
+                    ? 'Plan Pro Activo · Potencia y Métricas Avanzadas'
+                    : 'Active Pro Plan · Power & Advanced Analytics'
+                  : locale === 'es'
+                  ? 'Plan Free · Pásate a Pro desde 2,54 €/mes (-15%)'
+                  : 'Free Plan · Upgrade to Pro from €2.54/mo (-15%)'}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/suscripciones"
+            className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+              user?.plan === 'ultra'
+                ? 'bg-neutral-800 text-white hover:bg-neutral-700'
+                : 'bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] shadow-[0_0_20px_var(--color-primary-glow)] hover:scale-105 active:scale-95'
+            }`}
+          >
+            <span>
+              {user?.plan === 'ultra'
+                ? locale === 'es'
+                  ? 'Ver Planes'
+                  : 'View Plans'
+                : locale === 'es'
+                ? 'Mejorar Plan'
+                : 'Upgrade Plan'}
+            </span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
         {/* ── Menú de opciones de perfil ────────────────────────────────────── */}
         <div className="card p-2 backdrop-blur-xl">
           <div className="space-y-1">
@@ -722,9 +812,24 @@ export default function PerfilPage() {
                     : 'hover:bg-white/5'
                   }
                 `}>
-                  <span className={`font-black text-[11px] italic tracking-[0.15em] uppercase ${opcion.esRojo ? 'text-red-500' : 'text-zinc-300'}`}>
-                    {opcion.nombre}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-black text-[11px] italic tracking-[0.15em] uppercase ${opcion.esRojo ? 'text-red-500' : 'text-zinc-300'}`}>
+                      {opcion.nombre}
+                    </span>
+                    {(opcion as any).badge && (
+                      <span
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          (opcion as any).badge === 'ULTRA'
+                            ? 'bg-amber-400 text-black'
+                            : (opcion as any).badge === 'PRO'
+                            ? 'bg-[var(--color-primary)] text-black'
+                            : 'bg-white/10 text-neutral-300'
+                        }`}
+                      >
+                        {(opcion as any).badge}
+                      </span>
+                    )}
+                  </div>
                   {opcion.flecha && (
                     <span
                       className="text-sm font-black opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"

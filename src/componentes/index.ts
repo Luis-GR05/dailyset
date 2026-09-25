@@ -27,3 +27,11 @@ export { default as TuSemanaEnCifrasModal } from './estadisticas/TuSemanaEnCifra
 export { default as InvitarAmigosModal } from './social/InvitarAmigosModal';
 export { default as ModalReportar } from './social/ModalReportar';
 export { default as CookieBanner } from './ui/CookieBanner';
+
+// Suscripciones y Planes
+export { default as PlanesGrid } from './suscripciones/PlanesGrid';
+export { default as TablaDesgloseFinanciero } from './suscripciones/TablaDesgloseFinanciero';
+export { default as MatrizFuncionalidades } from './suscripciones/MatrizFuncionalidades';
+export { default as ModalContratarPlan } from './suscripciones/ModalContratarPlan';
+export { default as PreguntasFrecuentes } from './suscripciones/PreguntasFrecuentes';
+export { default as BannerGarantia } from './suscripciones/BannerGarantia';

@@ -27,8 +27,10 @@ export interface User {
   alturaCm?: number | null;
   edad?: number | null;
   genero?: 'masculino' | 'femenino' | 'otro' | null;
-  nivelActividad?: 'sedentario' | 'ligero' | 'moderado' | 'activo' | 'muy_activo' | null;
-  objetivo?: 'perder_peso' | 'ganar_musculo' | 'mantener' | 'mejorar_resistencia' | null;
+  // Plan de suscripción
+  plan?: 'free' | 'pro' | 'ultra';
+  cicloFacturacion?: 'mensual' | 'anual';
+  fechaRenovacionPlan?: string;
 }
 
 interface AuthContextType {
@@ -65,6 +67,8 @@ export const DEFAULT_GUEST_USER: User = {
   genero: "masculino",
   nivelActividad: "moderado",
   objetivo: "ganar_musculo",
+  plan: (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || "free",
+  cicloFacturacion: (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || "mensual",
 };
 
 export function getGuestUser(): User {
@@ -105,6 +109,8 @@ function mapAuthUser(authUser: SupabaseUser): User {
     totalSets: "0",
     racha: 0,
     pesoTotal: "0",
+    plan: (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || "free",
+    cicloFacturacion: (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || "mensual",
   };
 }
 
@@ -187,6 +193,10 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       genero: prefs.genero ?? null,
       nivelActividad: prefs.nivelActividad ?? null,
       objetivo: prefs.objetivo ?? null,
+      // Plan de suscripción
+      plan: (prefs.plan as 'free' | 'pro' | 'ultra') || (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || 'free',
+      cicloFacturacion: (prefs.cicloFacturacion as 'mensual' | 'anual') || (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || 'mensual',
+      fechaRenovacionPlan: prefs.fechaRenovacionPlan as string | undefined,
     };
   } catch (err) {
     console.error("Error in fetchProfile:", err);
@@ -455,6 +465,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Actualización optimista inmediata
+    setUser(prev => prev ? { ...prev, ...data } : null);
+
     // Obtener el perfil actual para hacer merge de preferencias
     const { data: currentProfile, error: fetchError } = await supabase
       .from("perfiles")
@@ -478,7 +491,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...(data.genero !== undefined && { genero: data.genero }),
       ...(data.nivelActividad !== undefined && { nivelActividad: data.nivelActividad }),
       ...(data.objetivo !== undefined && { objetivo: data.objetivo }),
+      // Plan y ciclo
+      ...(data.plan !== undefined && { plan: data.plan }),
+      ...(data.cicloFacturacion !== undefined && { cicloFacturacion: data.cicloFacturacion }),
+      ...(data.fechaRenovacionPlan !== undefined && { fechaRenovacionPlan: data.fechaRenovacionPlan }),
     };
+
+    if (data.plan !== undefined) {
+      localStorage.setItem("dailyset_user_plan", data.plan);
+    }
+    if (data.cicloFacturacion !== undefined) {
+      localStorage.setItem("dailyset_user_ciclo", data.cicloFacturacion);
+    }
 
     const dbData: Record<string, unknown> = {
       preferencias: newPrefs,

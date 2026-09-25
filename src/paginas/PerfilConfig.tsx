@@ -271,7 +271,7 @@ export default function PerfilConfigPage() {
       if (metodoRecuperacion === 'email') {
         if (!user?.email) throw new Error(locale === 'es' ? 'No se encontró correo asociado a la cuenta' : 'No email associated with account');
         const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-          redirectTo: `${window.location.origin}/perfil/configuracion`,
+          redirectTo: `${window.location.origin}/restablecer-password`,
         });
         if (error) throw error;
         setMensajeRecuperacion(

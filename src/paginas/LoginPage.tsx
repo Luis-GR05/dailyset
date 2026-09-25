@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Input, Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';
@@ -9,12 +9,15 @@ export default function LoginPage() {
   const { t, locale } = useI18n();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { email?: string; passwordUpdated?: boolean } | null;
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(locationState?.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordUpdated] = useState(!!locationState?.passwordUpdated);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +128,16 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {passwordUpdated && !error && (
+              <div className="mb-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center text-xs font-semibold text-emerald-400 flex items-center justify-center gap-2">
+                <span>
+                  {locale === 'es'
+                    ? '✓ ¡Contraseña actualizada con éxito! Introduce tus nuevas credenciales para entrar.'
+                    : '✓ Password successfully updated! Sign in with your new credentials.'}
+                </span>
+              </div>
+            )}
+
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest ml-4">
@@ -174,6 +187,16 @@ export default function LoginPage() {
                       </svg>
                     )}
                   </button>
+                </div>
+                {/* Enlace para recuperar contraseña */}
+                <div className="flex justify-end pr-1 pt-1">
+                  <Link
+                    to="/recuperar-password"
+                    state={{ email }}
+                    className="text-xs text-neutral-400 hover:text-[var(--color-primary)] transition-colors font-medium"
+                  >
+                    {t.auth.forgotPassword}
+                  </Link>
                 </div>
               </div>
 
