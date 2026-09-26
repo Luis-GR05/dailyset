@@ -15,6 +15,7 @@ import {
 import type { CicloFacturacion, DesgloseFinanciero } from '../../types/suscripcion';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
+import { iniciarCheckoutStripe } from '../../lib/stripeService';
 
 interface ModalContratarPlanProps {
   plan: DesgloseFinanciero;
@@ -66,7 +67,25 @@ export default function ModalContratarPlan({
     setErrorMsg('');
 
     try {
-      // Simular latencia de verificación bancaria segura
+      // Si el plan es Pro o Ultra, intentar checkout seguro con Stripe
+      if (user?.id && (plan.planId === 'pro' || plan.planId === 'ultra')) {
+        const stripeRes = await iniciarCheckoutStripe({
+          planId: plan.planId,
+          ciclo,
+          userId: user.id,
+          userEmail: user.email,
+        });
+
+        // Si Stripe retornó la URL, el navegador redirige a Stripe Checkout
+        if (stripeRes.url) {
+          return;
+        }
+
+        // Si no está disponible (ej. en desarrollo local sin clave secreta), continuar con simulación
+        console.warn('Stripe checkout no disponible en este entorno, aplicando directamente:', stripeRes.error);
+      }
+
+      // Simular latencia de verificación bancaria si se usa el flujo directo/gratuito
       await new Promise((resolve) => setTimeout(resolve, 1100));
 
       const fechaHoy = new Date();
