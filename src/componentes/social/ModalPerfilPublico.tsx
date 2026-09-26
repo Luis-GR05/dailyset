@@ -127,7 +127,7 @@ export default function ModalPerfilPublico({
             }`}
           >
             {/* Botones de Cabecera (Menú de opciones y Cerrar) */}
-            <div className="absolute top-4 right-4 flex items-center gap-1">
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
               {!esYo && perfil && (
                 <div className="relative">
                   <button
@@ -251,60 +251,65 @@ export default function ModalPerfilPublico({
               </div>
             ) : perfil ? (
               <div className="space-y-4">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div
-                      className={`w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg border-2 ${
-                        isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-800 border-neutral-700'
-                      }`}
-                    >
-                      {perfil.avatar_url ? (
-                        <img
-                          src={perfil.avatar_url}
-                          alt={perfil.nombre_completo || perfil.nombre_usuario}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User size={30} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
-                      )}
-                    </div>
+                <div className="flex items-center gap-4 min-w-0 pr-20">
+                  <div
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg border-2 ${
+                      isLight ? 'bg-neutral-100 border-neutral-200' : 'bg-neutral-800 border-neutral-700'
+                    }`}
+                  >
+                    {perfil.avatar_url ? (
+                      <img
+                        src={perfil.avatar_url}
+                        alt={perfil.nombre_completo || perfil.nombre_usuario}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={30} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
+                    )}
+                  </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`font-extrabold text-lg sm:text-xl truncate ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                          {perfil.nombre_completo || perfil.nombre_usuario}
-                        </h3>
-                        {esYo && (
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                              isLight
-                                ? 'bg-neutral-100 text-neutral-700 border-neutral-200'
-                                : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
-                            }`}
-                          >
-                            {locale === 'es' ? 'Tu Perfil' : 'Your Profile'}
-                          </span>
-                        )}
-                      </div>
-                      <p className={`text-xs ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>@{perfil.nombre_usuario}</p>
-                      {perfil.nivel_entrenamiento && (
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className={`font-extrabold text-lg sm:text-xl truncate ${isLight ? 'text-neutral-900' : 'text-white'}`}>
+                        {perfil.nombre_completo || perfil.nombre_usuario}
+                      </h3>
+                      {esYo && (
                         <span
-                          className={`inline-block mt-1 text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full border ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                             isLight
-                              ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
-                              : 'bg-neutral-800 text-white border border-neutral-700'
+                              ? 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                              : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
                           }`}
                         >
-                          {perfil.nivel_entrenamiento}
+                          {locale === 'es' ? 'Tu Perfil' : 'Your Profile'}
                         </span>
                       )}
                     </div>
+                    <p className={`text-xs ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>@{perfil.nombre_usuario}</p>
+                    {perfil.nivel_entrenamiento && (
+                      <span
+                        className={`inline-block mt-1 text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full border ${
+                          isLight
+                            ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                            : 'bg-neutral-800 text-white border border-neutral-700'
+                        }`}
+                      >
+                        {perfil.nivel_entrenamiento}
+                      </span>
+                    )}
                   </div>
-
-                  {!esYo && !usuarioEstaBloqueado && (
-                    <BotonSeguir targetUserId={perfil.id} isLight={isLight} />
-                  )}
                 </div>
+
+                {/* Botón Seguir / Dejar de seguir destacado y sin solapamiento */}
+                {!esYo && !usuarioEstaBloqueado && (
+                  <div className="pt-0.5">
+                    <BotonSeguir
+                      targetUserId={perfil.id}
+                      isLight={isLight}
+                      className="w-full py-2.5 rounded-xl justify-center text-sm font-bold shadow-sm"
+                    />
+                  </div>
+                )}
 
                 {perfil.bio && (
                   <p
