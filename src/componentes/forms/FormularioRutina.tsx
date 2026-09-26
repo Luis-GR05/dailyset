@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Rutina } from '../../context/RutinasContext';
 import { useEjercicios, type Ejercicio } from '../../context/EjerciciosContext';
+import { useAuth } from '../../context/AuthContext';
+import { useI18n } from '../../context/I18nContext';
 import { RUTINAS_PREDEFINIDAS, getCategoriaColor } from '../../data/rutinasPredefinidas';
-import { X, Plus, Eye, ArrowUp, ArrowDown, Search, Dumbbell, Lock, Globe } from 'lucide-react';
+import { X, Plus, Eye, ArrowUp, ArrowDown, Search, Dumbbell, Lock, Globe, Zap, Sparkles } from 'lucide-react';
 
 interface FormularioRutinaProps {
     rutina?: Rutina | null;
@@ -36,6 +38,11 @@ const FILTROS_MUSCULARES = [
 ];
 
 export default function FormularioRutina({ rutina, onGuardar, onCerrar }: FormularioRutinaProps) {
+    const { user } = useAuth();
+    const { locale } = useI18n();
+    const plan = user?.plan || 'free';
+    const esPlanPro = plan === 'pro' || plan === 'ultra';
+
     const { ejercicios } = useEjercicios();
 
     const [nombre, setNombre] = useState('');
@@ -206,6 +213,49 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
 
     const catColor = getCategoriaColor(categoria);
 
+    if (!rutina && !esPlanPro) {
+        return (
+            <div className="modal-overlay" onClick={onCerrar}>
+                <div className="modal-box modal-box-md text-center p-8 space-y-5" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+                    <button className="modal-close-btn absolute top-5 right-5" onClick={onCerrar} title="Cerrar"><X size={18} /></button>
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(212,251,52,0.2)]">
+                        <Zap size={32} />
+                    </div>
+                    <div className="space-y-2">
+                        <div className="inline-block px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/20 text-[var(--color-primary)] text-[10px] font-black uppercase tracking-wider">
+                            {locale === 'es' ? 'FUNCIÓN PLAN PRO' : 'PRO PLAN FEATURE'}
+                        </div>
+                        <h2 className="text-2xl font-black text-white">
+                            {locale === 'es' ? 'Crear Rutina Personalizada' : 'Create Custom Routine'}
+                        </h2>
+                        <p className="text-sm text-neutral-300 leading-relaxed">
+                            {locale === 'es'
+                                ? 'La creación de rutinas personalizadas a medida desde cero está disponible a partir del Plan Pro (2,99 €/mes). En el Plan Free puedes entrenar con todas las plantillas predefinidas oficiales.'
+                                : 'Creating tailored routines from scratch is available on the Pro Plan and Ultra Plan. On the Free Plan, you can train with all official pre-built templates.'}
+                        </p>
+                    </div>
+                    <div className="pt-2 flex flex-col gap-2.5">
+                        <Link
+                            to="/suscripciones?tab=planes"
+                            onClick={onCerrar}
+                            className="w-full py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                        >
+                            <Sparkles size={16} />
+                            {locale === 'es' ? 'Actualizar a Plan Pro (2,99 €/mes)' : 'Upgrade to Pro Plan (€2.99/mo)'}
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={onCerrar}
+                            className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-400 hover:text-white bg-neutral-900 border border-neutral-800 transition-all cursor-pointer"
+                        >
+                            {locale === 'es' ? 'Entendido' : 'Got it'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="modal-overlay" onClick={onCerrar}>
             <div className="modal-box modal-box-lg" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
@@ -216,6 +266,11 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
                         <h2 className="text-lg font-bold text-white">
                             {rutina ? 'Editar Rutina' : 'Nueva Rutina'}
                         </h2>
+                        {!rutina && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[var(--color-primary)] text-black">
+                                PRO
+                            </span>
+                        )}
                     </div>
                     <button className="modal-close-btn" onClick={onCerrar} title="Cerrar"><X size={16} /></button>
                 </div>

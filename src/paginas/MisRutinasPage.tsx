@@ -127,12 +127,19 @@ export default function MisRutinasPage() {
     const { user } = useAuth();
 
     // Límites de rutinas según plan: Free (4), Pro (12), Ultra (ilimitadas)
+    // Crear rutina personalizada desde cero es exclusivo de Plan Pro y Ultra
     const plan = user?.plan || 'free';
+    const esPlanPro = plan === 'pro' || plan === 'ultra';
     const maxRutinas = plan === 'ultra' ? Infinity : (plan === 'pro' ? 12 : 4);
     const puedeCrearMasRutinas = rutinas.length < maxRutinas;
     const [modalLimiteAbierto, setModalLimiteAbierto] = useState(false);
+    const [modalProRutinaAbierto, setModalProRutinaAbierto] = useState(false);
 
     const intentarCrearRutina = () => {
+        if (!esPlanPro) {
+            setModalProRutinaAbierto(true);
+            return;
+        }
         if (!puedeCrearMasRutinas) {
             setModalLimiteAbierto(true);
             return;
@@ -294,7 +301,14 @@ export default function MisRutinasPage() {
                         </p>
                     </div>
                     <div onClick={intentarCrearRutina} className="cursor-pointer">
-                        <BotonPrimario>+ {t.routines.newRoutine}</BotonPrimario>
+                        <BotonPrimario>
+                            + {t.routines.newRoutine}
+                            {!esPlanPro && (
+                                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-black text-[var(--color-primary)] border border-black/30 shadow-sm">
+                                    PRO
+                                </span>
+                            )}
+                        </BotonPrimario>
                     </div>
                 </div>
 
@@ -436,10 +450,15 @@ export default function MisRutinasPage() {
                                 <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
                                     <button
                                         onClick={intentarCrearRutina}
-                                        className="btn btn-secondary text-sm font-semibold flex items-center gap-2"
+                                        className="btn btn-secondary text-sm font-semibold flex items-center gap-2 cursor-pointer"
                                     >
                                         <Plus size={16} />
-                                        {locale === 'es' ? 'Crear rutina personalizada' : 'Create custom routine'}
+                                        <span>{locale === 'es' ? 'Crear rutina personalizada' : 'Create custom routine'}</span>
+                                        {!esPlanPro && (
+                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[var(--color-primary)] text-black">
+                                                PRO
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         onClick={() => setTabActiva('preestablecidas')}
@@ -1186,6 +1205,10 @@ export default function MisRutinasPage() {
                                     <button
                                         onClick={async () => {
                                             if (!rutinaIA) return;
+                                            if (!esPlanPro) {
+                                                setModalProRutinaAbierto(true);
+                                                return;
+                                            }
                                             if (!puedeCrearMasRutinas) {
                                                 setModalLimiteAbierto(true);
                                                 return;
@@ -1312,6 +1335,57 @@ export default function MisRutinasPage() {
                                 className="py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-400 hover:text-white border border-neutral-800 transition-all"
                             >
                                 {locale === 'es' ? 'Cerrar' : 'Close'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Requerimiento Plan PRO para Rutinas Personalizadas */}
+            {modalProRutinaAbierto && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={() => setModalProRutinaAbierto(false)}>
+                    <div className="bg-[#121214] border border-white/10 rounded-3xl max-w-md w-full p-6 sm:p-8 text-center space-y-5 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setModalProRutinaAbierto(false)}
+                            className="absolute top-5 right-5 text-neutral-400 hover:text-white p-1 cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(212,251,52,0.2)]">
+                            <Zap size={28} />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="inline-block px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/20 text-[var(--color-primary)] text-[10px] font-black uppercase tracking-wider mb-1">
+                                {locale === 'es' ? 'VENTAJA EXCLUSIVA PLAN PRO' : 'EXCLUSIVE PRO FEATURE'}
+                            </div>
+                            <h3 className="text-2xl font-black text-white">
+                                {locale === 'es' ? 'Rutinas Personalizadas' : 'Custom Routines'}
+                            </h3>
+                            <p className="text-sm text-neutral-300 leading-relaxed">
+                                {locale === 'es'
+                                    ? 'Crear rutinas a tu medida desde cero es una funcionalidad exclusiva del Plan Pro y Plan Ultra. En el Plan Free puedes entrenar con todas nuestras rutinas y plantillas oficiales preestablecidas.'
+                                    : 'Creating custom routines from scratch is an exclusive feature of the Pro and Ultra plans. On the Free plan, you can train with all our official pre-built templates.'}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col gap-2.5 pt-2">
+                            <Link
+                                to="/suscripciones?tab=planes"
+                                onClick={() => setModalProRutinaAbierto(false)}
+                                className="w-full py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider bg-[var(--color-primary)] text-black hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                            >
+                                <Sparkles size={16} />
+                                {locale === 'es' ? 'Desbloquear con Plan Pro (2,99 €/mes)' : 'Unlock with Pro Plan (€2.99/mo)'}
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setModalProRutinaAbierto(false);
+                                    setTabActiva('preestablecidas');
+                                }}
+                                className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                {locale === 'es' ? 'Explorar Rutinas Preestablecidas Gratis' : 'Explore Free Pre-built Routines'}
                             </button>
                         </div>
                     </div>
