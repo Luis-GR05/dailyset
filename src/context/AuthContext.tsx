@@ -3,10 +3,10 @@ import {
   useContext,
   useState,
   useEffect,
+  type ReactNode,
 } from "react";
-import type { ReactNode } from "react";
-import { supabase, supabaseAdmin } from "../lib/supabaseClient";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseClient";
 
 export interface User {
   id: string;
@@ -391,17 +391,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!data.user) throw new Error("No se pudo crear el usuario");
 
-    // Confirmar email automáticamente usando admin API (sin requerir confirmación por correo)
-    if (supabaseAdmin && !data.session) {
-      try {
-        await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
-          email_confirm: true,
-        });
-      } catch (adminErr) {
-        console.warn("No se pudo auto-confirmar email:", adminErr);
-      }
-    }
-
     // Crear perfil en la tabla perfiles
     const { error: profileError } = await supabase.from("perfiles").insert({
       id: data.user.id,
@@ -412,23 +401,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (profileError && profileError.code !== '23505') {
       // 23505 = unique_violation (ya existe), lo ignoramos
       console.error("Error al crear perfil:", profileError);
-    }
-
-    // Si tenemos admin, iniciar sesión directamente después del registro
-    if (supabaseAdmin && !data.session) {
-      try {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (!signInError && signInData.user) {
-          const profile = await withTimeout(fetchProfile(signInData.user));
-          setUser(profile ?? mapAuthUser(signInData.user));
-          return { requiresEmailConfirmation: false };
-        }
-      } catch (signInErr) {
-        console.warn("No se pudo iniciar sesión automáticamente:", signInErr);
-      }
     }
 
     const requiresEmailConfirmation = !data.session;

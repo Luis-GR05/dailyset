@@ -16,7 +16,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children, fullWidth = false, fondoClaro }: AppLayoutProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const location = useLocation();
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const { theme } = useTheme();
   const esFondoClaro = fondoClaro !== undefined ? fondoClaro : theme === 'light';
 
@@ -79,7 +79,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro }: A
               className="text-[9px] font-bold"
               style={{ color: location.pathname === '/dashboard' ? 'var(--color-primary)' : (esFondoClaro ? '#64748B' : 'var(--color-neutral-3000)') }}
             >
-              {locale === 'es' ? 'Inicio' : 'Home'}
+              {t.nav.dashboard}
             </span>
           </Link>
           <Link to="/mis-rutinas" className="flex flex-col items-center gap-1">
@@ -91,7 +91,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro }: A
               className="text-[9px] font-bold"
               style={{ color: location.pathname.startsWith('/mis-rutinas') ? 'var(--color-primary)' : (esFondoClaro ? '#64748B' : 'var(--color-neutral-3000)') }}
             >
-              {locale === 'es' ? 'Rutinas' : 'Workout'}
+              {t.nav.myRoutines}
             </span>
           </Link>
           <Link to="/social" className="flex flex-col items-center gap-1">
@@ -103,7 +103,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro }: A
               className="text-[9px] font-bold"
               style={{ color: location.pathname.startsWith('/social') ? 'var(--color-primary)' : (esFondoClaro ? '#64748B' : 'var(--color-neutral-3000)') }}
             >
-              Social
+              {t.nav.social}
             </span>
           </Link>
           <Link to="/estadisticas" className="flex flex-col items-center gap-1">
@@ -115,7 +115,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro }: A
               className="text-[9px] font-bold"
               style={{ color: location.pathname === '/estadisticas' ? 'var(--color-primary)' : (esFondoClaro ? '#64748B' : 'var(--color-neutral-3000)') }}
             >
-              {locale === 'es' ? 'Progreso' : 'Activity'}
+              {t.nav.statistics}
             </span>
           </Link>
           <Link to="/perfil" className="flex flex-col items-center gap-1">
@@ -127,7 +127,7 @@ export default function AppLayout({ children, fullWidth = false, fondoClaro }: A
               className="text-[9px] font-bold"
               style={{ color: location.pathname === '/perfil' ? 'var(--color-primary)' : (esFondoClaro ? '#64748B' : 'var(--color-neutral-3000)') }}
             >
-              {locale === 'es' ? 'Perfil' : 'Profile'}
+              {t.nav.profile}
             </span>
           </Link>
         </nav>

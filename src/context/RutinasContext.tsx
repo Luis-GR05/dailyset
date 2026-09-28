@@ -43,6 +43,7 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
     durationMs: null,
   });
   const requestSeq = useRef(0);
+  const inFlightCount = useRef(0);
   const cacheKey = user?.id ? `dailyset:rutinas:${user.id}` : null;
 
   // Pintar cache inmediatamente (stale-while-revalidate)
@@ -176,64 +177,94 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
   const agregarRutina = async (r: Omit<Rutina, 'id'>) => {
     if (!user) throw new Error('Debes iniciar sesión');
 
-    const insertPayload: Record<string, any> = {
-      usuario_id: user.id,
-      nombre: r.nombre,
-      categoria: r.categoria,
-      etiquetas: [r.categoria],
-      duracion_estimada_minutos: r.duracion,
-      es_plantilla: false,
-      esta_activa: true,
-      is_public: r.is_public ?? false, // Por defecto privada
-    };
+    const plan = user.plan || 'free';
+    const maxRutinas = plan === 'ultra' ? Infinity : (plan === 'pro' ? 12 : 4);
 
-    let dataRes: any = null;
-    const { data, error } = await supabase
-      .from('rutinas')
-      .insert(insertPayload)
-      .select('id, nombre, duracion_estimada_minutos, categoria, is_public')
-      .single();
+    // 1. Candado síncrono en cliente contra ráfagas de clics simultáneos
+    if (maxRutinas !== Infinity && (rutinas.length + inFlightCount.current) >= maxRutinas) {
+      throw new Error(
+        `Límite de rutinas alcanzado: Tu plan ${plan.toUpperCase()} permite hasta ${maxRutinas} rutinas.`
+      );
+    }
 
-    if (error) {
-      // Fallback si la columna is_public aún no está en la base de datos
-      if (error.message?.includes('is_public')) {
-        delete insertPayload.is_public;
-        const { data: retryData, error: retryError } = await supabase
+    inFlightCount.current += 1;
+
+    try {
+      // 2. Verificación directa contra la base de datos para evitar desincronización
+      if (maxRutinas !== Infinity) {
+        const { count, error: countErr } = await supabase
           .from('rutinas')
-          .insert(insertPayload)
-          .select('id, nombre, duracion_estimada_minutos, categoria')
-          .single();
-        if (retryError) throw retryError;
-        dataRes = retryData;
-      } else {
-        throw error;
+          .select('id', { count: 'exact', head: true })
+          .eq('usuario_id', user.id);
+
+        if (!countErr && typeof count === 'number' && count >= maxRutinas) {
+          throw new Error(
+            `Límite de rutinas alcanzado: Tu plan ${plan.toUpperCase()} permite hasta ${maxRutinas} rutinas.`
+          );
+        }
       }
-    } else {
-      dataRes = data;
+
+      const insertPayload: Record<string, any> = {
+        usuario_id: user.id,
+        nombre: r.nombre,
+        categoria: r.categoria,
+        etiquetas: [r.categoria],
+        duracion_estimada_minutos: r.duracion,
+        es_plantilla: false,
+        esta_activa: true,
+        is_public: r.is_public ?? false, // Por defecto privada
+      };
+
+      let dataRes: any = null;
+      const { data, error } = await supabase
+        .from('rutinas')
+        .insert(insertPayload)
+        .select('id, nombre, duracion_estimada_minutos, categoria, is_public')
+        .single();
+
+      if (error) {
+        // Fallback si la columna is_public aún no está en la base de datos
+        if (error.message?.includes('is_public')) {
+          delete insertPayload.is_public;
+          const { data: retryData, error: retryError } = await supabase
+            .from('rutinas')
+            .insert(insertPayload)
+            .select('id, nombre, duracion_estimada_minutos, categoria')
+            .single();
+          if (retryError) throw retryError;
+          dataRes = retryData;
+        } else {
+          throw error;
+        }
+      } else {
+        dataRes = data;
+      }
+
+      const ejerciciosIniciales = [...new Set(r.ejerciciosIds || [])];
+      if (ejerciciosIniciales.length > 0) {
+        const inserciones = ejerciciosIniciales.map((ejercicioId, indice) => ({
+          rutina_id: dataRes.id,
+          ejercicio_id: ejercicioId,
+          indice_orden: indice,
+        }));
+        const { error: insertError } = await supabase.from('ejercicios_rutina').insert(inserciones);
+        if (insertError) console.error('Error insertando ejercicios iniciales de rutina:', insertError);
+      }
+
+      const nueva: Rutina = {
+        id: dataRes.id,
+        nombre: dataRes.nombre,
+        categoria: dataRes.categoria || r.categoria,
+        duracion: dataRes.duracion_estimada_minutos ?? r.duracion,
+        ejerciciosIds: ejerciciosIniciales,
+        imageUrl: r.imageUrl,
+        is_public: r.is_public ?? false,
+      };
+
+      setRutinas(prev => [nueva, ...prev]);
+    } finally {
+      inFlightCount.current = Math.max(0, inFlightCount.current - 1);
     }
-
-    const ejerciciosIniciales = [...new Set(r.ejerciciosIds || [])];
-    if (ejerciciosIniciales.length > 0) {
-      const inserciones = ejerciciosIniciales.map((ejercicioId, indice) => ({
-        rutina_id: dataRes.id,
-        ejercicio_id: ejercicioId,
-        indice_orden: indice,
-      }));
-      const { error: insertError } = await supabase.from('ejercicios_rutina').insert(inserciones);
-      if (insertError) console.error('Error insertando ejercicios iniciales de rutina:', insertError);
-    }
-
-    const nueva: Rutina = {
-      id: dataRes.id,
-      nombre: dataRes.nombre,
-      categoria: dataRes.categoria || r.categoria,
-      duracion: dataRes.duracion_estimada_minutos ?? r.duracion,
-      ejerciciosIds: ejerciciosIniciales,
-      imageUrl: r.imageUrl,
-      is_public: r.is_public ?? false,
-    };
-
-    setRutinas(prev => [nueva, ...prev]);
   };
 
   const editarRutina = async (r: Rutina) => {

@@ -136,7 +136,7 @@ export default function EstadisticasPage() {
       frecuenciaSemanalLabel,
       mejorRachaLabel,
     };
-  }, [sesionesDelAnio, sesiones, anioSeleccionado, localeStr, metricas.intensidad, nowMs]);
+  }, [sesionesDelAnio, sesiones, anioSeleccionado, localeStr, metricas.intensidad, nowMs, user?.unidadesKg]);
 
   const estadisticas = useMemo(() => ([
     { titulo: t.statistics.totalWorkouts, valor: String(totalEntrenos) },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout, TituloPagina, FiltroBoton, BotonPrimario, Loading } from "../componentes";
 import { useRutinas } from '../context/RutinasContext';
@@ -165,6 +165,7 @@ export default function MisRutinasPage() {
     const [rutinaUsuarioExpandida, setRutinaUsuarioExpandida] = useState<number | null>(null);
     // Estado de carga al adoptar una rutina
     const [adoptandoId, setAdoptandoId] = useState<string | null>(null);
+    const agregandoRef = useRef(false);
     // Mensaje de éxito temporal
     const [mensajeExito, setMensajeExito] = useState<string | null>(null);
 
@@ -203,14 +204,29 @@ export default function MisRutinasPage() {
 
     const handleGuardarRutina = async (data: { nombre: string; categoria: string; duracion: number; ejerciciosIds: number[]; is_public?: boolean }) => {
         if (modal?.tipo === 'crear') {
-            await agregarRutina({ ...data, ejerciciosIds: data.ejerciciosIds, is_public: data.is_public ?? false });
-            const total = data.ejerciciosIds.length;
-            setMensajeExito(
-                locale === 'es'
-                    ? `¡Rutina "${data.nombre}" creada con éxito${total > 0 ? ` con ${total} ejercicios` : ''}! (${data.is_public ? 'Pública' : 'Privada'})`
-                    : `Routine "${data.nombre}" created successfully${total > 0 ? ` with ${total} exercises` : ''}! (${data.is_public ? 'Public' : 'Private'})`
-            );
-            setTimeout(() => setMensajeExito(null), 3500);
+            if (!puedeCrearMasRutinas) {
+                setModalLimiteAbierto(true);
+                return;
+            }
+            if (agregandoRef.current) return;
+            agregandoRef.current = true;
+            try {
+                await agregarRutina({ ...data, ejerciciosIds: data.ejerciciosIds, is_public: data.is_public ?? false });
+                const total = data.ejerciciosIds.length;
+                setMensajeExito(
+                    locale === 'es'
+                        ? `¡Rutina "${data.nombre}" creada con éxito${total > 0 ? ` con ${total} ejercicios` : ''}! (${data.is_public ? 'Pública' : 'Privada'})`
+                        : `Routine "${data.nombre}" created successfully${total > 0 ? ` with ${total} exercises` : ''}! (${data.is_public ? 'Public' : 'Private'})`
+                );
+                setTimeout(() => setMensajeExito(null), 3500);
+            } catch (e: any) {
+                console.error('Error al crear rutina:', e);
+                if (e.message?.includes('Límite') || e.message?.includes('limit') || e.message?.includes('alcanzado')) {
+                    setModalLimiteAbierto(true);
+                }
+            } finally {
+                agregandoRef.current = false;
+            }
         } else if (modal?.tipo === 'editar') {
             await editarRutina({
                 ...modal.rutina,
@@ -246,6 +262,10 @@ export default function MisRutinasPage() {
             setModalLimiteAbierto(true);
             return;
         }
+        if (agregandoRef.current || adoptandoId !== null) {
+            return;
+        }
+        agregandoRef.current = true;
         setAdoptandoId(plantilla.id);
         try {
             await agregarRutina({
@@ -266,7 +286,11 @@ export default function MisRutinasPage() {
             setFiltroUsuario('Todas');
         } catch (e: any) {
             console.error('Error al adoptar rutina predefinida:', e);
+            if (e.message?.includes('Límite') || e.message?.includes('limit') || e.message?.includes('alcanzado')) {
+                setModalLimiteAbierto(true);
+            }
         } finally {
+            agregandoRef.current = false;
             setAdoptandoId(null);
         }
     };
@@ -814,12 +838,29 @@ export default function MisRutinasPage() {
                                         <div className="mt-5 pt-3 border-t border-neutral-800/60">
                                             <button
                                                 type="button"
-                                                disabled={isAdding}
-                                                onClick={() => handleCogerRutina(plantilla)}
-                                                className="w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all duration-200 bg-neutral-800/90 hover:bg-neutral-700 text-white hover:text-white border border-neutral-700/80 hover:border-neutral-500 shadow-sm active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={adoptandoId !== null}
+                                                onClick={() => {
+                                                    if (!puedeCrearMasRutinas) {
+                                                        setModalLimiteAbierto(true);
+                                                        return;
+                                                    }
+                                                    handleCogerRutina(plantilla);
+                                                }}
+                                                className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all duration-200 ${
+                                                    !puedeCrearMasRutinas
+                                                        ? 'bg-neutral-800/40 text-neutral-400 border border-neutral-800/70 hover:border-amber-500/40'
+                                                        : 'bg-neutral-800/90 hover:bg-neutral-700 text-white hover:text-white border border-neutral-700/80 hover:border-neutral-500 shadow-sm active:scale-98'
+                                                } cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
                                             >
                                                 {isAdding ? (
                                                     <span>{locale === 'es' ? 'Añadiendo rutina…' : 'Adding routine…'}</span>
+                                                ) : !puedeCrearMasRutinas ? (
+                                                    <>
+                                                        <Lock size={13} className="text-amber-400" />
+                                                        <span className="text-amber-200/80">
+                                                            {locale === 'es' ? `Límite alcanzado (${rutinas.length}/${maxRutinas})` : `Limit reached (${rutinas.length}/${maxRutinas})`}
+                                                        </span>
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <Plus size={15} strokeWidth={2.5} className="text-neutral-300" />
@@ -1209,10 +1250,11 @@ export default function MisRutinasPage() {
                                                 setModalProRutinaAbierto(true);
                                                 return;
                                             }
-                                            if (!puedeCrearMasRutinas) {
-                                                setModalLimiteAbierto(true);
+                                            if (!puedeCrearMasRutinas || guardandoIA || agregandoRef.current) {
+                                                if (!puedeCrearMasRutinas) setModalLimiteAbierto(true);
                                                 return;
                                             }
+                                            agregandoRef.current = true;
                                             setGuardandoIA(true);
                                             try {
                                                 await agregarRutina({
@@ -1231,8 +1273,14 @@ export default function MisRutinasPage() {
                                                     setIsPublicIA(false);
                                                     setMensajeExito(null);
                                                 }, 2000);
-                                            } catch { /* ignore */ }
-                                            finally { setGuardandoIA(false); }
+                                            } catch (e: any) {
+                                                if (e.message?.includes('Límite') || e.message?.includes('limit') || e.message?.includes('alcanzado')) {
+                                                    setModalLimiteAbierto(true);
+                                                }
+                                            } finally {
+                                                agregandoRef.current = false;
+                                                setGuardandoIA(false);
+                                            }
                                         }}
                                         disabled={guardandoIA || exitoIA}
                                         className="flex-1 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60"

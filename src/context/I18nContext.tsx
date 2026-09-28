@@ -229,6 +229,54 @@ const translations = {
       enabled: 'Activado',
       disabled: 'Desactivado',
     },
+
+    // Social
+    social: {
+      title: 'Comunidad Social',
+      subtitle: 'Descubre entrenamientos de otros atletas, comparte los tuyos y sigue a tu comunidad.',
+      feed: 'Feed de Rutinas',
+      explore: 'Explorar Atletas',
+      myProfile: 'Mi Perfil',
+      invite: 'Invitar amigos',
+      followers: 'Seguidores',
+      following: 'Siguiendo',
+      follow: 'Seguir',
+      unfollow: 'Dejar de seguir',
+      searchAthletes: 'Buscar atletas por nombre o usuario...',
+      noWorkouts: 'No hay entrenamientos en el feed.',
+      myPublicRoutines: 'Mis rutinas públicas',
+      myPrivateRoutines: 'Mis rutinas privadas',
+    },
+
+    // Utilities
+    utilities: {
+      title: 'Utilidades de Entrenamiento',
+      subtitle: 'Herramientas de soporte en tiempo real: temporizador de descanso, cronómetro y monitor de pasos.',
+      timer: 'Temporizador',
+      stopwatch: 'Cronómetro',
+      stepCounter: 'Podómetro / Pasos',
+      start: 'Iniciar',
+      pause: 'Pausar',
+      resume: 'Reanudar',
+      reset: 'Reiniciar',
+      lap: 'Vuelta',
+    },
+
+    // Subscriptions
+    subscriptions: {
+      title: 'Planes de Suscripción',
+      subtitle: 'Elige el nivel de potencia que necesita tu entrenamiento. Desbloquea rutinas ilimitadas, analíticas avanzadas y más.',
+      monthly: 'Mensual',
+      annual: 'Anual',
+      save15: '15% de Ahorro',
+      currentPlan: 'Plan actual',
+      upgrade: 'Mejorar Plan',
+      features: 'Matriz de Funcionalidades',
+      faq: 'Preguntas Frecuentes',
+      free: 'Free',
+      pro: 'Pro',
+      ultra: 'Ultra',
+    },
   },
 
   en: {
@@ -437,6 +485,7 @@ const translations = {
       totalTime: 'Total time',
     },
 
+    // Common
     common: {
       loading: 'Loading...',
       error: 'An error occurred.',
@@ -444,8 +493,60 @@ const translations = {
       enabled: 'Enabled',
       disabled: 'Disabled',
     },
+
+    // Social
+    social: {
+      title: 'Social Community',
+      subtitle: 'Discover workouts from other athletes, share yours, and follow your community.',
+      feed: 'Workout Feed',
+      explore: 'Explore Athletes',
+      myProfile: 'My Profile',
+      invite: 'Invite friends',
+      followers: 'Followers',
+      following: 'Following',
+      follow: 'Follow',
+      unfollow: 'Unfollow',
+      searchAthletes: 'Search athletes by name or username...',
+      noWorkouts: 'No workouts in feed.',
+      myPublicRoutines: 'My public routines',
+      myPrivateRoutines: 'My private routines',
+    },
+
+    // Utilities
+    utilities: {
+      title: 'Training Utilities',
+      subtitle: 'Real-time support tools: rest timer, stopwatch, and step counter.',
+      timer: 'Timer',
+      stopwatch: 'Stopwatch',
+      stepCounter: 'Step Counter',
+      start: 'Start',
+      pause: 'Pause',
+      resume: 'Resume',
+      reset: 'Reset',
+      lap: 'Lap',
+    },
+
+    // Subscriptions
+    subscriptions: {
+      title: 'Subscription Plans',
+      subtitle: 'Choose the power tier your training demands. Unlock unlimited routines, advanced analytics and more.',
+      monthly: 'Monthly',
+      annual: 'Annual',
+      save15: 'Save 15%',
+      currentPlan: 'Current plan',
+      upgrade: 'Upgrade Plan',
+      features: 'Feature Matrix',
+      faq: 'FAQ',
+      free: 'Free',
+      pro: 'Pro',
+      ultra: 'Ultra',
+    },
   },
 } as const;
+
+export function tChoice(locale: Locale, esText: string, enText: string): string {
+  return locale === 'es' ? esText : enText;
+}
 
 export type Translations = typeof translations.es;
 

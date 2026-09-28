@@ -51,7 +51,7 @@ export default function SocialPage() {
     cargandoSugerencias,
     refrescarFeed,
   } = useSocial();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const { theme } = useTheme();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -148,12 +148,10 @@ export default function SocialPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className={`text-2xl sm:text-3xl font-black tracking-tight mb-1 ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-              {locale === 'es' ? 'Comunidad Social' : 'Social Community'}
+              {t.social.title}
             </h1>
             <p className={`text-sm ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-              {locale === 'es'
-                ? 'Descubre entrenamientos de otros atletas, comparte los tuyos y sigue a tu comunidad.'
-                : 'Discover workouts from other athletes, share yours, and follow your community.'}
+              {t.social.subtitle}
             </p>
           </div>
 
@@ -170,7 +168,7 @@ export default function SocialPage() {
               }`}
             >
               <UserPlus size={14} className="text-white" />
-              <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
+              <span>{t.social.invite}</span>
             </button>
           </div>
         </div>
@@ -193,7 +191,7 @@ export default function SocialPage() {
             }`}
           >
             <Users size={16} className={tabActiva === 'feed' ? 'text-[var(--color-primary)]' : ''} />
-            <span>{locale === 'es' ? 'Feed de Rutinas' : 'Workout Feed'}</span>
+            <span>{t.social.feed}</span>
           </button>
 
           <button
@@ -210,7 +208,7 @@ export default function SocialPage() {
             }`}
           >
             <Compass size={16} className={tabActiva === 'explorar' ? 'text-[var(--color-primary)]' : ''} />
-            <span>{locale === 'es' ? 'Buscar Atletas' : 'Find Athletes'}</span>
+            <span>{t.social.explore}</span>
           </button>
 
           <button

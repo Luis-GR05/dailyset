@@ -55,10 +55,12 @@ export default function NotificacionesDropdown() {
     return max;
   }, [sesiones]);
 
+  const [mountTimestamp] = useState(() => Date.now());
+
   // Generar notificaciones base automáticas según los datos reales
   const notificacionesBase = useMemo<NotificacionItem[]>(() => {
     const items: NotificacionItem[] = [];
-    const now = Date.now();
+    const now = mountTimestamp;
 
     // 1. Notificación de subida de nivel
     if (totalSesiones >= 3) {
@@ -141,7 +143,7 @@ export default function NotificacionesDropdown() {
     });
 
     return items;
-  }, [totalSesiones, maxKg, locale]);
+  }, [totalSesiones, maxKg, locale, mountTimestamp]);
 
   // Cargar notificaciones (locales + servidor)
   const cargarNotificaciones = useCallback(async () => {

@@ -72,6 +72,16 @@ export const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> 
 const MIN_EXERCISES_PER_CATEGORY = 2;
 const normalizeCategory = (cat?: string) => (cat === 'general' ? 'all' : (cat ?? 'all'));
 
+function getMuscleTextHelper(m: string, locale: string) {
+  const item = MUSCLE_TRANSLATIONS[m.toLowerCase()];
+  return item ? (locale === 'es' ? item.es : item.en) : m;
+}
+
+function getEquipmentTextHelper(eq: string, locale: string) {
+  const item = EQUIPMENT_TRANSLATIONS[eq.toLowerCase()];
+  return item ? (locale === 'es' ? item.es : item.en) : eq;
+}
+
 export default function EjerciciosPage() {
   const { ejercicios, cargando, error, agregarEjercicio } = useEjercicios();
   const { t, locale } = useI18n();
@@ -116,15 +126,8 @@ export default function EjerciciosPage() {
     return [...set].sort();
   }, [ejercicios]);
 
-  const getMuscleText = (m: string) => {
-    const item = MUSCLE_TRANSLATIONS[m.toLowerCase()];
-    return item ? (locale === 'es' ? item.es : item.en) : m;
-  };
-
-  const getEquipmentText = (eq: string) => {
-    const item = EQUIPMENT_TRANSLATIONS[eq.toLowerCase()];
-    return item ? (locale === 'es' ? item.es : item.en) : eq;
-  };
+  const getMuscleText = (m: string) => getMuscleTextHelper(m, locale);
+  const getEquipmentText = (eq: string) => getEquipmentTextHelper(eq, locale);
 
   const ejerciciosFiltrados = useMemo(() => {
     return ejercicios.filter(ej => {
@@ -136,7 +139,7 @@ export default function EjerciciosPage() {
         ej.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         ej.grupo.toLowerCase().includes(busqueda.toLowerCase()) ||
         (ej.equipamiento ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
-        ej.musculosPrimarios.some(m => getMuscleText(m).toLowerCase().includes(busqueda.toLowerCase()));
+        ej.musculosPrimarios.some(m => getMuscleTextHelper(m, locale).toLowerCase().includes(busqueda.toLowerCase()));
       return matchCat && matchMus && matchEq && matchBus;
     });
   }, [ejercicios, filtroCategoria, filtroMusculo, filtroEquipamiento, busqueda, locale]);

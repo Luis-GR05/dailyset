@@ -4,8 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowRight, UserCheck } from 'lucide-react';
 import { Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
+import { supabase } from '../lib/supabaseClient';
 import { useI18n } from '../context/I18nContext';
-import { supabase, supabaseAdmin } from '../lib/supabaseClient';
 
 function traducirErrorAuth(mensaje: string, locale: string): string {
   if (!mensaje) {
@@ -238,41 +238,19 @@ export default function RestablecerPasswordPage() {
         if (isSamePassword) {
           try {
             await supabase.auth.signOut();
-          } catch {}
+          } catch (e) {
+            console.debug('Error cerrando sesión tras misma clave:', e);
+          }
           setExito(true);
           return;
         }
 
-        // Si la sesión expiró pero conocemos la cuenta de email, fallback con supabaseAdmin
+        // Si la sesión expiró o es inválida
         if (
-          supabaseAdmin &&
-          (msgLower.includes('auth session missing') ||
-            msgLower.includes('jwt expired') ||
-            msgLower.includes('session not found')) &&
-          cuentaEmail
+          msgLower.includes('auth session missing') ||
+          msgLower.includes('jwt expired') ||
+          msgLower.includes('session not found')
         ) {
-          try {
-            const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
-            const targetUser = usersData?.users?.find(
-              (u) => u.email?.toLowerCase() === cuentaEmail.toLowerCase()
-            );
-            if (targetUser?.id) {
-              const { error: adminError } = await supabaseAdmin.auth.admin.updateUserById(
-                targetUser.id,
-                { password: cleanPass }
-              );
-              if (!adminError) {
-                try {
-                  await supabase.auth.signOut();
-                } catch {}
-                setExito(true);
-                return;
-              }
-            }
-          } catch (adminErr) {
-            console.warn('Fallback admin no disponible:', adminErr);
-          }
-
           setEnlaceInvalido(true);
           return;
         }
@@ -283,7 +261,9 @@ export default function RestablecerPasswordPage() {
       // Éxito: cerrar sesión de recuperación para que el usuario inicie limpiamente
       try {
         await supabase.auth.signOut();
-      } catch {}
+      } catch (e) {
+        console.debug('Error cerrando sesión post actualización:', e);
+      }
 
       setExito(true);
     } catch (err: any) {
@@ -301,7 +281,9 @@ export default function RestablecerPasswordPage() {
       if (isSamePassword) {
         try {
           await supabase.auth.signOut();
-        } catch {}
+        } catch (e) {
+          console.debug('Error cerrando sesión tras error same_password:', e);
+        }
         setExito(true);
         return;
       }

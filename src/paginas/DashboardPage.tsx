@@ -21,6 +21,14 @@ import {
   Share2,
 } from 'lucide-react';
 
+// Funciones puras de cálculo de volumen y fechas
+function calcularVolumenSesion(ejercicios: { series: { kg: number; reps: number }[] }[]) {
+  return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + (serie.kg || 0) * (serie.reps || 0), 0), 0);
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
 export default function DashboardPage() {
   const { locale } = useI18n();
   const { user } = useAuth();
@@ -41,9 +49,10 @@ export default function DashboardPage() {
 
   // Generar los 7 días de la semana actual
   const diasSemanaBar = useMemo(() => {
-    const inicioSemana = new Date(hoyFecha);
-    const diaActual = (hoyFecha.getDay() + 6) % 7;
-    inicioSemana.setDate(hoyFecha.getDate() - diaActual);
+    const hoy = new Date();
+    const diaActual = (hoy.getDay() + 6) % 7;
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - diaActual);
 
     const nombresDiasEs = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     const nombresDiasEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -56,24 +65,17 @@ export default function DashboardPage() {
         nombre: locale === 'es' ? nombresDiasEs[i] : nombresDiasEn[i],
         letra: (locale === 'es' ? 'LMXJVSD' : 'MTWTFSS')[i],
         numero: d.getDate(),
-        esHoy: i === hoyDiaIndex,
+        esHoy: i === diaActual,
       };
     });
-  }, [locale, hoyDiaIndex]);
-
-  // Cálculo de volumen por sesión
-  const calcularVolumenSesion = (ejercicios: { series: { kg: number; reps: number }[] }[]) => {
-    return ejercicios.reduce((t, ej) => t + ej.series.reduce((s, serie) => s + (serie.kg || 0) * (serie.reps || 0), 0), 0);
-  };
-
-  const pad2 = (n: number) => String(n).padStart(2, '0');
-  const toLocalYYYYMMDD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }, [locale]);
 
   // Actividad real de los 7 días de la semana actual
   const actividadSemanal = useMemo(() => {
-    const inicioSemana = new Date(hoyFecha);
-    const diaActual = (hoyFecha.getDay() + 6) % 7;
-    inicioSemana.setDate(hoyFecha.getDate() - diaActual);
+    const hoy = new Date();
+    const diaActual = (hoy.getDay() + 6) % 7;
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - diaActual);
 
     const dias = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(inicioSemana);

@@ -17,12 +17,14 @@ export default function BannerEntrenamientoActivo() {
   const location = useLocation();
 
   const [sesion, setSesion] = useState<SesionActivaData | null>(null);
+  const [ahoraMs, setAhoraMs] = useState<number>(() => Date.now());
 
   const userId = user?.id || 'anonimo';
 
   const checkSesion = useCallback(() => {
     const activa = obtenerSesionActiva(userId);
     setSesion(activa);
+    setAhoraMs(Date.now());
   }, [userId]);
 
   useEffect(() => {
@@ -32,10 +34,15 @@ export default function BannerEntrenamientoActivo() {
       checkSesion();
     };
 
+    const interval = setInterval(() => {
+      setAhoraMs(Date.now());
+    }, 15000);
+
     window.addEventListener(ACTIVE_SESSION_EVENT, handleUpdate);
     window.addEventListener('storage', handleUpdate);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener(ACTIVE_SESSION_EVENT, handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
@@ -48,7 +55,7 @@ export default function BannerEntrenamientoActivo() {
 
   const minutosTranscurridos = Math.max(
     1,
-    Math.round((Date.now() - sesion.startedAtMs) / (1000 * 60))
+    Math.round((ahoraMs - sesion.startedAtMs) / (1000 * 60))
   );
 
   const totalSeriesHechas = sesion.ejerciciosUI.reduce(

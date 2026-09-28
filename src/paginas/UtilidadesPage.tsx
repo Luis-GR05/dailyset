@@ -279,14 +279,18 @@ export default function UtilidadesPage() {
   useEffect(() => {
     try {
       localStorage.setItem(`dailyset:pasos:${hoyFechaStr}`, pasosHoy.toString());
-    } catch {}
+    } catch (e) {
+      console.debug('Error guardando pasos en localStorage:', e);
+    }
   }, [pasosHoy, hoyFechaStr]);
 
   // Guardar meta
   useEffect(() => {
     try {
       localStorage.setItem('dailyset:pasos_meta', objetivoPasos.toString());
-    } catch {}
+    } catch (e) {
+      console.debug('Error guardando meta de pasos en localStorage:', e);
+    }
   }, [objetivoPasos]);
 
   // Algoritmo de detección de pasos con el acelerómetro en dispositivos móviles

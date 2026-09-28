@@ -50,7 +50,8 @@ export default function TemporizadorDescanso({
   const [sonidoHabilitado, setSonidoHabilitado] = useState(true);
 
   // Timestamp absoluto (ms) en el que debe finalizar el descanso
-  const targetEndTimeRef = useRef<number>(Date.now() + segundosIniciales * 1000);
+  const [startTime] = useState(() => Date.now());
+  const targetEndTimeRef = useRef<number>(startTime + segundosIniciales * 1000);
   // Guardado del tiempo restante cuando se encuentra pausado
   const restantePausaRef = useRef<number>(segundosIniciales);
   // Banderas para controlar alertas únicas
@@ -114,7 +115,9 @@ export default function TemporizadorDescanso({
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           navigator.vibrate(60);
-        } catch {}
+        } catch (e) {
+          console.debug('Vibración no soportada o rechazada:', e);
+        }
       }
     }
   }, [sonidoHabilitado]);
@@ -211,8 +214,20 @@ export default function TemporizadorDescanso({
     }
   };
 
+  // Reiniciar temporizador
+  const reiniciar = useCallback((nuevosSegundos?: number) => {
+    const s = nuevosSegundos ?? totalSegundos;
+    targetEndTimeRef.current = Date.now() + s * 1000;
+    restantePausaRef.current = s;
+    haTerminadoRef.current = false;
+    ultimoSegundoAvisadoRef.current = null;
+    setSegundos(s);
+    setTotalSegundos(s);
+    setPausado(false);
+  }, [totalSegundos]);
+
   // Añadir tiempo (+15s, +30s)
-  const agregarTiempo = (extra: number) => {
+  const agregarTiempo = useCallback((extra: number) => {
     if (haTerminadoRef.current || segundos <= 0) {
       reiniciar(extra);
       return;
@@ -224,24 +239,13 @@ export default function TemporizadorDescanso({
       setTotalSegundos(prev => Math.max(prev, restantePausaRef.current));
     } else {
       targetEndTimeRef.current += extra * 1000;
-      const nuevoRestante = Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000));
+      const ahora = Date.now();
+      const nuevoRestante = Math.max(0, Math.ceil((targetEndTimeRef.current - ahora) / 1000));
       setSegundos(nuevoRestante);
       setTotalSegundos(prev => Math.max(prev, nuevoRestante));
       haTerminadoRef.current = false;
     }
-  };
-
-  // Reiniciar temporizador
-  const reiniciar = (nuevosSegundos?: number) => {
-    const s = nuevosSegundos ?? totalSegundos;
-    targetEndTimeRef.current = Date.now() + s * 1000;
-    restantePausaRef.current = s;
-    haTerminadoRef.current = false;
-    ultimoSegundoAvisadoRef.current = null;
-    setSegundos(s);
-    setTotalSegundos(s);
-    setPausado(false);
-  };
+  }, [pausado, reiniciar, segundos]);
 
   const porcentaje = totalSegundos > 0 ? Math.min(100, Math.max(0, (segundos / totalSegundos) * 100)) : 0;
   const terminado = segundos <= 0;

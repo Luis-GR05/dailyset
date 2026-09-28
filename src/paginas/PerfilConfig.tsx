@@ -286,11 +286,10 @@ export default function PerfilConfigPage() {
         const cleanPhone = telefonoRecuperacion.startsWith('+') ? telefonoRecuperacion : `+34${telefonoRecuperacion.replace(/\s+/g, '')}`;
         const { error } = await supabase.auth.signInWithOtp({ phone: cleanPhone });
         if (error) {
-          // Si el proveedor SMS no está activado en Supabase, confirmamos el envío amigablemente
-          setMensajeRecuperacion(
+          throw new Error(
             locale === 'es'
-              ? `Hemos registrado la solicitud. Te llegará un SMS con las instrucciones al ${telefonoRecuperacion}.`
-              : `Recovery request registered. An SMS with instructions will arrive at ${telefonoRecuperacion}.`
+              ? 'El servicio de recuperación por SMS no está disponible en este momento. Por favor, utiliza la opción de recuperación por correo electrónico.'
+              : 'SMS recovery is not available right now. Please use the email recovery option.'
           );
         } else {
           setMensajeRecuperacion(
@@ -941,7 +940,7 @@ export default function PerfilConfigPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                      <img src={locale === 'es' ? flagEn : flagEs} alt="" className="w-5 h-5 rounded-sm object-cover" />
+                      <img src={locale === 'es' ? flagEs : flagEn} alt={locale === 'es' ? 'Español' : 'English'} className="w-5 h-5 rounded-sm object-cover" />
                     </div>
                     <div>
                       <span className="text-zinc-300 font-black text-[11px] italic tracking-widest uppercase">{locale === 'es' ? 'Idioma' : 'Language'}</span>

@@ -42,10 +42,10 @@ export default function HistorialPage() {
   const estaFueraDelRango = useMemo(() => {
     if (diasPermitidos === Infinity) return false;
     const finDelMes = new Date(anioActual, mesActual + 1, 0, 23, 59, 59);
-    const ahoraMs = Date.now();
+    const ahoraMs = ahora.getTime();
     const diffDias = Math.floor((ahoraMs - finDelMes.getTime()) / (1000 * 60 * 60 * 24));
     return diffDias > diasPermitidos;
-  }, [anioActual, mesActual, diasPermitidos]);
+  }, [anioActual, mesActual, diasPermitidos, ahora]);
 
   // Año inspeccionado en la vista anual
   const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());

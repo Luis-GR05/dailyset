@@ -302,13 +302,14 @@ export async function buscarUsuarios(
   if (!cleanTerm) return [];
 
   try {
-    let query = supabase
+    const query = supabase
       .from('perfiles')
       .select('id, nombre_usuario, nombre_completo, avatar_url, bio, nivel_entrenamiento, es_publico')
       .or(`nombre_usuario.ilike.%${cleanTerm}%,nombre_completo.ilike.%${cleanTerm}%`)
       .limit(15);
 
-    let { data, error } = await query;
+    const { data: initialData, error } = await query;
+    let data = initialData;
     if (error) {
       const fallbackQuery = await supabase
         .from('perfiles')
@@ -401,7 +402,8 @@ export async function getUsuariosSugeridos(
       query = query.neq('id', currentUserId);
     }
 
-    let { data, error } = await query;
+    const { data: initialData, error } = await query;
+    let data = initialData;
     if (error) {
       const fallback = await supabase
         .from('perfiles')

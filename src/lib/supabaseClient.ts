@@ -19,19 +19,6 @@ const supabaseAnonKey = (
   ''
 ).trim();
 
-const supabaseServiceKey = (
-  (import.meta.env.VITE_SUPABASE_SERVICE_KEY as string) ||
-  (import.meta.env.SUPABASE_SERVICE_KEY as string) ||
-  ''
-).trim();
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    '❌ [DailySet] Variables de entorno de Supabase no encontradas. Asegúrate de configurar SUPABASE_URL y SUPABASE_ANON_KEY (o VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY).'
-  );
-}
-
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storageKey: 'dailyset-auth-token',
@@ -40,12 +27,3 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true
   }
 })
-
-export const supabaseAdmin = supabaseServiceKey && supabaseUrl
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null;

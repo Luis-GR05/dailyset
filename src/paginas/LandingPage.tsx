@@ -635,16 +635,16 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-black/15 text-xs font-black uppercase tracking-wider text-black/80">
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Plataforma" : "Platform"}</p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Planes y Cuotas" : "Plans & Rates"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Mis Rutinas" : "My Routines"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Ejercicios" : "Exercises"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Entrenamiento" : "Workout"}</Link></p>
+              <p><Link to="/suscripciones" className="hover:underline">{locale === "es" ? "Planes y Cuotas" : "Plans & Rates"}</Link></p>
+              <p><Link to="/mis-rutinas" className="hover:underline">{locale === "es" ? "Mis Rutinas" : "My Routines"}</Link></p>
+              <p><Link to="/ejercicios" className="hover:underline">{locale === "es" ? "Ejercicios" : "Exercises"}</Link></p>
+              <p><Link to="/mis-rutinas/entrenamiento" className="hover:underline">{locale === "es" ? "Entrenamiento" : "Workout"}</Link></p>
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Utilidades" : "Utilities"}</p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Temporizador" : "Timer"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Cronómetro" : "Stopwatch"}</Link></p>
-              <p><Link to="/registro" className="hover:underline">{locale === "es" ? "Pasos Diarios" : "Daily Steps"}</Link></p>
+              <p><Link to="/utilidades" className="hover:underline">{locale === "es" ? "Temporizador" : "Timer"}</Link></p>
+              <p><Link to="/utilidades" className="hover:underline">{locale === "es" ? "Cronómetro" : "Stopwatch"}</Link></p>
+              <p><Link to="/utilidades" className="hover:underline">{locale === "es" ? "Pasos Diarios" : "Daily Steps"}</Link></p>
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Comunidad" : "Community"}</p>
