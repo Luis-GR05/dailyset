@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../componentes/shared/Logo";
-import DotGrid from "../componentes/FondoAnimado";
+import ConcaveCarousel, { type CarouselItem } from "../componentes/landing/ConcaveCarousel";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -18,6 +18,81 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+const DAILY_LETTERS = ["D", "A", "I", "L", "Y"];
+const SET_LETTERS = ["S", "E", "T"];
+
+const ROUTINE_ITEMS: CarouselItem[] = [
+  {
+    id: "r1",
+    tag: "Fuerza Pura",
+    tagEn: "Pure Strength",
+    titulo: "Power & Hypertrophy",
+    tituloEn: "Power & Hypertrophy",
+    subtitulo: "Powerlifting clásico con RIR progresivo",
+    subtituloEn: "Classic powerlifting with progressive RIR",
+    detalles: "4 días/sem · Sentadilla, Press, Peso Muerto. Control de sobrecarga milimétrico serie a serie.",
+    detallesEn: "4 days/wk · Squat, Bench, Deadlift. Millimetric progressive overload set by set.",
+    tasa: "95% éxito",
+    tasaEn: "95% success",
+    imagen: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop",
+  },
+  {
+    id: "r2",
+    tag: "Hipertrofia 365",
+    tagEn: "Hypertrophy 365",
+    titulo: "Muscle Mass Pro",
+    tituloEn: "Muscle Mass Pro",
+    subtitulo: "Volumen y densidad muscular máxima",
+    subtituloEn: "Maximum muscle volume and density",
+    detalles: "5 días/sem · Split Push/Pull/Legs con métricas de volumen y tonelaje semanal automatizadas.",
+    detallesEn: "5 days/wk · Push/Pull/Legs split with automated volume & weekly tonnage metrics.",
+    tasa: "92% éxito",
+    tasaEn: "92% success",
+    imagen: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop",
+  },
+  {
+    id: "r3",
+    tag: "Atleta Híbrido",
+    tagEn: "Hybrid Athlete",
+    titulo: "Strength & Endurance",
+    tituloEn: "Strength & Endurance",
+    subtitulo: "Fuerza + cardio integrados en un único plan",
+    subtituloEn: "Strength + cardio integrated in a single plan",
+    detalles: "6 días/sem · Combina trabajo de fuerza con zonas de cardio Z2 y HIIT para rendimiento total.",
+    detallesEn: "6 days/wk · Combines strength work with Z2 cardio and HIIT for total performance.",
+    tasa: "89% éxito",
+    tasaEn: "89% success",
+    imagen: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop",
+  },
+  {
+    id: "r4",
+    tag: "VBT & Velocidad",
+    tagEn: "VBT & Speed",
+    titulo: "Velocity Based",
+    tituloEn: "Velocity Based",
+    subtitulo: "Entrenamiento basado en velocidad de barra",
+    subtituloEn: "Bar velocity based training protocol",
+    detalles: "4 días/sem · VBT con control de m/s por serie. Indicado para deportistas de élite y powerlifters avanzados.",
+    detallesEn: "4 days/wk · VBT with m/s control per set. Designed for elite athletes and advanced powerlifters.",
+    tasa: "97% élite",
+    tasaEn: "97% elite",
+    imagen: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=800&auto=format&fit=crop",
+  },
+  {
+    id: "r5",
+    tag: "Calistenia",
+    tagEn: "Calisthenics",
+    titulo: "Bodyweight Mastery",
+    tituloEn: "Bodyweight Mastery",
+    subtitulo: "Control total del peso corporal",
+    subtituloEn: "Total bodyweight control",
+    detalles: "5 días/sem · Progresiones hacia muscle-up, planche y handstand. Sin equipamiento necesario.",
+    detallesEn: "5 days/wk · Progressions toward muscle-up, planche and handstand. No equipment needed.",
+    tasa: "91% éxito",
+    tasaEn: "91% success",
+    imagen: "https://images.unsplash.com/photo-1616803689943-5601631c7fec?q=80&w=800&auto=format&fit=crop",
+  },
+];
 
 export default function LandingPage() {
   const container = useRef<HTMLDivElement>(null);
@@ -36,7 +111,7 @@ export default function LandingPage() {
 
   useGSAP(
     () => {
-      // Entrada del Hero
+      // 1. Entrada cinematográfica del Hero original
       const tl = gsap.timeline();
       tl.from(".hero-word", {
         y: 60,
@@ -44,56 +119,251 @@ export default function LandingPage() {
         duration: 0.9,
         stagger: 0.18,
         ease: "power4.out",
-      })
-        .from(
-          ".hero-subcontent",
-          { y: 25, opacity: 0, duration: 0.8, ease: "power3.out" },
-          "-=0.4"
-        )
-        .from(
-          ".hero-visual-card",
-          { scale: 0.95, opacity: 0, duration: 1.0, ease: "power3.out" },
-          "-=0.6"
-        );
+      }).from(
+        ".hero-visual-card",
+        { scale: 0.95, opacity: 0, duration: 1.0, ease: "power3.out" },
+        "-=0.6"
+      );
 
+      // 2. Animación en scroll para el Banner de Filosofía
+      gsap.from(".filosofia-image", {
+        scale: 1.15,
+        opacity: 0.7,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#filosofia",
+          start: "top 80%",
+          end: "bottom 20%",
+          scrub: 1,
+        },
+      });
 
+      gsap.from(".filosofia-strip", {
+        xPercent: -20,
+        opacity: 0,
+        duration: 1.0,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: "#filosofia",
+          start: "top 70%",
+          toggleActions: "play none none reverse",
+        },
+      });
 
-      // Animación de las tarjetas bento y atletas
-      gsap.utils.toArray<Element>(".animate-on-scroll").forEach((el) => {
-        gsap.from(el, {
+      gsap.from(".filosofia-text", {
+        y: 50,
+        opacity: 0,
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".filosofia-text",
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      // 3. Animación en scroll para las tarjetas de Rutinas ("DailySet en Movimiento")
+      gsap.to(".big-number-parallax", {
+        yPercent: -25,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#en-movimiento",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+
+      gsap.utils.toArray<HTMLElement>(".routine-card").forEach((card, i) => {
+        gsap.from(card, {
+          y: 60,
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.8,
+          delay: i * 0.15,
+          ease: "power3.out",
           scrollTrigger: {
-            trigger: el,
+            trigger: card,
             start: "top 88%",
             toggleActions: "play none none reverse",
           },
-          y: 40,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
         });
       });
+
+      // 4. Animación en scroll de la Cita de Prensa & Medios
+      gsap.from(".press-quote-box", {
+        scale: 0.92,
+        opacity: 0,
+        y: 40,
+        duration: 1.0,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".press-quote-box",
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      gsap.from(".press-logo-item", {
+        y: 20,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".press-logos-container",
+          start: "top 88%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      // 5. Animación en scroll de la sección de Descarga de App
+      gsap.from(".app-device-card", {
+        y: 60,
+        opacity: 0,
+        rotationY: -10,
+        duration: 1.1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: "#descarga-app",
+          start: "top 75%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      gsap.from(".app-feature-row", {
+        x: -30,
+        opacity: 0,
+        stagger: 0.12,
+        duration: 0.7,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".app-features-group",
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      // 6. Animación palabra a palabra: gris -> blanco al hacer scroll en #comenzar
+      gsap.utils.toArray<HTMLElement>(".moment-word").forEach((word) => {
+        gsap.fromTo(
+          word,
+          { color: "#3f3f46" },
+          {
+            color: "#ffffff",
+            ease: "none",
+            scrollTrigger: {
+              trigger: word,
+              start: "top 88%",
+              end: "top 55%",
+              scrub: 0.8,
+            },
+          }
+        );
+      });
+
+      // Entrada del stat monumental
+      gsap.from(".moment-stat", {
+        opacity: 0,
+        y: 40,
+        duration: 1.2,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".moment-stat",
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      // Trazado de la línea ondulada atlética que aparece progresivamente según el scroll
+      gsap.fromTo(
+        ".stat-line-reveal-rect",
+        { attr: { width: 0 } },
+        {
+          attr: { width: 1200 },
+          ease: "none",
+          scrollTrigger: {
+            trigger: ".moment-stat",
+            start: "top 80%",
+            end: "bottom 35%",
+            scrub: 1.2,
+          },
+        }
+      );
+
+      // Entrada de las tarjetas de programa
+      gsap.utils.toArray<HTMLElement>(".moment-card").forEach((card, i) => {
+        gsap.from(card, {
+          y: 50,
+          opacity: 0,
+          duration: 0.75,
+          delay: i * 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ".moment-cards-row",
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        });
+      });
+
+      // ─── 7. ANIMACIÓN KINÉTICA DE CARGA LETRA A LETRA: "DAILY SET" ───
+      const brandTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".brand-letters-wrapper",
+          start: "top 95%",
+          end: "top 62%",
+          scrub: 0.6,
+        },
+      });
+
+      // Línea de carga progresiva que completa al 100%
+      brandTl.fromTo(
+        ".brand-loading-bar",
+        { width: "0%" },
+        { width: "100%", ease: "none" }
+      );
+
+      // Letras kinetica DAILY SET letra a letra al unísono con la barra
+      brandTl.fromTo(
+        ".brand-letter-char",
+        {
+          opacity: 0.1,
+          y: 35,
+          scale: 0.94,
+          filter: "blur(4px)",
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          stagger: 0.04,
+          ease: "power2.out",
+        },
+        0
+      );
     },
     { scope: container }
   );
 
-
-
   return (
     <div
       ref={container}
-      className="min-h-screen selection:bg-[var(--color-primary)] selection:text-black overflow-x-hidden font-sans"
-      style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)" }}
+      className="min-h-screen selection:bg-[var(--color-primary)] selection:text-black overflow-x-clip font-sans"
+      style={{ backgroundColor: "var(--color-black)", color: "var(--color-white)", overflowX: "clip" }}
     >
-      {/* ─── 1. BARRA SUPERIOR EDITORIAL ─── */}
+      {/* ─── 1. BARRA SUPERIOR EDITORIAL FIJA ─── */}
       <header
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 sm:px-8 md:px-12 py-4"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 80%, transparent 100%)",
-          backdropFilter: "blur(16px)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.65) 85%, transparent 100%)",
+          backdropFilter: "blur(18px)",
         }}
       >
         <div className="flex items-center gap-8">
           <Logo size="md" />
+
         </div>
 
         <div className="flex items-center gap-3">
@@ -115,28 +385,28 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ─── 2. HERO: ESTRUCTURA "MOTION. DISCIPLINE. RESULT." SOBRE LA FOTO (REFERENCIA 3) ─── */}
-      <section className="relative min-h-[92vh] flex flex-col pt-20 sm:pt-24 pb-0 overflow-hidden">
+      {/* ─── 2. HERO ORIGINAL: ESTRUCTURA "MOTION. DISCIPLINE. RESULT." SOBRE LA FOTO ─── */}
+      <section className="relative min-h-[42vh] sm:min-h-[48vh] flex flex-col pt-16 sm:pt-20 pb-0 overflow-hidden">
         {/* Fondo sutil con gradiente */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--color-primary)]/10 blur-[160px] pointer-events-none -z-10" />
 
-        {/* Fotografía Hero con el texto superpuesto encima */}
-        <div className="hero-visual-card relative flex-1 min-h-[80vh] sm:min-h-[85vh] overflow-hidden bg-neutral-950 flex flex-col justify-between">
+        {/* Fotografía Hero con el texto superpuesto encima (más estrecha) */}
+        <div className="hero-visual-card relative flex-1 min-h-[34vh] sm:min-h-[40vh] max-h-[420px] overflow-hidden bg-neutral-950 flex flex-col justify-between">
           <img
-            src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1600&auto=format&fit=crop"
-            alt="Atleta entrenando fuerza"
+            src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=1600&auto=format&fit=crop"
+            alt="Corredor atleta portada"
             className="absolute inset-0 w-full h-full object-cover object-center opacity-65 filter grayscale contrast-125"
           />
           {/* Degradados cinemáticos para que el texto sea nítido y legible */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/25 to-black pointer-events-none" />
 
           {/* Encabezado tres columnas "Motion. Discipline. Result." SUPERPUESTO ENCIMA DE LA FOTO */}
-          <div className="relative z-10 pt-8 sm:pt-12 px-5 sm:px-8 md:px-12 pb-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 items-start border-b border-white/15 pb-6 sm:pb-8">
+          <div className="relative z-10 pt-6 sm:pt-8 px-5 sm:px-8 md:px-12 pb-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 items-start border-b border-white/15 pb-4 sm:pb-5">
               <div className="hero-word">
                 <h1
                   className="font-black uppercase tracking-tight text-white leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
-                  style={{ fontSize: 'clamp(2.5rem, 5vw, 4.8rem)' }}
+                  style={{ fontSize: "clamp(2.2rem, 4.4vw, 4.2rem)" }}
                 >
                   Motion.
                 </h1>
@@ -145,7 +415,7 @@ export default function LandingPage() {
               <div className="hero-word">
                 <h1
                   className="font-black uppercase tracking-tight leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
-                  style={{ color: 'var(--color-primary)', fontSize: 'clamp(2.5rem, 5vw, 4.8rem)' }}
+                  style={{ color: "var(--color-primary)", fontSize: "clamp(2.2rem, 4.4vw, 4.2rem)" }}
                 >
                   Discipline.
                 </h1>
@@ -154,34 +424,32 @@ export default function LandingPage() {
               <div className="hero-word flex flex-col lg:items-end lg:text-right">
                 <h1
                   className="font-black uppercase tracking-tight text-white leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]"
-                  style={{ fontSize: 'clamp(2.5rem, 5vw, 4.8rem)' }}
+                  style={{ fontSize: "clamp(2.2rem, 4.4vw, 4.2rem)" }}
                 >
                   Result.
                 </h1>
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
-
-      {/* ─── 3. BANNER EDITORIAL DE RESISTENCIA Y FRANJA AMARILLA (REFERENCIA 1) ─── */}
-      <section id="filosofia" className="relative py-20 px-5 sm:px-8 md:px-12 bg-black overflow-hidden border-t border-white/5">
+      {/* ─── 5. BANNER EDITORIAL DE RESISTENCIA Y FILOSOFÍA 365 ─── */}
+      <section id="filosofia" className="relative py-24 px-5 sm:px-8 md:px-12 bg-black overflow-hidden border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
-          {/* Imagen deportiva en blanco y negro con la franja horizontal atravesando */}
+          {/* Imagen deportiva en blanco y negro con la franja horizontal */}
           <div className="lg:col-span-7 relative rounded-3xl overflow-hidden border border-white/10 aspect-[4/3] sm:aspect-[16/10]">
             <img
-              src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=1200&auto=format&fit=crop"
-              alt="Corredor en asfalto"
-              className="w-full h-full object-cover grayscale contrast-125 brightness-90"
+              src="/Imagenes/dailyset.jpg"
+              alt="DailySet atleta"
+              className="filosofia-image w-full h-full object-cover grayscale contrast-125 brightness-90 will-change-transform"
             />
             <div className="absolute inset-0 bg-black/20" />
 
-            {/* Franja horizontal amarillo flúor cortando la imagen (idéntica a la referencia 1) */}
+            {/* Franja horizontal amarillo flúor */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 left-0 right-0 py-3 sm:py-4 px-4 sm:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl z-10"
+              className="filosofia-strip absolute top-1/2 -translate-y-1/2 left-0 right-0 py-3 sm:py-4 px-4 sm:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl z-10"
               style={{ backgroundColor: "var(--color-primary)", color: "var(--color-black)" }}
             >
               <div className="space-y-0.5">
@@ -203,8 +471,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Tipografía editorial de impacto a la derecha (Referencia 1) */}
-          <div className="lg:col-span-5 space-y-6 lg:pl-6">
+          {/* Tipografía editorial de impacto a la derecha */}
+          <div className="filosofia-text lg:col-span-5 space-y-6 lg:pl-6">
             <div className="space-y-2">
               <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
                 {locale === "es" ? "FILOSOFÍA 365" : "PHILOSOPHY 365"}
@@ -239,26 +507,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-
-
-      {/* ─── 5. "DAILYSET EN MOVIMIENTO" & NÚMERO GRÁFICO (REFERENCIA 2) ─── */}
+      {/* ─── 6. "DAILYSET EN MOVIMIENTO" ─── */}
       <section id="en-movimiento" className="relative py-24 px-5 sm:px-8 md:px-12 bg-neutral-950 overflow-hidden">
-        {/* Número gráfico gigante amarillo flúor recortado en el fondo (como el "42" de la ref 2) */}
-        <div
-          className="absolute -right-10 top-0 text-[260px] sm:text-[360px] md:text-[460px] font-black leading-none select-none pointer-events-none opacity-20 -z-0 font-mono tracking-tighter"
-          style={{ color: "var(--color-primary)" }}
-        >
-          01
-        </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
 
-            {/* Columna Izquierda: Texto y Botón "VER TODAS" */}
-            <div className="lg:col-span-4 space-y-5">
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
-                {locale === "es" ? "PROGRAMAS & RUTINAS" : "PROGRAMS & ROUTINES"}
-              </span>
+          {/* Encabezado centrado */}
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-4">
+            <div className="space-y-3 max-w-xl">
               <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
                 {locale === "es" ? "DailySet en Movimiento" : "DailySet in Motion"}
               </h2>
@@ -267,129 +523,33 @@ export default function LandingPage() {
                   ? "Cada serie cuenta una historia. Un vistazo a la energía, el foco y el esfuerzo diario que definen la excelencia atlética."
                   : "Every stride tells a story. A look back at the energy, focus, and grit that defined endurance."}
               </p>
-              <Link to="/registro">
-                <button className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-xs uppercase tracking-widest transition-all cursor-pointer">
-                  {locale === "es" ? "VER TODAS LAS RUTINAS" : "VIEW ALL ROUTINES"}
-                </button>
-              </Link>
             </div>
-
-            {/* Columna Derecha: Tarjetas horizontales de entrenamiento */}
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Tarjeta 1 */}
-              <div className="group rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/60 p-4 space-y-3 transition-all hover:border-[var(--color-primary)]/40 hover:-translate-y-1">
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
-                  <img
-                    src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop"
-                    alt="Fuerza y Powerlifting"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-white">
-                    {locale === "es" ? "Fuerza Pura" : "Pure Strength"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <div>
-                    <h4 className="font-black text-white text-base">Power & Hypertrophy</h4>
-                    <p className="text-xs text-neutral-400">4 {locale === "es" ? "días / sem · RIR progresivo" : "days/wk · progressive RIR"}</p>
-                  </div>
-                  <span className="text-xs font-black font-mono text-[var(--color-primary)]">
-                    95% {locale === "es" ? "éxito" : "success"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Tarjeta 2 */}
-              <div className="group rounded-3xl overflow-hidden border border-white/10 bg-neutral-900/60 p-4 space-y-3 transition-all hover:border-[var(--color-primary)]/40 hover:-translate-y-1">
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
-                  <img
-                    src="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop"
-                    alt="Acondicionamiento y movilidad"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-white">
-                    {locale === "es" ? "Resistencia & HIIT" : "Endurance & HIIT"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <div>
-                    <h4 className="font-black text-white text-base">Conditioning Pro</h4>
-                    <p className="text-xs text-neutral-400">5 {locale === "es" ? "días / sem · Alta intensidad" : "days/wk · High intensity"}</p>
-                  </div>
-                  <span className="text-xs font-black font-mono text-[var(--color-primary)]">
-                    98% {locale === "es" ? "éxito" : "success"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
+            <Link to="/registro" className="shrink-0">
+              <button className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-xs uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap">
+                {locale === "es" ? "VER TODAS LAS RUTINAS →" : "VIEW ALL ROUTINES →"}
+              </button>
+            </Link>
           </div>
+
         </div>
+
+        {/* Carousel 3D Cóncavo a ancho completo */}
+        <div className="w-full relative z-10">
+          <ConcaveCarousel items={ROUTINE_ITEMS} locale={locale} autoDrift={true} />
+        </div>
+
       </section>
 
-      {/* ─── 6. CITA DE PRENSA Y LOGOS PATROCINADORES CON FONDO ANIMADO DOTGRID ─── */}
-      <section className="relative py-28 sm:py-36 px-5 sm:px-8 md:px-12 bg-neutral-950 border-t border-white/5 text-center overflow-hidden">
-        {/* Fondo animado interactivo (idéntico al de Login) */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-50">
-          <DotGrid
-            dotSize={4} gap={20} baseColor="#271E37" activeColor="#5227FF"
-            proximity={120} shockRadius={250} shockStrength={5}
-            resistance={750} returnDuration={1.5}
-          />
-        </div>
 
-        {/* Resplandor violeta atmosférico idéntico al del login */}
-        <div
-          className="absolute inset-0 z-0 opacity-25 pointer-events-none"
-          style={{ background: 'radial-gradient(circle at 50% 50%, #5227FF 0%, transparent 60%)' }}
-        />
 
-        {/* Suavizado de bordes superior e inferior */}
-        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-neutral-950 to-transparent pointer-events-none z-0" />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950 to-transparent pointer-events-none z-0" />
-
-        <div className="relative z-10 max-w-4xl mx-auto space-y-6">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400 font-mono">
-            {locale === "es" ? "LO QUE DICEN DE NOSOTROS" : "THEY WRITE ABOUT US"}
-          </span>
-
-          <h3 className="text-xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)]">
-            &ldquo;
-            {locale === "es"
-              ? "REVOLUCIONANDO EL ENTRENAMIENTO DE FUERZA CON MÉTRICAS EN TIEMPO REAL, INTELIGENCIA ARTIFICIAL Y UNA DISCIPLINA INQUEBRANTABLE."
-              : "REVOLUTIONIZING FITNESS TRAINING WITH AI INSIGHTS, PROGRESSIVE OVERLOAD, AND A THRIVING DISCIPLINE."}
-            &rdquo;
-          </h3>
-
-          <p className="text-xs text-[var(--color-primary)] font-mono font-bold tracking-widest">
-            — DailySet Endurance & Fitness Weekly
-          </p>
-
-          {/* Marcas / Medios de prensa de referencia */}
-          <div className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-60 grayscale hover:grayscale-0 transition-all text-xs sm:text-sm font-black tracking-widest uppercase font-mono text-neutral-300">
-            <span>Men&apos;sHealth</span>
-            <span>RUNNER&apos;S WORLD</span>
-            <span>IRONMAN</span>
-            <span>TRIATHLETE</span>
-            <span>FITNESS PRO</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 7. SECCIÓN DE DESCARGA: DISPONIBLE EN AMBOS LADOS (IOS & ANDROID) ─── */}
+      {/* ─── 8. SECCIÓN DE DESCARGA DE LA APP ─── */}
       <section id="descarga-app" className="relative py-24 px-5 sm:px-8 md:px-12 bg-neutral-950 border-t border-white/5 overflow-hidden">
-        {/* Glow atmosférico flúor */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[var(--color-primary)]/10 blur-[160px] pointer-events-none -z-0" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Columna Izquierda: Información de descarga */}
+            
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-black uppercase tracking-widest font-mono">
-                <Smartphone size={14} />
-                <span>{locale === "es" ? "DISPONIBLE EN AMBAS PLATAFORMAS" : "AVAILABLE ON BOTH PLATFORMS"}</span>
-              </div>
-
               <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
                 {locale === "es"
                   ? "DESCARGA DAILYSET EN IOS Y ANDROID"
@@ -398,11 +558,10 @@ export default function LandingPage() {
 
               <p className="text-sm sm:text-base text-neutral-400 leading-relaxed max-w-xl">
                 {locale === "es"
-                  ? "Lleva tu entrenamiento al siguiente nivel. Puedes descargar la app tanto en Apple App Store como en Google Play Store para registrar cada serie, controlar tus descansos y seguir tus marcas en tiempo real dentro y fuera del gimnasio."
-                  : "Take your workouts to the next level. Download the app on both Apple App Store and Google Play Store to track every set, rest timers, and your progress in real-time with full offline support."}
+                  ? "Lleva tu entrenamiento al siguiente nivel. Puedes descargar la app tanto en Apple App Store como en Google Play Store para registrar cada serie, controlar descansos y seguir tus marcas en tiempo real dentro y fuera del gimnasio."
+                  : "Take your workouts to the next level. Download the app on both Apple App Store and Google Play Store to track every set, rest timers, and your progress in real-time."}
               </p>
 
-              {/* Botones de Tiendas de descarga */}
               <div className="pt-2 flex flex-wrap items-center gap-4">
                 <a
                   href="#descarga-app"
@@ -411,7 +570,6 @@ export default function LandingPage() {
                     window.open("https://www.apple.com/app-store/", "_blank");
                   }}
                   className="bg-white hover:bg-neutral-100 px-5 py-3 rounded-2xl border border-white/30 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer group"
-                  title="Descargar en Apple App Store"
                 >
                   <img
                     src="/Imagenes/Apple_Store.png"
@@ -427,7 +585,6 @@ export default function LandingPage() {
                     window.open("https://play.google.com/store", "_blank");
                   }}
                   className="bg-white hover:bg-neutral-100 px-5 py-3 rounded-2xl border border-white/30 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer group"
-                  title="Disponible en Google Play"
                 >
                   <img
                     src="/Imagenes/Google_Play_2022_logo.svg.png"
@@ -437,17 +594,16 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              {/* Puntos clave de la aplicación */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
-                <div className="flex items-center gap-2 text-neutral-300">
+              <div className="app-features-group grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
+                <div className="app-feature-row flex items-center gap-2 text-neutral-300">
                   <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
                   <span>{locale === "es" ? "Persistencia 100% Offline" : "100% Offline Ready"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-neutral-300">
+                <div className="app-feature-row flex items-center gap-2 text-neutral-300">
                   <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
                   <span>{locale === "es" ? "Sincronización instantánea" : "Instant Cloud Sync"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-neutral-300">
+                <div className="app-feature-row flex items-center gap-2 text-neutral-300">
                   <CheckCircle2 size={16} className="text-[var(--color-primary)] shrink-0" />
                   <span className="flex items-center gap-1.5">
                     <span>4.9</span>
@@ -458,9 +614,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Columna Derecha: Tarjeta visual interactiva estilo dispositivo */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-sm rounded-3xl p-6 bg-gradient-to-b from-neutral-900 to-black border border-white/15 shadow-2xl space-y-5">
+              <div className="app-device-card relative w-full max-w-sm rounded-3xl p-6 bg-gradient-to-b from-neutral-900 to-black border border-white/15 shadow-2xl space-y-5">
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/40 flex items-center justify-center text-[var(--color-primary)]">
@@ -516,73 +671,101 @@ export default function LandingPage() {
                     <span className="text-[11px] font-mono font-bold text-[var(--color-primary)]">+8.5 kg</span>
                   </div>
                 </div>
-
-                <div className="pt-2 text-center flex items-center justify-center gap-1.5">
-                  <Smartphone size={13} className="text-[var(--color-primary)]" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 font-mono">
-                    {locale === "es" ? "Disponible para iPhone y Android" : "Available for iPhone & Android"}
-                  </span>
-                </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* ─── 8. SECCIÓN DIVIDIDA: "DA EL PRIMER PASO HOY" (REFERENCIA 4) ─── */}
-      <section id="comenzar" className="py-20 px-5 sm:px-8 md:px-12 bg-black border-t border-white/5">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+      {/* ─── 9. EL MOMENTO ES HOY — DISEÑO EDITORIAL ATLÉTICO ─── */}
+      <section id="comenzar" className="relative bg-black border-t border-white/5 overflow-hidden">
 
-          {/* Columna Izquierda: Atleta con iluminación de alto contraste */}
-          <div className="rounded-3xl overflow-hidden border border-white/10 aspect-[4/3] sm:aspect-auto sm:min-h-[420px]">
-            <img
-              src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1200&auto=format&fit=crop"
-              alt="Ciclista y atleta"
-              className="w-full h-full object-cover grayscale contrast-125"
-            />
+        {/* ── FILA SUPERIOR: LABEL + TEXTO CON REVEAL PALABRA A PALABRA ── */}
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-12 pt-20 pb-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Label izquierda */}
+          <div className="lg:col-span-3">
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-neutral-500 font-mono">
+              {locale === "es" ? "[ EL MOMENTO ES HOY // DAILYSET™ ]" : "[ THE MOMENT IS NOW // DAILYSET™ ]"}
+            </span>
           </div>
 
-          {/* Columna Derecha: Tarjeta oscura con tipografía y CTA flúor */}
-          <div className="rounded-3xl border border-white/10 bg-neutral-900/60 p-8 sm:p-12 flex flex-col justify-center space-y-6">
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--color-primary)] font-mono">
-              {locale === "es" ? "EL MOMENTO ES HOY" : "THE MOMENT IS NOW"}
-            </span>
-
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-              {locale === "es"
-                ? "DA EL PRIMER PASO HOY — ELIGE TU PROGRAMA Y COMIENZA A ENTRENAR!"
-                : "TAKE THE FIRST STEP TODAY — CHOOSE YOUR PROGRAM AND START TRAINING!"}
-            </h2>
-
-            <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-md">
-              {locale === "es"
-                ? "Crea rutinas personalizadas, registra cada carga y lleva tu cuerpo al siguiente escalón de rendimiento."
-                : "Create custom workouts, track every single set, and elevate your physique to the next level."}
-            </p>
-
-            <div>
-              <Link to="/registro">
-                <button
-                  className="px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest text-black transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: "var(--color-primary)" }}
+          {/* Párrafo con reveal palabra a palabra */}
+          <div className="lg:col-span-9">
+            <p className="text-sm sm:text-base font-bold leading-relaxed tracking-wide uppercase">
+              {(locale === "es"
+                ? "DA EL PRIMER PASO HOY — ELIGE TU PROGRAMA Y COMIENZA A ENTRENAR. CREA RUTINAS PERSONALIZADAS, REGISTRA CADA CARGA Y LLEVA TU CUERPO AL SIGUIENTE ESCALÓN DE RENDIMIENTO."
+                : "TAKE THE FIRST STEP TODAY — CHOOSE YOUR PROGRAM AND START TRAINING. CREATE CUSTOM ROUTINES, TRACK EVERY SET AND PUSH YOUR BODY TO THE NEXT LEVEL OF PERFORMANCE."
+              ).split(" ").map((word, i) => (
+                <span
+                  key={i}
+                  className="moment-word inline-block mr-[0.35em]"
+                  style={{ color: "#3f3f46" }}
                 >
-                  {locale === "es" ? "COMENZAR GRATIS" : "GET STARTED"}
-                </button>
-              </Link>
+                  {word}
+                </span>
+              ))}
+            </p>
+          </div>
+        </div>
+
+        {/* ── STAT MONUMENTAL ── */}
+        <div className="moment-stat relative w-full overflow-hidden py-6 sm:py-10">
+          {/* SVG ruta atlética decorativa con revelación animada en scroll */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 1200 220"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <clipPath id="stat-line-reveal-clip">
+                <rect className="stat-line-reveal-rect" x="0" y="0" width="0" height="220" />
+              </clipPath>
+            </defs>
+            <g clipPath="url(#stat-line-reveal-clip)">
+              <path
+                d="M0,140 C100,80 180,160 300,120 C420,80 480,160 600,110 C720,60 800,150 920,100 C1040,55 1100,140 1200,100"
+                stroke="var(--color-primary)"
+                strokeWidth="2.5"
+                fill="none"
+                strokeDasharray="6 6"
+                opacity="0.75"
+              />
+              <circle cx="300" cy="120" r="5" fill="var(--color-primary)" opacity="0.9" />
+              <circle cx="600" cy="110" r="5" fill="var(--color-primary)" opacity="0.9" />
+              <circle cx="920" cy="100" r="5" fill="var(--color-primary)" opacity="0.9" />
+            </g>
+          </svg>
+
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-12 relative z-10">
+            <div
+              className="font-black uppercase tracking-tighter text-white leading-none select-none"
+              style={{ fontSize: "clamp(5rem, 16vw, 13rem)", color: "rgba(255,255,255,0.08)", WebkitTextStroke: "1px rgba(255,255,255,0.15)" }}
+            >
+              100,380 KG
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2 px-1">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-neutral-500 font-mono">
+                {locale === "es" ? "JUNTOS HEMOS MOVIDO TONELADAS" : "TOGETHER WE'VE MOVED TONS"}
+              </p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-neutral-500 font-mono">
+                {locale === "es" ? "Y CADA SERIE CUENTA UNA HISTORIA" : "AND EVERY SET TELLS A STORY"}
+              </p>
             </div>
           </div>
-
         </div>
+
       </section>
 
-      {/* ─── 9. EL GRAN BLOQUE AMARILLO FLÚOR CORPORATIVO (REFERENCIA 4) ─── */}
+      {/* ─── 10. EL GRAN BLOQUE AMARILLO FLÚOR CON ANIMACIÓN DE CARGA DE LETRAS "DAILY SET" ─── */}
       <section
-        className="w-full py-16 sm:py-20 px-5 sm:px-8 md:px-14 select-none"
+        className="w-full py-16 sm:py-24 px-5 sm:px-8 md:px-14 select-none relative overflow-hidden"
         style={{ backgroundColor: "var(--color-primary)", color: "var(--color-black)" }}
       >
         <div className="max-w-7xl mx-auto space-y-12">
 
-          {/* Fila superior: Titular impactante a la izquierda y Suscripción a la derecha */}
+          {/* Fila superior: Titular y Suscripción */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-4">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter text-black leading-none">
@@ -590,12 +773,9 @@ export default function LandingPage() {
                   ? "TU CAMINO HACIA LA MAESTRÍA COMIENZA AQUÍ Y AHORA"
                   : "YOUR JOURNEY TO MASTERY STARTS HERE AND NOW"}
               </h2>
-
-
-
             </div>
 
-            {/* Newsletter box (idéntico a la referencia 4) */}
+            {/* Newsletter box */}
             <div className="lg:col-span-5 space-y-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-black block">
                 {locale === "es"
@@ -631,14 +811,13 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Enlaces de navegación en columnas */}
+          {/* Enlaces de navegación */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-black/15 text-xs font-black uppercase tracking-wider text-black/80">
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Plataforma" : "Platform"}</p>
               <p><Link to="/suscripciones" className="hover:underline">{locale === "es" ? "Planes y Cuotas" : "Plans & Rates"}</Link></p>
               <p><Link to="/mis-rutinas" className="hover:underline">{locale === "es" ? "Mis Rutinas" : "My Routines"}</Link></p>
               <p><Link to="/ejercicios" className="hover:underline">{locale === "es" ? "Ejercicios" : "Exercises"}</Link></p>
-              <p><Link to="/mis-rutinas/entrenamiento" className="hover:underline">{locale === "es" ? "Entrenamiento" : "Workout"}</Link></p>
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Utilidades" : "Utilities"}</p>
@@ -648,6 +827,7 @@ export default function LandingPage() {
             </div>
             <div className="space-y-2">
               <p className="text-black font-black text-sm">{locale === "es" ? "Comunidad" : "Community"}</p>
+              <p><a href="#ingenieria-3d" className="hover:underline">{locale === "es" ? "Biomecánica 3D" : "3D Form"}</a></p>
               <p><a href="#filosofia" className="hover:underline">{locale === "es" ? "Filosofía" : "Philosophy"}</a></p>
               <p><a href="#comenzar" className="hover:underline">{locale === "es" ? "Guía Pro" : "Pro Guide"}</a></p>
             </div>
@@ -659,17 +839,55 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* TIPOGRAFÍA CONDENSADA GIGANTE A ANCHO COMPLETO: "DAILYSET" (REFERENCIA 4) */}
-          <div className="pt-6 border-t border-black/15 overflow-hidden text-center">
+          {/* ─── ANIMACIÓN KINÉTICA DE CARGA LETRA A LETRA "DAILY SET" ─── */}
+          <div className="brand-letters-wrapper pt-10 border-t border-black/15 overflow-hidden text-center select-none">
+            {/* Barra de progreso de carga sutil */}
+            <div className="max-w-md mx-auto mb-4 space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono font-black uppercase text-black/60">
+                <span>[ STATUS: KINETIC CHARGE ]</span>
+                <span>DAILYSET™ CORE</span>
+              </div>
+              <div className="w-full h-1 bg-black/15 rounded-full overflow-hidden">
+                <div className="brand-loading-bar h-full bg-black rounded-full" />
+              </div>
+            </div>
+
+            {/* Letras gigantes con revelación en scroll letra a letra */}
             <h1
-              className="text-[16vw] font-black leading-none tracking-tighter uppercase text-black select-none pointer-events-none"
+              className="text-[17vw] sm:text-[16vw] font-black leading-none tracking-tighter uppercase text-black flex items-center justify-center gap-1 sm:gap-4 flex-wrap"
               style={{ fontFamily: "'Big Shoulders Display', 'Bebas Neue', 'Montserrat', sans-serif" }}
             >
-              <span>DAILY</span>
-              <span className="italic inline-block" style={{ fontStyle: 'italic', transform: 'skewX(-8deg)' }}>SET</span>
+              {/* Palabra DAILY */}
+              <span className="inline-flex">
+                {DAILY_LETTERS.map((char, index) => (
+                  <span
+                    key={`daily-${index}`}
+                    className="brand-letter-char inline-block will-change-transform"
+                  >
+                    {char}
+                  </span>
+                ))}
+              </span>
+
+              {/* Separador de espacio */}
+              <span className="inline-block w-[2vw]" />
+
+              {/* Palabra SET con inclinación deportiva */}
+              <span
+                className="inline-flex italic"
+                style={{ fontStyle: "italic", transform: "skewX(-7deg)" }}
+              >
+                {SET_LETTERS.map((char, index) => (
+                  <span
+                    key={`set-${index}`}
+                    className="brand-letter-char inline-block will-change-transform"
+                  >
+                    {char}
+                  </span>
+                ))}
+              </span>
             </h1>
           </div>
-
 
           {/* Barra final de Copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold text-black/70 pt-2 border-t border-black/10 gap-2">
