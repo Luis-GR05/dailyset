@@ -1,4 +1,4 @@
-
+import React from 'react';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -6,52 +6,37 @@ interface LogoProps {
 }
 
 export default function Logo({ size = 'md', className = "" }: LogoProps) {
-  const sizes = {
-    sm: { text: 'text-2xl' },
-    md: { text: 'text-4xl' },
-    lg: { text: 'text-5xl' },
-    xl: { text: 'text-8xl' },
+  const heights = {
+    sm: 'h-6 sm:h-7',
+    md: 'h-8 sm:h-9',
+    lg: 'h-10 sm:h-12',
+    xl: 'h-14 sm:h-16',
   };
 
-  const s = sizes[size];
+  const h = heights[size];
 
   return (
     <div className={`inline-flex items-center select-none ${className}`}>
-      <div
-        className={`flex items-baseline leading-[0.95] pt-1 pb-0.5 font-black ${s.text} tracking-tighter overflow-visible`}
-        style={{
-          fontFamily: "'Big Shoulders Display', 'Bebas Neue', 'Impact', sans-serif",
-          textTransform: 'uppercase'
-        }}
+      <svg
+        viewBox="0 0 576 171"
+        className={`${h} w-auto overflow-visible block`}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="DailySet"
       >
-        <span className="text-white">
-          DAILY
-        </span>
-
-        <span
-          className="italic ml-1"
-          style={{
-            color: 'var(--color-primary)',
-            transform: 'skewX(-5deg)',
-            textShadow: '3px 3px 0px rgba(0,0,0,0.2)'
-          }}
-        >
-          SET
-        </span>
-      </div>
-
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Bebas+Neue&display=swap');
-        
-        .animate-pulse-slow {
-          animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-      `}} />
+        {/* DAILY en blanco puro */}
+        <path
+          d="M66.45 144L36 144L36 24L66.45 24Q83.32 24 90.86 31.16Q98.40 38.33 98.70 54.75Q98.92 65.17 99 74.55Q99.08 83.93 99 93.30Q98.92 102.68 98.70 113.10Q98.40 129.60 90.86 136.80Q83.32 144 66.45 144M58.50 43.80L58.50 124.20L66.45 124.20Q71.17 124.20 73.65 122.03Q76.13 119.85 76.20 115.80Q76.42 107.78 76.54 99.83Q76.65 91.88 76.65 83.93Q76.65 75.98 76.54 67.99Q76.42 60 76.20 52.05Q76.13 48.08 73.65 45.94Q71.17 43.80 66.45 43.80L58.50 43.80M127.35 144L104.25 144L120.90 24L156.30 24L172.95 144L149.85 144L147.30 118.95L129.90 118.95L127.35 144M134.70 72.60L132 99.15L145.20 99.15L142.50 72.60L140.70 43.80L136.50 43.80L134.70 72.60M202.95 144L180.45 144L180.45 24L202.95 24L202.95 144M267 144L214.95 144L214.95 24L237.45 24L237.45 124.20L267 124.20L267 144M300.38 144L277.88 144L277.88 115.50L277.88 115.35L255.38 24L278.32 24L284.77 53.10L287.02 88.35L291.23 88.35L293.48 53.10L299.93 24L322.88 24L300.38 115.35L300.38 115.50"
+          fill="#FFFFFF"
+        />
+        {/* SET en color lima oficial con inclinación deportiva */}
+        <g transform="translate(434, 83) skewX(-6) translate(-434, -83)">
+          <path
+            d="M374.75 145.50Q358.25 145.50 351.24 138.53Q344.23 131.55 343.55 115.35Q343.48 112.95 343.48 110.06Q343.48 107.18 343.63 104.29Q343.77 101.40 344.15 99L365.30 99Q365 104.47 364.93 109.80Q364.85 115.13 365.30 119.55Q365.68 123.22 367.96 125.21Q370.25 127.20 374.75 127.20Q379.18 127.20 381.24 125.21Q383.30 123.22 383.75 119.55Q384.05 117 384.16 114.49Q384.27 111.97 384.16 109.46Q384.05 106.95 383.75 104.40Q383.45 101.25 381.80 98.70Q380.15 96.15 376.55 95.25L364.25 92.10Q356.45 90.08 351.88 86.29Q347.30 82.50 345.24 76.88Q343.18 71.25 342.95 63.75Q342.88 60.45 342.88 57.86Q342.88 55.28 342.95 52.50Q343.40 41.78 346.59 35.17Q349.77 28.58 356.60 25.54Q363.43 22.50 374.75 22.50Q390.73 22.50 397.93 29.44Q405.13 36.38 405.80 52.50Q405.95 55.73 405.84 60.38Q405.73 65.03 405.50 69L383.90 69Q384.13 63.83 384.20 58.65Q384.27 53.48 384.05 48.30Q383.98 44.70 381.46 42.75Q378.95 40.80 374.75 40.80Q370.25 40.80 368.07 42.75Q365.90 44.70 365.45 48.30Q365 52.13 365 56.03Q365 59.92 365.45 63.75Q365.82 66.75 367.55 69.23Q369.27 71.70 373.10 72.60L383.75 75.15Q392.15 77.17 396.99 81.11Q401.82 85.05 403.96 90.86Q406.10 96.68 406.40 104.40Q406.48 106.13 406.48 108Q406.48 109.88 406.40 111.75Q406.32 113.63 406.25 115.35Q405.57 131.55 398.49 138.53Q391.40 145.50 374.75 145.50M468.13 144L416.23 144L416.23 24L468.13 24L468.13 43.80L438.73 43.80L438.73 73.05L466.63 73.05L466.63 92.85L438.73 92.85L438.73 124.20L468.13 124.20L468.13 144M514.10 144L491.60 144L491.60 43.80L472.32 43.80L472.32 24L533.38 24L533.38 43.80L514.10 43.80"
+            fill="var(--color-primary, #D4FB34)"
+          />
+        </g>
+      </svg>
     </div>
   );
 }
