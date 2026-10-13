@@ -567,9 +567,9 @@ export default function EntrenamientoPage() {
                                                             rel="noreferrer"
                                                             className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg transition-all"
                                                             style={{
-                                                                background: 'rgba(219, 240, 89, 0.12)',
-                                                                color: 'var(--color-primary)',
-                                                                border: '1px solid rgba(219, 240, 89, 0.35)',
+                                                                background: 'rgba(255, 255, 255, 0.06)',
+                                                                color: 'var(--color-neutral-3000)',
+                                                                border: '1px solid rgba(255, 255, 255, 0.1)',
                                                             }}
                                                         >
                                                             <Eye size={13} />

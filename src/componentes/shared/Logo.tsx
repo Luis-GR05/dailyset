@@ -18,7 +18,7 @@ export default function Logo({ size = 'md', className = "" }: LogoProps) {
   return (
     <div className={`inline-flex items-center select-none ${className}`}>
       <div
-        className={`flex items-baseline leading-[0.8] font-black ${s.text} tracking-tighter`}
+        className={`flex items-baseline leading-[0.95] pt-1 pb-0.5 font-black ${s.text} tracking-tighter overflow-visible`}
         style={{
           fontFamily: "'Big Shoulders Display', 'Bebas Neue', 'Impact', sans-serif",
           textTransform: 'uppercase'

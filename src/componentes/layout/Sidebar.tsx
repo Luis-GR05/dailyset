@@ -80,7 +80,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                 aria-current={isActive ? 'page' : undefined}
                 style={
                   isActive
-                    ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-black)' }
+                    ? { backgroundColor: 'rgba(255, 255, 255, 0.08)', color: '#FFFFFF', borderLeft: '3px solid var(--color-primary)' }
                     : { color: 'var(--color-neutral-2000)' }
                 }
                 onMouseEnter={e => {
@@ -96,7 +96,7 @@ export default function Sidebar({ abierto, onCerrar }: SidebarProps) {
                   }
                 }}
               >
-                <span className="shrink-0">{item.icon}</span>
+                <span className="shrink-0" style={{ color: isActive ? 'var(--color-primary)' : 'inherit' }}>{item.icon}</span>
                 <span>{item.nombre}</span>
               </Link>
             );

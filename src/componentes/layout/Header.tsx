@@ -37,7 +37,9 @@ export default function Header({ onAbrirMenu, fondoClaro = false }: HeaderProps)
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Logo size="sm" />
+          <div className="py-1 flex items-center overflow-visible">
+            <Logo size="sm" />
+          </div>
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
