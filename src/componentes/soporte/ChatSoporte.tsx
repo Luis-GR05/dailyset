@@ -251,7 +251,7 @@ export default function ChatSoporte({ onCerrar }: { onCerrar?: () => void }) {
                       </button>
 
                       <a
-                        href={`mailto:soporte@dailyset.app?subject=${encodeURIComponent(`[${msg.ticketId}] Consulta Soporte DailySet`)}&body=${encodeURIComponent(`Hola equipo de DailySet,\n\nMi ticket es ${msg.ticketId}.\nMi usuario es: ${user?.email || user?.nombre || 'atleta'}\n\nDetalles del problema:\n`)}`}
+                        href={`mailto:Info.DailySet@protonmail.com?subject=${encodeURIComponent(`[${msg.ticketId}] Consulta Soporte DailySet`)}&body=${encodeURIComponent(`Hola equipo de DailySet,\n\nMi ticket es ${msg.ticketId}.\nMi usuario es: ${user?.email || user?.nombre || 'atleta'}\n\nDetalles del problema:\n`)}`}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--color-primary)] text-black text-[10px] font-black transition-opacity hover:opacity-90"
                       >
                         <Mail size={11} />
@@ -319,7 +319,7 @@ export default function ChatSoporte({ onCerrar }: { onCerrar?: () => void }) {
 
         <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono pt-2 px-1">
           <span>{es ? 'Horario de guardia: 24/7' : 'Coverage: 24/7'}</span>
-          <span>soporte@dailyset.app</span>
+          <span>Info.DailySet@protonmail.com</span>
         </div>
       </div>
     </div>

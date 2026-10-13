@@ -261,8 +261,8 @@ export default function TerminosCondicionesPage() {
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
               {es 
-                ? 'Para cualquier consulta sobre estos Términos y Condiciones, puedes contactarnos en legal@dailyset.app o soporte@dailyset.app.'
-                : 'For any inquiries regarding these Terms of Service, please reach out to legal@dailyset.app.'}
+                ? 'Para cualquier consulta sobre estos Términos y Condiciones, puedes contactarnos en Info.DailySet@protonmail.com.'
+                : 'For any inquiries regarding these Terms of Service, please reach out to Info.DailySet@protonmail.com.'}
             </p>
           </section>
         </div>

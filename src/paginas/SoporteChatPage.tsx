@@ -63,10 +63,10 @@ export default function SoporteChatPage() {
               </p>
 
               <a
-                href="mailto:soporte@dailyset.app"
+                href="mailto:Info.DailySet@protonmail.com"
                 className="block w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-center text-xs font-mono font-bold text-[var(--color-primary)] hover:underline transition-all"
               >
-                soporte@dailyset.app
+                Info.DailySet@protonmail.com
               </a>
             </div>
 

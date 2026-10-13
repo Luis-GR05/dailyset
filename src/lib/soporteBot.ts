@@ -64,8 +64,8 @@ export function generarRespuestaSoporte(pregunta: string, es: boolean): { texto:
     const numTicket = `TK-${Math.floor(100000 + Math.random() * 900000)}`;
     return {
       texto: es
-        ? `He generado tu número de incidencia oficial: ${numTicket}.\n\nTu reporte ha quedado registrado para nuestro equipo de ingenieros. Si lo prefieres, puedes enviarnos los detalles por correo a soporte@dailyset.app mencionando tu ticket para una respuesta prioritaria en menos de 24 horas.`
-        : `I have generated your official ticket reference: ${numTicket}.\n\nYour issue has been logged for our engineering team. You can also email soporte@dailyset.app quoting this ticket reference for priority response within 24 hours.`,
+        ? `He generado tu número de incidencia oficial: ${numTicket}.\n\nTu reporte ha quedado registrado para nuestro equipo de ingenieros. Si lo prefieres, puedes enviarnos los detalles por correo a Info.DailySet@protonmail.com mencionando tu ticket para una respuesta prioritaria en menos de 24 horas.`
+        : `I have generated your official ticket reference: ${numTicket}.\n\nYour issue has been logged for our engineering team. You can also email Info.DailySet@protonmail.com quoting this ticket reference for priority response within 24 hours.`,
       ticketId: numTicket,
       sugerencias: [
         es ? 'Copiar número de ticket' : 'Copy ticket number',

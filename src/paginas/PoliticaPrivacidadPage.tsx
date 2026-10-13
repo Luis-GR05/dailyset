@@ -136,7 +136,7 @@ export default function PoliticaPrivacidadPage() {
             </p>
             <ul className="list-none space-y-1.5 pl-2 font-mono text-xs text-neutral-300">
               <li><strong className="text-white">{es ? 'Denominación:' : 'Entity:'}</strong> DailySet Training Systems</li>
-              <li><strong className="text-white">{es ? 'Contacto de Privacidad:' : 'Privacy Contact:'}</strong> soporte@dailyset.app / legal@dailyset.app</li>
+              <li><strong className="text-white">{es ? 'Contacto de Privacidad:' : 'Privacy Contact:'}</strong> Info.DailySet@protonmail.com</li>
               <li><strong className="text-white">{es ? 'Ámbito de Aplicación:' : 'Jurisdiction:'}</strong> {es ? 'España / Unión Europea' : 'Spain / European Union'}</li>
             </ul>
           </section>
@@ -329,8 +329,8 @@ export default function PoliticaPrivacidadPage() {
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
               {es 
-                ? 'Si deseas ejercer tus derechos de acceso, rectificación, supresión o tienes cualquier duda sobre cómo tratamos tu información, escríbenos a soporte@dailyset.app.'
-                : 'If you have any questions regarding this policy or wish to exercise your rights, please reach out to soporte@dailyset.app.'}
+                ? 'Si deseas ejercer tus derechos de acceso, rectificación, supresión o tienes cualquier duda sobre cómo tratamos tu información, escríbenos a Info.DailySet@protonmail.com.'
+                : 'If you have any questions regarding this policy or wish to exercise your rights, please reach out to Info.DailySet@protonmail.com.'}
             </p>
           </section>
         </div>
