@@ -49,6 +49,7 @@ export interface ConcaveCarouselProps {
   reflection?: number;
   dim?: number;
   autoplay?: "drift" | "step" | "off";
+  autoDrift?: boolean;
   speed?: number;
   interval?: number;
   snap?: boolean;
@@ -204,6 +205,7 @@ const ConcaveCarousel = forwardRef<ConcaveCarouselRef, ConcaveCarouselProps>(
       reflection = 0.08,
       dim = 0.35,
       autoplay = "drift",
+      autoDrift,
       speed = 0.16,
       interval = 4,
       snap = true,
@@ -249,6 +251,8 @@ const ConcaveCarousel = forwardRef<ConcaveCarouselRef, ConcaveCarouselProps>(
     const [hasWebGL, setHasWebGL] = useState(true);
     const [controlsTop, setControlsTop] = useState<number | null>(null);
 
+    const resolvedAutoplay = autoDrift === false ? "off" : autoplay;
+
     const config = {
       aspect,
       size,
@@ -259,7 +263,7 @@ const ConcaveCarousel = forwardRef<ConcaveCarouselRef, ConcaveCarouselProps>(
       radius,
       reflection,
       dim,
-      autoplay,
+      autoplay: resolvedAutoplay,
       speed,
       interval,
       snap,
