@@ -273,8 +273,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (session?.user) {
-          const profile = await withTimeout(fetchProfile(session.user));
-          setUser(profile ?? mapAuthUser(session.user));
+          // Mostrar la sesión enseguida con los datos básicos y completar el perfil después
+          setUser((prev) => prev ?? mapAuthUser(session.user));
+          const profile = await withTimeout(fetchProfile(session.user)).catch((e) => {
+            console.warn("Perfil no disponible todavía:", e);
+            return null;
+          });
+          if (profile) setUser(profile);
         } else {
           setUser(null);
         }
@@ -307,23 +312,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      try {
-        if (session?.user) {
-          const profile = await withTimeout(fetchProfile(session.user));
-          setUser(profile ?? mapAuthUser(session.user));
-        } else {
-          setUser(null);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      // IMPORTANTE: Supabase ejecuta este callback mientras mantiene su bloqueo interno de sesión.
+      // Cualquier llamada a Supabase hecha aquí con await (fetchProfile hace consultas) espera a ese
+      // mismo bloqueo y se queda colgada hasta el timeout ("Auth timeout exceeded").
+      // Por eso el trabajo se difiere con setTimeout, como recomienda la documentación de Supabase.
+      setTimeout(async () => {
+        if (!isMounted) return;
+        try {
+          if (session?.user) {
+            const profile = await withTimeout(fetchProfile(session.user));
+            if (isMounted) setUser(profile ?? mapAuthUser(session.user));
+          } else if (isMounted) {
+            setUser(null);
+          }
+        } catch (error) {
+          console.warn("No se pudo actualizar el perfil tras el cambio de sesión:", error);
+          // Mantener la sesión con los datos básicos si el perfil tarda (red lenta).
+          if (isMounted && session?.user) setUser((prev) => prev ?? mapAuthUser(session.user));
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
         }
-      } catch (error) {
-        console.error("Error en cambio de estado auth:", error);
-        // Mantener sesión actual ante errores transitorios de sincronización auth.
-        setUser((prev) => prev);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+      }, 0);
     });
 
     const profileRefreshInterval = window.setInterval(async () => {

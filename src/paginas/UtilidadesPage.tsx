@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { useTextos } from '../hooks/useTextos';
 import { textosUtilidades } from '../data/textos/utilidades';
+import { useAuth } from '../context/AuthContext';
+import { crearDetectorPasos, fechaLocal, guardarMetaPasos, guardarPasosDia, leerMetaPasos, leerPasosDia, metricasPasos, recordarSensorPasos, sensorPasosRecordado } from '../lib/pasos';
 
 // Sonido sintético con Web Audio API (funciona en cualquier navegador sin dependencias externas)
 function playBeep(frequency = 880, duration = 0.2, count = 1) {
@@ -254,66 +256,45 @@ export default function UtilidadesPage() {
   // ─────────────────────────────────────────────────────────────
   // 3. CUENTA PASOS (PODÓMETRO)
   // ─────────────────────────────────────────────────────────────
-  const hoyFechaStr = new Date().toISOString().split('T')[0];
-  const [pasosHoy, setPasosHoy] = useState<number>(() => {
-    try {
-      const val = localStorage.getItem(`dailyset:pasos:${hoyFechaStr}`);
-      return val ? parseInt(val, 10) : 0;
-    } catch {
-      return 0;
-    }
-  });
-
-  const [objetivoPasos, setObjetivoPasos] = useState<number>(() => {
-    try {
-      const val = localStorage.getItem('dailyset:pasos_meta');
-      return val ? parseInt(val, 10) : 10000;
-    } catch {
-      return 10000;
-    }
-  });
-
+  // Lógica compartida con la app: src/lib/pasos.ts (fecha LOCAL, detector, métricas)
+  const { user } = useAuth();
+  const [hoyFechaStr, setHoyFechaStr] = useState(() => fechaLocal());
+  const [pasosHoy, setPasosHoy] = useState<number>(() => leerPasosDia(fechaLocal()));
+  const [objetivoPasos, setObjetivoPasos] = useState<number>(() => leerMetaPasos());
   const [sensorActivo, setSensorActivo] = useState(false);
   const [sensorError, setSensorError] = useState('');
 
-  // Persistir pasos
+  // Cambio de día a medianoche (hora local) aunque la página siga abierta
   useEffect(() => {
-    try {
-      localStorage.setItem(`dailyset:pasos:${hoyFechaStr}`, pasosHoy.toString());
-    } catch (e) {
-      console.debug('Error guardando pasos en localStorage:', e);
-    }
-  }, [pasosHoy, hoyFechaStr]);
+    const iv = window.setInterval(() => {
+      const hoy = fechaLocal();
+      setHoyFechaStr((prev) => {
+        if (prev !== hoy) setPasosHoy(leerPasosDia(hoy));
+        return hoy;
+      });
+    }, 30000);
+    return () => window.clearInterval(iv);
+  }, []);
 
-  // Guardar meta
+  // Persistir pasos y meta
   useEffect(() => {
-    try {
-      localStorage.setItem('dailyset:pasos_meta', objetivoPasos.toString());
-    } catch (e) {
-      console.debug('Error guardando meta de pasos en localStorage:', e);
-    }
+    guardarPasosDia(hoyFechaStr, pasosHoy);
+  }, [pasosHoy, hoyFechaStr]);
+  useEffect(() => {
+    guardarMetaPasos(objetivoPasos);
   }, [objetivoPasos]);
 
-  // Algoritmo de detección de pasos con el acelerómetro en dispositivos móviles
+  // Detección de pasos con el acelerómetro (filtro de gravedad + detección de picos)
   useEffect(() => {
     if (!sensorActivo) return;
-
-    let ultimoPasoTime = 0;
-    const threshold = 12.0; // Umbral de aceleración en m/s^2
-
+    const detector = crearDetectorPasos();
     const handleMotion = (event: DeviceMotionEvent) => {
       const acc = event.accelerationIncludingGravity;
       if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
-
-      const mag = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-      const ahora = Date.now();
-
-      if (mag > threshold && ahora - ultimoPasoTime > 320) {
-        ultimoPasoTime = ahora;
+      if (detector.procesar(acc.x, acc.y, acc.z, event.timeStamp || performance.now())) {
         setPasosHoy((prev) => prev + 1);
       }
     };
-
     window.addEventListener('devicemotion', handleMotion);
     return () => window.removeEventListener('devicemotion', handleMotion);
   }, [sensorActivo]);
@@ -325,6 +306,7 @@ export default function UtilidadesPage() {
         const res = await (DeviceMotionEvent as any).requestPermission();
         if (res === 'granted') {
           setSensorActivo(true);
+          recordarSensorPasos(true);
         } else {
           setSensorError(tx.permisoDeSensoresDenegado);
         }
@@ -333,18 +315,31 @@ export default function UtilidadesPage() {
       }
     } else if ('DeviceMotionEvent' in window) {
       setSensorActivo(true);
+      recordarSensorPasos(true);
     } else {
       setSensorError(tx.sensorNoSoportado);
     }
   };
 
+  const desactivarSensor = () => {
+    setSensorActivo(false);
+    recordarSensorPasos(false);
+  };
+
+  // Si el usuario lo dejó activado, reanudarlo al volver (iOS exige pulsar el botón otra vez)
+  useEffect(() => {
+    const necesitaPermiso = typeof (DeviceMotionEvent as any)?.requestPermission === 'function';
+    if (sensorPasosRecordado() && !necesitaPermiso && 'DeviceMotionEvent' in window) setSensorActivo(true);
+  }, []);
+
   const sumarPasos = (cantidad: number) => {
     setPasosHoy((prev) => Math.max(0, prev + cantidad));
   };
 
-  const kmEstimados = (pasosHoy * 0.00078).toFixed(2);
-  const kcalEstimadas = Math.round(pasosHoy * 0.04);
-  const minEstimados = Math.round(pasosHoy / 100);
+  const metricas = metricasPasos(pasosHoy, { alturaCm: user?.alturaCm, pesoKg: user?.pesoKg });
+  const kmEstimados = metricas.km.toFixed(2);
+  const kcalEstimadas = metricas.kcal;
+  const minEstimados = metricas.minutosActivos;
   const pctPasos = Math.min(100, Math.round((pasosHoy / objetivoPasos) * 100));
 
   return (
@@ -609,7 +604,7 @@ export default function UtilidadesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={sensorActivo ? () => setSensorActivo(false) : activarSensor}
+                    onClick={sensorActivo ? desactivarSensor : activarSensor}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
                       sensorActivo
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
