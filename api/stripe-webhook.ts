@@ -4,7 +4,7 @@
 // Seguridad: se rechaza cualquier evento sin firma válida de Stripe.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type Stripe from 'stripe';
-import { clienteStripe, finDePeriodo, planDeSuscripcion, supabaseAdmin } from './_comun';
+import { clienteStripe, finDePeriodo, planDeSuscripcion, supabaseAdmin } from './_comun.js';
 
 export const config = { api: { bodyParser: false } };
 

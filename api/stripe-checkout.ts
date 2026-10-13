@@ -7,7 +7,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   aplicarCors, clienteStripe, importeCentimos, precioConfigurado, responderError, supabaseAdmin, urlBase, usuarioAutenticado,
   type Ciclo, type PlanPago,
-} from './_comun';
+} from './_comun.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (aplicarCors(req, res)) return;
