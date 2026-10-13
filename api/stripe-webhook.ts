@@ -1,202 +1,112 @@
 // api/stripe-webhook.ts
+// Única vía por la que cambia el plan de un usuario: Stripe avisa y se actualiza
+// public.suscripciones con la service_role key (ver supabase/planes_seguros.sql).
+// Seguridad: se rechaza cualquier evento sin firma válida de Stripe.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import type Stripe from 'stripe';
+import { clienteStripe, finDePeriodo, planDeSuscripcion, supabaseAdmin } from './_comun';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const config = { api: { bodyParser: false } };
 
-// Helper para leer el body crudo (raw buffer) necesario para la firma de Stripe
-async function getRawBody(req: VercelRequest): Promise<Buffer> {
+function leerCuerpo(req: VercelRequest): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', (err) => reject(err));
+    const trozos: Buffer[] = [];
+    req.on('data', (t: Buffer) => trozos.push(t));
+    req.on('end', () => resolve(Buffer.concat(trozos)));
+    req.on('error', reject);
   });
 }
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_KEY ||
-  process.env.VITE_SUPABASE_SERVICE_KEY ||
-  process.env.SUPABASE_ANON_KEY;
+/** Guarda en Supabase el estado actual de una suscripción de Stripe. */
+async function sincronizarSuscripcion(sub: Stripe.Subscription, usuarioIdPista?: string | null) {
+  const db = supabaseAdmin();
+  const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+
+  // Localizar al usuario: metadata de la suscripción → pista del checkout → cliente guardado
+  let usuarioId = sub.metadata?.userId || usuarioIdPista || null;
+  if (!usuarioId) {
+    const { data } = await db.from('suscripciones').select('usuario_id').eq('stripe_customer_id', customerId).maybeSingle();
+    usuarioId = data?.usuario_id ?? null;
+  }
+  if (!usuarioId) {
+    console.warn(`[stripe-webhook] No se encontró usuario para el cliente ${customerId}`);
+    return;
+  }
+
+  const activa = ['active', 'trialing', 'past_due'].includes(sub.status);
+  const { plan, ciclo } = planDeSuscripcion(sub);
+
+  // Si termina una suscripción antigua mientras el usuario ya tiene otra distinta, no tocar nada
+  if (!activa) {
+    const { data: actual } = await db.from('suscripciones').select('stripe_subscription_id').eq('usuario_id', usuarioId).maybeSingle();
+    if (actual?.stripe_subscription_id && actual.stripe_subscription_id !== sub.id) {
+      console.log(`[stripe-webhook] Ignorado fin de ${sub.id}: el usuario ${usuarioId} tiene ${actual.stripe_subscription_id}`);
+      return;
+    }
+  }
+
+  const { error } = await db.from('suscripciones').upsert(
+    {
+      usuario_id: usuarioId,
+      plan: activa ? plan : 'free',
+      ciclo: activa ? ciclo : null,
+      estado: sub.status,
+      fecha_renovacion: activa ? finDePeriodo(sub) : null,
+      renovacion_automatica: activa && !sub.cancel_at_period_end,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: activa ? sub.id : null,
+      actualizado_en: new Date().toISOString(),
+    },
+    { onConflict: 'usuario_id' }
+  );
+  if (error) throw new Error(`Error guardando suscripción: ${error.message}`);
+  console.log(`[stripe-webhook] Usuario ${usuarioId} → ${activa ? plan : 'free'} (${sub.status})`);
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+
+  const secreto = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secreto) {
+    console.error('[stripe-webhook] Falta STRIPE_WEBHOOK_SECRET: se rechazan todos los eventos.');
+    return res.status(500).json({ error: 'Webhook no configurado.' });
   }
 
-  if (!stripeSecretKey) {
-    return res.status(500).json({ error: 'STRIPE_SECRET_KEY no configurado.' });
-  }
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return res.status(500).json({ error: 'Supabase URL o Service Key no configurados.' });
-  }
-
-  const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2025-02-24.acacia' as any,
-  });
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
-
-  let event: Stripe.Event;
-
+  let stripe: Stripe;
+  let evento: Stripe.Event;
   try {
-    const rawBody = await getRawBody(req);
-    const signature = req.headers['stripe-signature'] as string;
-
-    if (webhookSecret && signature) {
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    } else {
-      // Si aún no se configuró webhook secret en test local, parsear JSON directo
-      event = JSON.parse(rawBody.toString('utf8'));
-    }
+    stripe = clienteStripe();
+    const firma = req.headers['stripe-signature'];
+    if (typeof firma !== 'string') return res.status(400).send('Falta la firma de Stripe.');
+    evento = stripe.webhooks.constructEvent(await leerCuerpo(req), firma, secreto);
   } catch (err: any) {
-    console.error('Error al verificar webhook de Stripe:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('[stripe-webhook] Firma inválida:', err?.message);
+    return res.status(400).send(`Webhook Error: ${err?.message}`);
   }
 
-  console.log(`[Stripe Webhook] Recibido evento: ${event.type}`);
-
   try {
-    switch (event.type) {
-      // 1. Pago completado en Stripe Checkout
+    switch (evento.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id || session.metadata?.userId;
-        const planId = (session.metadata?.planId as 'pro' | 'ultra') || 'pro';
-        const ciclo = (session.metadata?.ciclo as 'mensual' | 'anual') || 'mensual';
-        const customerId = session.customer as string;
-        const subscriptionId = session.subscription as string;
-
-        if (userId) {
-          // Obtener suscripción de Stripe para saber fecha de fin de periodo
-          let fechaRenovacion = new Date();
-          if (ciclo === 'mensual') {
-            fechaRenovacion.setMonth(fechaRenovacion.getMonth() + 1);
-          } else {
-            fechaRenovacion.setFullYear(fechaRenovacion.getFullYear() + 1);
-          }
-
-          if (subscriptionId) {
-            try {
-              const sub = await stripe.subscriptions.retrieve(subscriptionId);
-              fechaRenovacion = new Date((sub as any).current_period_end * 1000);
-            } catch (e) {
-              console.warn('No se pudo obtener detalles de la suscripción:', e);
-            }
-          }
-
-          // Cargar perfil actual para merge seguro de preferencias
-          const { data: profile } = await supabase
-            .from('perfiles')
-            .select('preferencias')
-            .eq('id', userId)
-            .single();
-
-          const currentPrefs = profile?.preferencias || {};
-          const newPrefs = {
-            ...currentPrefs,
-            plan: planId,
-            cicloFacturacion: ciclo,
-            fechaRenovacionPlan: fechaRenovacion.toISOString().split('T')[0],
-            renovacionAutomatica: true,
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscriptionId,
-          };
-
-          const { error: updateError } = await supabase
-            .from('perfiles')
-            .update({ preferencias: newPrefs })
-            .eq('id', userId);
-
-          if (updateError) {
-            console.error('Error al actualizar perfil en Supabase:', updateError);
-          } else {
-            console.log(`[Stripe Webhook] Usuario ${userId} actualizado a plan ${planId}`);
-          }
+        const session = evento.data.object as Stripe.Checkout.Session;
+        if (session.mode === 'subscription' && session.subscription) {
+          const subId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+          const sub = await stripe.subscriptions.retrieve(subId);
+          await sincronizarSuscripcion(sub, session.client_reference_id || session.metadata?.userId);
         }
         break;
       }
-
-      // 2. Suscripción cancelada o finalizada
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-
-        // Buscar perfil con este stripeCustomerId
-        const { data: profiles } = await supabase
-          .from('perfiles')
-          .select('id, preferencias')
-          .filter('preferencias->>stripeCustomerId', 'eq', customerId);
-
-        if (profiles && profiles.length > 0) {
-          for (const p of profiles) {
-            const currentPrefs = p.preferencias || {};
-            const newPrefs = {
-              ...currentPrefs,
-              plan: 'free',
-              renovacionAutomatica: false,
-              stripeSubscriptionId: null,
-            };
-
-            await supabase
-              .from('perfiles')
-              .update({ preferencias: newPrefs })
-              .eq('id', p.id);
-
-            console.log(`[Stripe Webhook] Suscripción cancelada. Usuario ${p.id} revertido a FREE.`);
-          }
-        }
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+        await sincronizarSuscripcion(evento.data.object as Stripe.Subscription);
         break;
-      }
-
-      // 3. Suscripción modificada o renovada
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-        const cancelAtPeriodEnd = subscription.cancel_at_period_end;
-        const fechaRenovacion = new Date((subscription as any).current_period_end * 1000);
-
-        const { data: profiles } = await supabase
-          .from('perfiles')
-          .select('id, preferencias')
-          .filter('preferencias->>stripeCustomerId', 'eq', customerId);
-
-        if (profiles && profiles.length > 0) {
-          for (const p of profiles) {
-            const currentPrefs = p.preferencias || {};
-            const newPrefs = {
-              ...currentPrefs,
-              renovacionAutomatica: !cancelAtPeriodEnd,
-              fechaRenovacionPlan: fechaRenovacion.toISOString().split('T')[0],
-            };
-
-            await supabase
-              .from('perfiles')
-              .update({ preferencias: newPrefs })
-              .eq('id', p.id);
-          }
-        }
-        break;
-      }
-
       default:
-        console.log(`[Stripe Webhook] Evento no manejado: ${event.type}`);
+        console.log(`[stripe-webhook] Evento ignorado: ${evento.type}`);
     }
-
     return res.status(200).json({ received: true });
-  } catch (err: any) {
-    console.error('Error procesando evento webhook:', err);
+  } catch (err) {
+    console.error('[stripe-webhook] Error procesando evento:', err);
+    // 500 → Stripe reintentará el envío
     return res.status(500).json({ error: 'Error interno en webhook.' });
   }
 }

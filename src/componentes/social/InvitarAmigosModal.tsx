@@ -14,6 +14,8 @@ import {
   Users,
   Sparkles,
 } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface InvitarAmigosModalProps {
   onCerrar: () => void;
@@ -23,6 +25,7 @@ interface InvitarAmigosModalProps {
 export default function InvitarAmigosModal({ onCerrar, isLight = false }: InvitarAmigosModalProps) {
   const { user } = useAuth();
   const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
 
   const [copiadoLink, setCopiadoLink] = useState(false);
   const [copiadoCodigo, setCopiadoCodigo] = useState(false);
@@ -95,12 +98,10 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             </div>
             <div>
               <h3 className={`font-black text-lg sm:text-xl tracking-tight ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                {locale === 'es' ? 'Invitar Amigos y Atletas' : 'Invite Friends and Athletes'}
+                {txSocialComponentes.invitarAmigosYAtletas}
               </h3>
               <p className={`text-xs ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                {locale === 'es'
-                  ? 'Comparte tu perfil para entrenar juntos y seguir el progreso mutuo.'
-                  : 'Share your profile to train together and track mutual progress.'}
+                {txSocialComponentes.comparteTuPerfilParaEntrenar}
               </p>
             </div>
           </div>
@@ -110,7 +111,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
               isLight ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60' : ''
             }`}
             onClick={onCerrar}
-            title={locale === 'es' ? 'Cerrar' : 'Close'}
+            title={txSocialComponentes.cerrar}
           >
             <X size={16} />
           </button>
@@ -133,7 +134,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             <span className={`text-[11px] font-bold uppercase tracking-wider block mb-1 ${
               isLight ? 'text-neutral-500' : 'text-neutral-400'
             }`}>
-              {locale === 'es' ? 'Tu Código de Atleta' : 'Your Athlete Code'}
+              {txSocialComponentes.tuCodigoDeAtleta}
             </span>
 
             <div className="flex items-center justify-center gap-2 my-2">
@@ -143,9 +144,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             </div>
 
             <p className={`text-xs max-w-xs mx-auto mb-4 ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-              {locale === 'es'
-                ? 'Tus amigos pueden ingresar este código en el buscador para encontrarte al instante.'
-                : 'Your friends can enter this code in the search box to find you instantly.'}
+              {txSocialComponentes.tusAmigosPuedenIngresarEste}
             </p>
 
             <div className="flex items-center justify-center gap-2">
@@ -163,12 +162,12 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
                 {copiadoCodigo ? (
                   <>
                     <Check size={14} />
-                    <span>{locale === 'es' ? '¡Código copiado!' : 'Code copied!'}</span>
+                    <span>{txSocialComponentes.codigoCopiado}</span>
                   </>
                 ) : (
                   <>
                     <Copy size={14} />
-                    <span>{locale === 'es' ? 'Copiar código' : 'Copy code'}</span>
+                    <span>{txSocialComponentes.copiarCodigo}</span>
                   </>
                 )}
               </button>
@@ -180,7 +179,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
             <label className={`text-xs font-bold uppercase tracking-wider block ${
               isLight ? 'text-neutral-700' : 'text-neutral-300'
             }`}>
-              {locale === 'es' ? 'Enlace Directo de Invitación' : 'Direct Invitation Link'}
+              {txSocialComponentes.enlaceDirectoDeInvitacion}
             </label>
 
             <div className="flex items-center gap-2">
@@ -205,11 +204,11 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
                     ? 'bg-neutral-900 text-white hover:bg-neutral-800'
                     : 'bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700'
                 }`}
-                title={locale === 'es' ? 'Copiar enlace directo' : 'Copy direct link'}
+                title={txSocialComponentes.copiarEnlaceDirecto}
               >
                 {copiadoLink ? <Check size={14} /> : <Copy size={14} />}
                 <span className="hidden sm:inline">
-                  {copiadoLink ? (locale === 'es' ? 'Copiado' : 'Copied') : (locale === 'es' ? 'Copiar enlace' : 'Copy link')}
+                  {copiadoLink ? txSocialComponentes.copiado : txSocialComponentes.copiarEnlace}
                 </span>
               </button>
             </div>
@@ -227,7 +226,7 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
           >
             <Share2 size={16} className="text-white" />
             <span>
-              {locale === 'es' ? 'Compartir por WhatsApp o Redes' : 'Share on WhatsApp or Social Media'}
+              {txSocialComponentes.compartirPorWhatsappORedes}
             </span>
           </button>
 
@@ -237,18 +236,14 @@ export default function InvitarAmigosModal({ onCerrar, isLight = false }: Invita
           }`}>
             <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
               <Users size={14} className={isLight ? 'text-neutral-700' : 'text-neutral-300'} />
-              <span>{locale === 'es' ? '¿Cómo funciona la invitación?' : 'How does the invite work?'}</span>
+              <span>{txSocialComponentes.comoFuncionaLaInvitacion}</span>
             </div>
             <ul className="space-y-1 list-disc pl-4 text-[11px] leading-relaxed">
               <li>
-                {locale === 'es'
-                  ? 'Si tu amigo ya tiene cuenta, abrirá tu perfil directamente para seguirte en 1 clic.'
-                  : 'If your friend has an account, your profile opens directly to follow you in 1 click.'}
+                {txSocialComponentes.siTuAmigoYaTiene}
               </li>
               <li>
-                {locale === 'es'
-                  ? 'Si es un nuevo atleta, se registrará conectado contigo para compartir entrenamientos.'
-                  : 'If they are new, they will register connected with you to share workouts.'}
+                {txSocialComponentes.siEsUnNuevoAtleta}
               </li>
             </ul>
           </div>

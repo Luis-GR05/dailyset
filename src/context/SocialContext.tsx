@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { esErrorLimitePlan } from '../lib/suscripcionService';
 import type { RutinaPublica, PerfilPublico, FeedFilterType, ReporteContenido } from '../types/social';
 import {
   getFeedPublico,
@@ -213,6 +214,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setSeguidosIds(prev =>
         actualmenteSiguiendo ? [...prev, targetUserId] : prev.filter(id => id !== targetUserId)
       );
+      // El límite también lo aplica la base de datos (trigger de planes_seguros.sql)
+      if (esErrorLimitePlan(err, 'LIMIT_SEGUIDOS_FREE')) throw new Error('LIMIT_SEGUIDOS_FREE');
       throw err;
     }
   };

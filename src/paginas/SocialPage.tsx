@@ -31,6 +31,8 @@ import {
   Sparkles,
   Share2,
 } from 'lucide-react';
+import { useTextos } from '../hooks/useTextos';
+import { textosSocial } from '../data/textos/social';
 
 type TabSocial = 'feed' | 'explorar' | 'mi_perfil';
 
@@ -52,6 +54,7 @@ export default function SocialPage() {
     refrescarFeed,
   } = useSocial();
   const { locale, t } = useI18n();
+  const txSocial = useTextos(textosSocial);
   const { theme } = useTheme();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -225,7 +228,7 @@ export default function SocialPage() {
             }`}
           >
             <User size={16} className={tabActiva === 'mi_perfil' ? 'text-[var(--color-primary)]' : ''} />
-            <span>{locale === 'es' ? 'Mi Perfil' : 'My Profile'}</span>
+            <span>{txSocial.miPerfil}</span>
           </button>
         </div>
 
@@ -250,7 +253,7 @@ export default function SocialPage() {
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {locale === 'es' ? 'Para ti' : 'For you'}
+                  {txSocial.paraTi}
                 </button>
 
                 <button
@@ -265,7 +268,7 @@ export default function SocialPage() {
                   }`}
                 >
                   <Users size={13} />
-                  <span>{locale === 'es' ? 'Siguiendo' : 'Following'}</span>
+                  <span>{txSocial.siguiendo}</span>
                 </button>
               </div>
 
@@ -276,10 +279,10 @@ export default function SocialPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors cursor-pointer ${
                   isLight ? 'text-neutral-600 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'
                 }`}
-                title={locale === 'es' ? 'Actualizar feed' : 'Refresh feed'}
+                title={txSocial.actualizarFeed}
               >
                 <RefreshCw size={13} className={cargandoFeed ? 'animate-spin' : ''} />
-                <span className="hidden sm:inline">{locale === 'es' ? 'Actualizar' : 'Refresh'}</span>
+                <span className="hidden sm:inline">{txSocial.actualizar}</span>
               </button>
             </div>
 
@@ -288,7 +291,7 @@ export default function SocialPage() {
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
                 <p className={`text-xs font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                  {locale === 'es' ? 'Cargando rutinas de la comunidad...' : 'Loading community workouts...'}
+                  {txSocial.cargandoRutinasDeLaComunidad}
                 </p>
               </div>
             ) : errorFeed ? (
@@ -308,21 +311,11 @@ export default function SocialPage() {
                   </div>
                   <h3 className={`font-extrabold text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                     {filtroFeed === 'siguiendo'
-                      ? locale === 'es'
-                        ? 'No hay publicaciones de personas que sigues'
-                        : 'No posts from people you follow'
-                      : locale === 'es'
-                      ? 'No hay rutinas públicas compartidas todavía'
-                      : 'No public routines shared yet'}
+                      ? txSocial.noHayPublicacionesDePersonas: txSocial.noHayRutinasPublicasCompartidas}
                   </h3>
                   <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
                     {filtroFeed === 'siguiendo'
-                      ? locale === 'es'
-                        ? 'Sigue a atletas recomendados abajo o comparte tu enlace de invitación para entrenar juntos.'
-                        : 'Follow recommended athletes below or share your invite link to train together.'
-                      : locale === 'es'
-                      ? 'Sé el primero en compartir. Al crear o editar tus rutinas en Mis Rutinas, cambia la privacidad a Pública.'
-                      : 'Be the first to share! When creating or editing your routines, switch privacy to Public.'}
+                      ? txSocial.sigueAAtletasRecomendadosAbajo: txSocial.seElPrimeroEnCompartir}
                   </p>
                   <div className="flex items-center justify-center gap-2 pt-2">
                     <button
@@ -335,7 +328,7 @@ export default function SocialPage() {
                       }`}
                     >
                       <UserPlus size={14} className="text-white" />
-                      <span>{locale === 'es' ? 'Invitar amigos' : 'Invite friends'}</span>
+                      <span>{txSocial.invitarAmigos}</span>
                     </button>
                     <button
                       type="button"
@@ -345,7 +338,7 @@ export default function SocialPage() {
                       }`}
                     >
                       <Compass size={14} />
-                      <span>{locale === 'es' ? 'Explorar atletas' : 'Explore athletes'}</span>
+                      <span>{txSocial.explorarAtletas}</span>
                     </button>
                   </div>
                 </div>
@@ -357,7 +350,7 @@ export default function SocialPage() {
                       <div className="flex items-center gap-2">
                         <Sparkles size={14} className="text-[var(--color-primary)]" />
                         <h4 className={`text-xs font-black uppercase tracking-wider ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                          {locale === 'es' ? 'Atletas recomendados para ti' : 'Recommended athletes for you'}
+                          {txSocial.atletasRecomendadosParaTi}
                         </h4>
                       </div>
                       <button
@@ -365,7 +358,7 @@ export default function SocialPage() {
                         onClick={() => setTabActiva('explorar')}
                         className={`text-xs font-bold ${isLight ? 'text-neutral-600 hover:text-neutral-900' : 'text-neutral-400 hover:text-white'}`}
                       >
-                        {locale === 'es' ? 'Ver todos' : 'View all'}
+                        {txSocial.verTodos}
                       </button>
                     </div>
 
@@ -416,12 +409,10 @@ export default function SocialPage() {
                 </div>
                 <div>
                   <h4 className={`font-black text-sm sm:text-base ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                    {locale === 'es' ? '¿Quieres entrenar con amigos?' : 'Want to train with friends?'}
+                    {txSocial.quieresEntrenarConAmigos}
                   </h4>
                   <p className={`text-xs ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                    {locale === 'es'
-                      ? 'Comparte tu código de atleta o enlace para conectar de inmediato.'
-                      : 'Share your athlete code or link to connect immediately.'}
+                    {txSocial.comparteTuCodigoDeAtleta}
                   </p>
                 </div>
               </div>
@@ -436,7 +427,7 @@ export default function SocialPage() {
                 }`}
               >
                 <Share2 size={14} className="text-white" />
-                <span>{locale === 'es' ? 'Compartir mi enlace' : 'Share my link'}</span>
+                <span>{txSocial.compartirMiEnlace}</span>
               </button>
             </div>
 
@@ -445,11 +436,7 @@ export default function SocialPage() {
               <Search size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`} />
               <input
                 type="text"
-                placeholder={
-                  locale === 'es'
-                    ? 'Buscar atleta por nombre o código (@usuario)...'
-                    : 'Search athlete by name or code (@username)...'
-                }
+                placeholder={ txSocial.buscarAtletaPorNombreO}
                 value={busquedaQuery}
                 onChange={e => setBusquedaQuery(e.target.value)}
                 className={`input pl-11 pr-10 py-3 text-sm rounded-2xl w-full border transition-all ${
@@ -473,11 +460,11 @@ export default function SocialPage() {
                     <div className="flex items-center gap-2">
                       <Sparkles size={14} className="text-[var(--color-primary)]" />
                       <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-700' : 'text-neutral-300'}`}>
-                        {locale === 'es' ? 'Atletas sugeridos y comunidad DailySet' : 'Suggested athletes & DailySet community'}
+                        {txSocial.atletasSugeridosYComunidadDailyset}
                       </span>
                     </div>
                     <span className={`text-[11px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                      {usuariosEncontrados.length} {locale === 'es' ? 'atletas' : 'athletes'}
+                      {usuariosEncontrados.length} {txSocial.atletas}
                     </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -501,12 +488,10 @@ export default function SocialPage() {
                 }`}>
                   <Compass size={32} className={`mx-auto mb-2 ${isLight ? 'text-neutral-400' : 'text-neutral-600'}`} />
                   <h4 className={`font-bold text-sm ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-                    {locale === 'es' ? 'Encuentra y sigue a otros atletas' : 'Find and follow other athletes'}
+                    {txSocial.encuentraYSigueAOtros}
                   </h4>
                   <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                    {locale === 'es'
-                      ? 'Escribe en el buscador de arriba para descubrir perfiles por nombre o código de usuario.'
-                      : 'Type in the search box above to discover profiles by name or user code.'}
+                    {txSocial.escribeEnElBuscadorDe}
                   </p>
                 </div>
               )
@@ -520,16 +505,14 @@ export default function SocialPage() {
                     : `No athletes found for "${busquedaQuery}".`}
                 </p>
                 <p className="text-xs mt-1 text-neutral-500">
-                  {locale === 'es'
-                    ? 'Prueba a buscar por su nombre de usuario exacto o pídele su código de invitación.'
-                    : 'Try searching by their exact username or ask for their invite code.'}
+                  {txSocial.pruebaABuscarPorSu}
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                    {locale === 'es' ? 'Resultados de búsqueda' : 'Search results'}
+                    {txSocial.resultadosDeBusqueda}
                   </span>
                   <span className={`text-[11px] font-mono ${isLight ? 'text-neutral-400' : 'text-neutral-500'}`}>
                     {usuariosEncontrados.length}
@@ -577,7 +560,7 @@ export default function SocialPage() {
 
               <form onSubmit={handleGuardarBio} className={`space-y-3 pt-3 border-t ${isLight ? 'border-neutral-200/80' : 'border-white/10'}`}>
                 <label className={`text-xs font-bold block ${isLight ? 'text-neutral-800' : 'text-neutral-300'}`}>
-                  {locale === 'es' ? 'Tu biografía pública' : 'Your public bio'}
+                  {txSocial.tuBiografiaPublica}
                 </label>
                 <textarea
                   className={`input text-xs sm:text-sm resize-none rounded-xl p-3 w-full border ${
@@ -587,11 +570,7 @@ export default function SocialPage() {
                   }`}
                   rows={3}
                   maxLength={200}
-                  placeholder={
-                    locale === 'es'
-                      ? 'Escribe algo sobre tus metas, disciplinas o experiencia (ej. Atleta de Powerlifting, 4 años entrenando)...'
-                      : 'Write something about your goals, disciplines, or experience...'
-                  }
+                  placeholder={ txSocial.escribeAlgoSobreTusMetas}
                   value={bioTexto}
                   onChange={e => setBioTexto(e.target.value)}
                 />
@@ -603,7 +582,7 @@ export default function SocialPage() {
                     {bioGuardadaExito && (
                       <span className={`text-xs flex items-center gap-1 font-medium ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>
                         <Check size={14} />
-                        {locale === 'es' ? 'Guardado' : 'Saved'}
+                        {txSocial.guardado}
                       </span>
                     )}
                     <button
@@ -630,12 +609,10 @@ export default function SocialPage() {
                 <div>
                   <h3 className={`font-extrabold text-base flex items-center gap-2 ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                     <Globe size={18} className="text-[var(--color-primary)]" />
-                    <span>{locale === 'es' ? 'Privacidad de tus Rutinas' : 'Your Routines Privacy'}</span>
+                    <span>{txSocial.privacidadDeTusRutinas}</span>
                   </h3>
                   <p className={`text-xs mt-0.5 ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                    {locale === 'es'
-                      ? 'Gestiona fácilmente qué rutinas son visibles en el feed social.'
-                      : 'Manage which workouts are visible on the social feed.'}
+                    {txSocial.gestionaFacilmenteQueRutinasSon}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -644,14 +621,14 @@ export default function SocialPage() {
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   }`}>
-                    {misRutinasPublicas.length} {locale === 'es' ? 'públicas' : 'public'}
+                    {misRutinasPublicas.length} {txSocial.publicas}
                   </span>
                   <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
                     isLight
                       ? 'bg-neutral-100 text-neutral-600 border-neutral-200'
                       : 'bg-neutral-800 text-neutral-400 border-neutral-700'
                   }`}>
-                    {misRutinasPrivadas.length} {locale === 'es' ? 'privadas' : 'private'}
+                    {misRutinasPrivadas.length} {txSocial.privadas}
                   </span>
                 </div>
               </div>
@@ -661,9 +638,7 @@ export default function SocialPage() {
                   isLight ? 'bg-white border-neutral-200 text-neutral-600' : 'bg-black border-white/10 text-neutral-400 hover:border-white/50 transition-colors duration-300'
                 }`}>
                   <p className="text-xs">
-                    {locale === 'es'
-                      ? 'Aún no has creado ninguna rutina.'
-                      : 'You have not created any routines yet.'}
+                    {txSocial.aunNoHasCreadoNinguna}
                   </p>
                   <Link
                     to="/mis-rutinas"
@@ -673,7 +648,7 @@ export default function SocialPage() {
                         : 'bg-black text-white border-white/15 hover:bg-neutral-900'
                     }`}
                   >
-                    {locale === 'es' ? 'Crear primera rutina' : 'Create first routine'}
+                    {txSocial.crearPrimeraRutina}
                   </Link>
                 </div>
               ) : (
@@ -698,12 +673,12 @@ export default function SocialPage() {
                           {rutina.is_public ? (
                             <span className={`flex items-center gap-1 font-semibold ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>
                               <Globe size={11} />
-                              {locale === 'es' ? 'Visible en el feed social' : 'Visible on social feed'}
+                              {txSocial.visibleEnElFeedSocial}
                             </span>
                           ) : (
                             <span className={`flex items-center gap-1 font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-500'}`}>
                               <Lock size={11} />
-                              {locale === 'es' ? 'Privada (solo tú la ves)' : 'Private (only you see it)'}
+                              {txSocial.privadaSoloTuLaVes}
                             </span>
                           )}
                         </p>
@@ -727,21 +702,10 @@ export default function SocialPage() {
                         }`}
                         title={
                           rutina.is_public
-                            ? locale === 'es'
-                              ? 'Hacer privada'
-                              : 'Make private'
-                            : locale === 'es'
-                            ? 'Compartir públicamente'
-                            : 'Share publicly'
-                        }
+                            ? txSocial.hacerPrivada: txSocial.compartirPublicamente}
                       >
                         {rutina.is_public
-                          ? locale === 'es'
-                            ? 'Hacer privada'
-                            : 'Make private'
-                          : locale === 'es'
-                          ? 'Hacer pública'
-                          : 'Make public'}
+                          ? txSocial.hacerPrivada: txSocial.hacerPublica}
                       </button>
                     </div>
                   ))}

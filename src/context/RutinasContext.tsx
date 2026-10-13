@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthContext';
+import { esErrorLimitePlan } from '../lib/suscripcionService';
 
 export interface Rutina {
   id: number;
@@ -233,6 +234,11 @@ export function RutinasProvider({ children }: { children: ReactNode }) {
             .single();
           if (retryError) throw retryError;
           dataRes = retryData;
+        } else if (esErrorLimitePlan(error, 'LIMIT_RUTINAS_PLAN')) {
+          // El límite también lo aplica la base de datos (trigger de planes_seguros.sql)
+          throw new Error(
+            `Límite de rutinas alcanzado: Tu plan ${plan.toUpperCase()} permite hasta ${maxRutinas} rutinas.`
+          );
         } else {
           throw error;
         }

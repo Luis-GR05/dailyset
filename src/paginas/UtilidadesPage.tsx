@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AppLayout, TituloPagina, Card } from '../componentes';
-import { useI18n } from '../context/I18nContext';
 import CalculadoraMacrosWizard from '../componentes/utilidades/CalculadoraMacrosWizard';
 import Calculadora1RMWizard from '../componentes/utilidades/Calculadora1RMWizard';
 import {
@@ -22,6 +21,8 @@ import {
   Pencil,
   Utensils,
 } from 'lucide-react';
+import { useTextos } from '../hooks/useTextos';
+import { textosUtilidades } from '../data/textos/utilidades';
 
 // Sonido sintético con Web Audio API (funciona en cualquier navegador sin dependencias externas)
 function playBeep(frequency = 880, duration = 0.2, count = 1) {
@@ -56,7 +57,7 @@ interface VueltaItem {
 }
 
 export default function UtilidadesPage() {
-  const { locale } = useI18n();
+  const tx = useTextos(textosUtilidades);
   const [searchParams, setSearchParams] = useSearchParams();
   const tabQuery = searchParams.get('tab') as TabUtilidad | null;
   const [tabActiva, setTabActiva] = useState<TabUtilidad>(
@@ -325,7 +326,7 @@ export default function UtilidadesPage() {
         if (res === 'granted') {
           setSensorActivo(true);
         } else {
-          setSensorError(locale === 'es' ? 'Permiso de sensores denegado.' : 'Motion sensors permission denied.');
+          setSensorError(tx.permisoDeSensoresDenegado);
         }
       } catch (err: any) {
         setSensorError(err?.message || 'Error solicitando permiso');
@@ -333,11 +334,7 @@ export default function UtilidadesPage() {
     } else if ('DeviceMotionEvent' in window) {
       setSensorActivo(true);
     } else {
-      setSensorError(
-        locale === 'es'
-          ? 'Tu dispositivo o navegador no soporta el sensor de movimiento. Puedes registrar pasos manualmente.'
-          : 'Your device does not support motion sensors. You can add steps manually.'
-      );
+      setSensorError(tx.sensorNoSoportado);
     }
   };
 
@@ -353,16 +350,16 @@ export default function UtilidadesPage() {
   return (
     <AppLayout>
       <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-        <TituloPagina titulo={locale === 'es' ? 'Herramientas y Utilidades' : 'Tools & Utilities'} />
+        <TituloPagina titulo={tx.herramientasYUtilidades} />
 
         {/* ══ PESTAÑAS DE UTILIDADES ══ */}
         <div className="flex p-1.5 rounded-2xl bg-neutral-900/60 border border-white/5 backdrop-blur-xl gap-1 overflow-x-auto">
           {[
-            { id: 'temporizador', label: locale === 'es' ? 'Temporizador' : 'Timer', icon: <Timer size={16} /> },
-            { id: 'cronometro', label: locale === 'es' ? 'Cronómetro' : 'Stopwatch', icon: <Watch size={16} /> },
-            { id: 'pasos', label: locale === 'es' ? 'Cuenta Pasos' : 'Step Counter', icon: <Footprints size={16} /> },
-            { id: '1rm', label: locale === 'es' ? 'Calculadora 1RM' : '1RM Calculator', icon: <Dumbbell size={16} /> },
-            { id: 'macros', label: locale === 'es' ? 'Calorías y Macros' : 'Calories & Macros', icon: <Utensils size={16} /> },
+            { id: 'temporizador', label: tx.temporizador, icon: <Timer size={16} /> },
+            { id: 'cronometro', label: tx.cronometro, icon: <Watch size={16} /> },
+            { id: 'pasos', label: tx.cuentaPasos, icon: <Footprints size={16} /> },
+            { id: '1rm', label: tx.calculadora1rm, icon: <Dumbbell size={16} /> },
+            { id: 'macros', label: tx.caloriasYMacros, icon: <Utensils size={16} /> },
           ].map((item) => {
             const isActive = tabActiva === item.id;
             return (
@@ -417,10 +414,10 @@ export default function UtilidadesPage() {
                   </span>
                   <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 mt-2">
                     {tempFinalizado
-                      ? (locale === 'es' ? '¡Tiempo Cumplido!' : 'Time Up!')
+                      ? tx.tiempoCumplido
                       : tempCorriendo
-                      ? (locale === 'es' ? 'Descansando...' : 'Running...')
-                      : (locale === 'es' ? 'Pausado' : 'Paused')}
+                      ? tx.descansando
+                      : tx.pausado}
                   </span>
 
                   {/* Barra fina de progreso */}
@@ -454,7 +451,7 @@ export default function UtilidadesPage() {
                   }`}
                 >
                   {tempCorriendo ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
-                  <span>{tempCorriendo ? (locale === 'es' ? 'Pausar' : 'Pause') : (locale === 'es' ? 'Iniciar' : 'Start')}</span>
+                  <span>{tempCorriendo ? tx.pausar : tx.iniciar}</span>
                 </button>
 
                 <button
@@ -470,7 +467,7 @@ export default function UtilidadesPage() {
               {/* Presets rápidos */}
               <div className="mt-8 pt-6 border-t border-white/5 w-full">
                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-3">
-                  {locale === 'es' ? 'Descanso recomendado entre series' : 'Rest presets'}
+                  {tx.descansoRecomendadoEntreSeries}
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   {presetsTemporizador.map((p) => (
@@ -513,7 +510,7 @@ export default function UtilidadesPage() {
                   );
                 })()}
                 <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mt-2">
-                  {cronoCorriendo ? (locale === 'es' ? 'Cronómetro en marcha' : 'Stopwatch running') : (locale === 'es' ? 'Listo' : 'Ready')}
+                  {cronoCorriendo ? tx.cronometroEnMarcha : tx.listo}
                 </p>
               </div>
 
@@ -539,7 +536,7 @@ export default function UtilidadesPage() {
                   }`}
                 >
                   {cronoCorriendo ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
-                  <span>{cronoCorriendo ? (locale === 'es' ? 'Parar' : 'Stop') : (locale === 'es' ? 'Iniciar' : 'Start')}</span>
+                  <span>{cronoCorriendo ? tx.parar : tx.iniciar}</span>
                 </button>
 
                 <button
@@ -550,7 +547,7 @@ export default function UtilidadesPage() {
                   title="Registrar vuelta"
                 >
                   <Zap size={14} style={{ color: 'var(--color-primary)' }} />
-                  <span>{locale === 'es' ? 'Vuelta' : 'Lap'}</span>
+                  <span>{tx.vuelta}</span>
                 </button>
               </div>
 
@@ -558,9 +555,9 @@ export default function UtilidadesPage() {
               {vueltas.length > 0 && (
                 <div className="mt-8 pt-6 border-t border-white/5 w-full text-left space-y-2 max-h-60 overflow-y-auto">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-neutral-500 px-3">
-                    <span>{locale === 'es' ? 'Vuelta #' : 'Lap #'}</span>
-                    <span>{locale === 'es' ? 'Tiempo parcial' : 'Split'}</span>
-                    <span>{locale === 'es' ? 'Total' : 'Total'}</span>
+                    <span>{tx.vueltaNumero}</span>
+                    <span>{tx.tiempoParcial}</span>
+                    <span>{tx.total}</span>
                   </div>
                   {vueltas.map((v) => {
                     const parcial = formatCrono(v.tiempoVueltaMs);
@@ -600,11 +597,11 @@ export default function UtilidadesPage() {
                       <Footprints size={18} />
                     </span>
                     <h3 className="text-base font-black text-white uppercase italic tracking-wide">
-                      {locale === 'es' ? 'Pasos Diarios' : 'Daily Steps'}
+                      {tx.pasosDiarios}
                     </h3>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
-                    {locale === 'es' ? 'Contabiliza tus pasos reales del día' : 'Track your real steps for today'}
+                    {tx.contabilizaTusPasosRealesDel}
                   </p>
                 </div>
 
@@ -620,7 +617,7 @@ export default function UtilidadesPage() {
                     }`}
                   >
                     <span className={`w-2 h-2 rounded-full ${sensorActivo ? 'bg-emerald-400 animate-ping' : 'bg-neutral-500'}`} />
-                    <span>{sensorActivo ? (locale === 'es' ? 'Sensor Activo' : 'Sensor Active') : (locale === 'es' ? 'Activar Acelerómetro' : 'Activate Sensor')}</span>
+                    <span>{sensorActivo ? tx.sensorActivo : tx.activarAcelerometro}</span>
                   </button>
                 </div>
               </div>
@@ -636,7 +633,7 @@ export default function UtilidadesPage() {
                 <div className="md:col-span-7 space-y-3">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                      {locale === 'es' ? 'Pasos hoy' : 'Steps today'}
+                      {tx.pasosHoy}
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-5xl sm:text-6xl font-black text-white font-mono tracking-tight">
@@ -645,8 +642,7 @@ export default function UtilidadesPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          const nuevo = prompt(
-                            locale === 'es' ? 'Introduce tu meta diaria de pasos:' : 'Enter daily step goal:',
+                          const nuevo = prompt(tx.introduceTuMetaDiariaDe,
                             objetivoPasos.toString()
                           );
                           if (nuevo && !isNaN(parseInt(nuevo, 10)) && parseInt(nuevo, 10) > 0) {
@@ -654,10 +650,10 @@ export default function UtilidadesPage() {
                           }
                         }}
                         className="text-xs font-bold text-neutral-400 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
-                        title={locale === 'es' ? 'Cambiar meta diaria' : 'Edit daily goal'}
+                        title={tx.cambiarMetaDiaria}
                       >
                         <span className="inline-flex items-center gap-1">
-                          / {objetivoPasos.toLocaleString()} {locale === 'es' ? 'meta' : 'goal'}
+                          / {objetivoPasos.toLocaleString()} {tx.meta}
                           <Pencil size={11} className="inline" />
                         </span>
                       </button>
@@ -676,10 +672,10 @@ export default function UtilidadesPage() {
                       />
                     </div>
                     <div className="flex justify-between text-[11px] font-bold text-neutral-400">
-                      <span>{pctPasos}% {locale === 'es' ? 'completado' : 'completed'}</span>
+                      <span>{pctPasos}% {tx.completado}</span>
                       {pctPasos >= 100 && (
                         <span className="text-emerald-400 flex items-center gap-1 font-black">
-                          <Sparkles size={12} /> {locale === 'es' ? '¡Meta alcanzada!' : 'Goal reached!'}
+                          <Sparkles size={12} /> {tx.metaAlcanzada}
                         </span>
                       )}
                     </div>
@@ -691,7 +687,7 @@ export default function UtilidadesPage() {
                   <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapPin size={14} className="text-sky-400" />
-                      <span className="text-xs text-neutral-300 font-bold">{locale === 'es' ? 'Distancia' : 'Distance'}</span>
+                      <span className="text-xs text-neutral-300 font-bold">{tx.distancia}</span>
                     </div>
                     <span className="text-xs font-black text-white font-mono">{kmEstimados} km</span>
                   </div>
@@ -699,7 +695,7 @@ export default function UtilidadesPage() {
                   <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Flame size={14} className="text-amber-400" />
-                      <span className="text-xs text-neutral-300 font-bold">{locale === 'es' ? 'Calorías' : 'Calories'}</span>
+                      <span className="text-xs text-neutral-300 font-bold">{tx.calorias}</span>
                     </div>
                     <span className="text-xs font-black text-white font-mono">{kcalEstimadas} kcal</span>
                   </div>
@@ -707,7 +703,7 @@ export default function UtilidadesPage() {
                   <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock size={14} className="text-emerald-400" />
-                      <span className="text-xs text-neutral-300 font-bold">{locale === 'es' ? 'Activo' : 'Active'}</span>
+                      <span className="text-xs text-neutral-300 font-bold">{tx.activo}</span>
                     </div>
                     <span className="text-xs font-black text-white font-mono">{minEstimados} min</span>
                   </div>
@@ -717,7 +713,7 @@ export default function UtilidadesPage() {
               {/* Registro Manual de Pasos */}
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-xs text-neutral-400 font-medium">
-                  {locale === 'es' ? 'Ajuste rápido o registro manual:' : 'Quick adjustment or manual log:'}
+                  {tx.ajusteRapidoORegistroManual}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -745,7 +741,7 @@ export default function UtilidadesPage() {
                     type="button"
                     onClick={() => setPasosHoy(0)}
                     className="p-1.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-all cursor-pointer ml-1"
-                    title={locale === 'es' ? 'Reiniciar pasos a cero' : 'Reset steps to zero'}
+                    title={tx.reiniciarPasosACero}
                   >
                     <RotateCcw size={14} />
                   </button>

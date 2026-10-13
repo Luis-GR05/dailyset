@@ -6,78 +6,13 @@ import { Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { supabase } from '../lib/supabaseClient';
 import { useI18n } from '../context/I18nContext';
-
-function traducirErrorAuth(mensaje: string, locale: string): string {
-  if (!mensaje) {
-    return locale === 'es'
-      ? 'Ha ocurrido un error al actualizar la contraseña.'
-      : 'An error occurred while updating the password.';
-  }
-
-  const m = mensaje.toLowerCase();
-
-  if (
-    m.includes('different from the old password') ||
-    m.includes('same as the old password') ||
-    m.includes('should be different')
-  ) {
-    return locale === 'es'
-      ? 'La nueva contraseña debe ser diferente a tu contraseña anterior. Por favor, elige una clave distinta que no hayas utilizado previamente en esta cuenta.'
-      : 'The new password must be different from your old password. Please choose a different password.';
-  }
-
-  if (m.includes('at least 6') || m.includes('minimum 6') || m.includes('least 6 characters')) {
-    return locale === 'es'
-      ? 'La contraseña debe tener al menos 6 caracteres.'
-      : 'Password must be at least 6 characters.';
-  }
-
-  if (m.includes('passwords do not match') || m.includes('no coinciden')) {
-    return locale === 'es'
-      ? 'Las contraseñas no coinciden. Asegúrate de escribirlas idénticas.'
-      : 'Passwords do not match.';
-  }
-
-  if (
-    m.includes('auth session missing') ||
-    m.includes('session not found') ||
-    m.includes('not authenticated') ||
-    m.includes('jwt expired') ||
-    m.includes('token has expired') ||
-    m.includes('otp_expired') ||
-    m.includes('access_denied')
-  ) {
-    return locale === 'es'
-      ? 'El enlace de recuperación ha caducado o ya ha sido utilizado. Por favor, solicita un nuevo enlace.'
-      : 'The recovery link has expired or has already been used. Please request a new one.';
-  }
-
-  if (m.includes('rate limit') || m.includes('too many requests')) {
-    return locale === 'es'
-      ? 'Demasiadas solicitudes en poco tiempo. Por favor, espera unos minutos antes de volver a intentarlo.'
-      : 'Too many requests. Please wait a few minutes before trying again.';
-  }
-
-  if (m.includes('weak') || m.includes('pwned') || m.includes('compromised')) {
-    return locale === 'es'
-      ? 'La contraseña es demasiado débil o común. Añade letras mayúsculas, números o símbolos para hacerla más segura.'
-      : 'Password is too weak or compromised. Please choose a stronger password.';
-  }
-
-  if (m.includes('network') || m.includes('failed to fetch')) {
-    return locale === 'es'
-      ? 'Error de conexión. Comprueba tu conexión a internet e inténtalo de nuevo.'
-      : 'Connection error. Please check your internet connection.';
-  }
-
-  // Si no coincide con ninguno conocido, retornar mensaje en español amigable
-  return locale === 'es'
-    ? 'No se pudo actualizar la contraseña. Asegúrate de introducir una clave válida y diferente.'
-    : mensaje;
-}
+import { traducirErrorAuth } from '../lib/recuperacionPassword';
+import { useTextos } from '../hooks/useTextos';
+import { textosRestablecerPassword } from '../data/textos/restablecerPassword';
 
 export default function RestablecerPasswordPage() {
   const { locale } = useI18n();
+  const txRestablecerPassword = useTextos(textosRestablecerPassword);
   const navigate = useNavigate();
 
   const [password, setPassword] = useState('');
@@ -95,10 +30,7 @@ export default function RestablecerPasswordPage() {
   const enviandoRef = useRef(false);
 
   useEffect(() => {
-    document.title =
-      locale === 'es'
-        ? 'Restablecer Contraseña | DailySet'
-        : 'Reset Password | DailySet';
+    document.title = txRestablecerPassword.restablecerContrasenaDailyset;
 
     const inicializarSesionRecuperacion = async () => {
       try {
@@ -195,20 +127,12 @@ export default function RestablecerPasswordPage() {
     const cleanConfirm = confirmPassword.trim();
 
     if (cleanPass.length < 6) {
-      setError(
-        locale === 'es'
-          ? 'La contraseña debe tener al menos 6 caracteres.'
-          : 'Password must be at least 6 characters.'
-      );
+      setError(txRestablecerPassword.laContrasenaDebeTenerAl);
       return;
     }
 
     if (cleanPass !== cleanConfirm) {
-      setError(
-        locale === 'es'
-          ? 'Las contraseñas no coinciden. Asegúrate de escribirlas idénticas.'
-          : 'Passwords do not match.'
-      );
+      setError(txRestablecerPassword.lasContrasenasNoCoincidenAsegurate);
       return;
     }
 
@@ -342,9 +266,7 @@ export default function RestablecerPasswordPage() {
           <div className="py-12 space-y-4">
             <Loader2 size={36} className="animate-spin mx-auto text-[var(--color-primary)]" />
             <p className="text-xs sm:text-sm text-neutral-400">
-              {locale === 'es'
-                ? 'Verificando enlace de seguridad...'
-                : 'Verifying security link...'}
+              {txRestablecerPassword.verificandoEnlaceDeSeguridad}
             </p>
           </div>
         ) : exito ? (
@@ -363,12 +285,10 @@ export default function RestablecerPasswordPage() {
 
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tight">
-                {locale === 'es' ? '¡Contraseña Actualizada!' : 'Password Updated!'}
+                {txRestablecerPassword.contrasenaActualizada}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                {locale === 'es'
-                  ? 'Tu contraseña ha sido restablecida correctamente. Ya puedes acceder con tus nuevas credenciales.'
-                  : 'Your password has been successfully reset. You can now sign in with your new credentials.'}
+                {txRestablecerPassword.tuContrasenaHaSidoRestablecida}
               </p>
             </div>
 
@@ -386,7 +306,7 @@ export default function RestablecerPasswordPage() {
                   boxShadow: '0 0 30px var(--color-primary-glow)',
                 }}
               >
-                <span>{locale === 'es' ? 'Iniciar Sesión' : 'Sign In'}</span>
+                <span>{txRestablecerPassword.iniciarSesion}</span>
                 <ArrowRight size={16} />
               </button>
             </div>
@@ -400,12 +320,10 @@ export default function RestablecerPasswordPage() {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-black text-white italic uppercase tracking-tight">
-                {locale === 'es' ? 'Enlace Caducado o Inválido' : 'Expired or Invalid Link'}
+                {txRestablecerPassword.enlaceCaducadoOInvalido}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                {locale === 'es'
-                  ? 'El enlace de recuperación ya ha sido utilizado o ha superado el tiempo límite de seguridad. Solicita uno nuevo para continuar.'
-                  : 'This password recovery link has already been used or has expired. Please request a new one.'}
+                {txRestablecerPassword.elEnlaceDeRecuperacionYa}
               </p>
             </div>
 
@@ -419,9 +337,7 @@ export default function RestablecerPasswordPage() {
                 }}
               >
                 <span>
-                  {locale === 'es'
-                    ? 'Solicitar Nuevo Enlace'
-                    : 'Request New Link'}
+                  {txRestablecerPassword.solicitarNuevoEnlace}
                 </span>
               </Link>
 
@@ -429,7 +345,7 @@ export default function RestablecerPasswordPage() {
                 to="/login"
                 className="inline-block text-xs font-bold text-neutral-400 hover:text-white transition-colors"
               >
-                {locale === 'es' ? 'Volver a Iniciar Sesión' : 'Back to Sign In'}
+                {txRestablecerPassword.volverAIniciarSesion}
               </Link>
             </div>
           </div>
@@ -438,18 +354,16 @@ export default function RestablecerPasswordPage() {
           <div className="space-y-6">
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tight">
-                {locale === 'es' ? 'Nueva Contraseña' : 'New Password'}
+                {txRestablecerPassword.nuevaContrasena}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                {locale === 'es'
-                  ? 'Introduce tu nueva clave de acceso para tu cuenta de DailySet.'
-                  : 'Enter your new access password for your DailySet account.'}
+                {txRestablecerPassword.introduceTuNuevaClaveDe}
               </p>
               {cuentaEmail && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-neutral-300">
                   <UserCheck size={13} className="text-[var(--color-primary)]" />
                   <span>
-                    {locale === 'es' ? 'Cuenta:' : 'Account:'}{' '}
+                    {txRestablecerPassword.cuenta}{' '}
                     <strong className="text-white font-mono">{cuentaEmail}</strong>
                   </span>
                 </div>
@@ -463,7 +377,7 @@ export default function RestablecerPasswordPage() {
                   htmlFor="new-password"
                   className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest ml-4 block"
                 >
-                  {locale === 'es' ? 'Nueva contraseña' : 'New password'}
+                  {txRestablecerPassword.nuevaContrasena2}
                 </label>
                 <div className="relative">
                   <input
@@ -502,7 +416,7 @@ export default function RestablecerPasswordPage() {
                   htmlFor="confirm-password"
                   className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest ml-4 block"
                 >
-                  {locale === 'es' ? 'Confirmar nueva contraseña' : 'Confirm new password'}
+                  {txRestablecerPassword.confirmarNuevaContrasena}
                 </label>
                 <div className="relative">
                   <input
@@ -556,14 +470,12 @@ export default function RestablecerPasswordPage() {
                   {cargando ? (
                     <>
                       <Loader2 size={18} className="animate-spin" />
-                      <span>{locale === 'es' ? 'Actualizando...' : 'Updating...'}</span>
+                      <span>{txRestablecerPassword.actualizando}</span>
                     </>
                   ) : (
                     <>
                       <span>
-                        {locale === 'es'
-                          ? 'Guardar Nueva Contraseña'
-                          : 'Save New Password'}
+                        {txRestablecerPassword.guardarNuevaContrasena}
                       </span>
                       <ArrowRight size={16} />
                     </>
@@ -577,7 +489,7 @@ export default function RestablecerPasswordPage() {
                 to="/login"
                 className="inline-block text-xs font-bold text-neutral-400 hover:text-white transition-colors"
               >
-                {locale === 'es' ? 'Volver a Iniciar Sesión' : 'Back to Sign In'}
+                {txRestablecerPassword.volverAIniciarSesion}
               </Link>
             </div>
           </div>

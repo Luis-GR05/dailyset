@@ -5,55 +5,46 @@ import {
   Zap,
   Crown,
   Sparkles,
-  CreditCard,
-  Smartphone,
   ShieldCheck,
-  CheckCircle2,
   Lock,
   Loader2,
 } from 'lucide-react';
 import type { CicloFacturacion, DesgloseFinanciero } from '../../types/suscripcion';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
-import { iniciarCheckoutStripe } from '../../lib/stripeService';
+import { abrirPortalFacturacion, iniciarCheckoutStripe } from '../../lib/stripeService';
+import { useTextos } from '../../hooks/useTextos';
+import { textosPagos } from '../../data/textos/pagos';
 
 interface ModalContratarPlanProps {
   plan: DesgloseFinanciero;
   cicloInicial: CicloFacturacion;
   abierto: boolean;
   onCerrar: () => void;
-  onExito: (planId: string) => void;
+  /** La app lo usa al volver del navegador de Stripe; la web confirma el plan al volver a /suscripciones. */
+  onExito?: (planId: string) => void;
 }
-
-type MetodoPago = 'tarjeta' | 'apple_pay' | 'google_pay' | 'bizum';
 
 export default function ModalContratarPlan({
   plan,
   cicloInicial,
   abierto,
   onCerrar,
-  onExito,
 }: ModalContratarPlanProps) {
   const { locale } = useI18n();
-  const { user, updateUser } = useAuth();
+  const txPagos = useTextos(textosPagos);
+  const { user } = useAuth();
 
   const [ciclo, setCiclo] = useState<CicloFacturacion>(cicloInicial);
-  const [metodo, setMetodo] = useState<MetodoPago>('tarjeta');
   const [procesando, setProcesando] = useState(false);
-  const [completado, setCompletado] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  // Formulario de tarjeta simulado
-  const [numTarjeta, setNumTarjeta] = useState('•••• •••• •••• 4242');
-  const [caducidad, setCaducidad] = useState('12/28');
-  const [cvc, setCvc] = useState('•••');
-  const [telefonoBizum, setTelefonoBizum] = useState('600 000 000');
 
   if (!abierto) return null;
 
   const esGratis = plan.planId === 'free';
   const esPro = plan.planId === 'pro';
   const esUltra = plan.planId === 'ultra';
+  const tieneSuscripcionActiva = !!user?.plan && user.plan !== 'free';
 
   // Cálculos financieros
   const precioFinal =
@@ -65,53 +56,27 @@ export default function ModalContratarPlan({
   const handleConfirmar = async () => {
     setProcesando(true);
     setErrorMsg('');
-
     try {
-      // Si el plan es Pro o Ultra, intentar checkout seguro con Stripe
-      if (user?.id && (plan.planId === 'pro' || plan.planId === 'ultra')) {
-        const stripeRes = await iniciarCheckoutStripe({
-          planId: plan.planId,
-          ciclo,
-          userId: user.id,
-          userEmail: user.email,
-        });
-
-        // Si Stripe retornó la URL, el navegador redirige a Stripe Checkout
-        if (stripeRes.url) {
+      if (!user || user.id === 'invitado') {
+        throw new Error(txPagos.iniciaSesionConTuCuenta);
+      }
+      if (esGratis) {
+        if (!tieneSuscripcionActiva) {
+          onCerrar();
           return;
         }
-
-        // Si no está disponible (ej. en desarrollo local sin clave secreta), continuar con simulación
-        console.warn('Stripe checkout no disponible en este entorno, aplicando directamente:', stripeRes.error);
+        const portal = await abrirPortalFacturacion();
+        if (portal.error) throw new Error(portal.error);
+        return; // el navegador redirige a Stripe
       }
-
-      // Simular latencia de verificación bancaria si se usa el flujo directo/gratuito
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-
-      const fechaHoy = new Date();
-      if (ciclo === 'mensual') {
-        fechaHoy.setMonth(fechaHoy.getMonth() + 1);
-      } else {
-        fechaHoy.setFullYear(fechaHoy.getFullYear() + 1);
-      }
-
-      await updateUser({
-        plan: plan.planId,
-        cicloFacturacion: ciclo,
-        fechaRenovacionPlan: fechaHoy.toISOString().split('T')[0],
-        renovacionAutomatica: true,
-      });
-
-      setCompletado(true);
-      setTimeout(() => {
-        onExito(plan.planId);
-      }, 1600);
+      const res = await iniciarCheckoutStripe({ planId: plan.planId as 'pro' | 'ultra', ciclo });
+      if (res.error) throw new Error(res.error);
+      // El navegador redirige a Stripe; al volver, SuscripcionesPage confirma el plan.
     } catch (err: any) {
       console.error('Error al contratar plan:', err);
       setErrorMsg(
-        locale === 'es'
-          ? 'Hubo un problema al procesar el cambio de plan. Inténtalo de nuevo.'
-          : 'Could not process plan change. Please try again.'
+        err?.message ||
+          txPagos.huboUnProblemaAlConectar
       );
       setProcesando(false);
     }
@@ -140,44 +105,6 @@ export default function ModalContratarPlan({
           <X size={18} />
         </button>
 
-        {completado ? (
-          /* Estado de éxito con animación */
-          <div className="py-8 text-center space-y-4 animate-scale-up">
-            <div
-              className="w-16 h-16 rounded-full mx-auto flex items-center justify-center shadow-lg"
-              style={{
-                backgroundColor: esPro
-                  ? 'var(--color-primary)'
-                  : esUltra
-                  ? '#FBBF24'
-                  : '#FFFFFF',
-                color: '#000000',
-              }}
-            >
-              <CheckCircle2 size={36} strokeWidth={2.5} />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-2xl font-black text-white">
-                {locale === 'es' ? '¡Plan Activado con Éxito!' : 'Plan Activated Successfully!'}
-              </h3>
-              <p className="text-sm text-neutral-300">
-                {locale === 'es'
-                  ? `Ahora tienes acceso a todas las ventajas de DailySet ${plan.nombre}.`
-                  : `You now have full access to DailySet ${plan.nombre} features.`}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 max-w-sm mx-auto">
-              <p>
-                {locale === 'es'
-                  ? `Suscripción ${ciclo === 'anual' ? 'Anual' : 'Mensual'} activa para ${user?.email || 'tu cuenta'}.`
-                  : `${ciclo === 'anual' ? 'Annual' : 'Monthly'} subscription active for ${user?.email || 'your account'}.`}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
             {/* Cabecera del Modal */}
             <div className="flex items-center gap-4 pr-8">
               <div
@@ -206,7 +133,7 @@ export default function ModalContratarPlan({
 
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                  {locale === 'es' ? 'Confirmar Suscripción' : 'Confirm Subscription'}
+                  {txPagos.confirmarSuscripcion}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black text-white">
                   {locale === 'es' ? `Plan DailySet ${plan.nombre}` : `DailySet ${plan.nombre} Plan`}
@@ -218,7 +145,7 @@ export default function ModalContratarPlan({
             {!esGratis && (
               <div className="flex items-center justify-between p-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs">
                 <span className="text-neutral-400 font-medium">
-                  {locale === 'es' ? 'Ciclo elegido:' : 'Billing cycle:'}
+                  {txPagos.cicloElegido}
                 </span>
                 <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl">
                   <button
@@ -230,7 +157,7 @@ export default function ModalContratarPlan({
                         : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    {locale === 'es' ? 'Mensual' : 'Monthly'}
+                    {txPagos.mensual}
                   </button>
                   <button
                     type="button"
@@ -241,7 +168,7 @@ export default function ModalContratarPlan({
                         : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <span>{locale === 'es' ? 'Anual' : 'Annual'}</span>
+                    <span>{txPagos.anual}</span>
                     <span className="text-[9px] bg-black text-[var(--color-primary)] px-1 py-0.2 rounded font-black">
                       -15%
                     </span>
@@ -253,21 +180,21 @@ export default function ModalContratarPlan({
             {/* Desglose de Factura */}
             <div className="p-4 rounded-2xl bg-black/40 border border-neutral-800/80 space-y-2.5 text-xs">
               <div className="flex justify-between text-neutral-400">
-                <span>{locale === 'es' ? 'Plan seleccionado:' : 'Selected tier:'}</span>
+                <span>{txPagos.planSeleccionado}</span>
                 <span className="font-bold text-white">
-                  DailySet {plan.nombre} ({ciclo === 'anual' ? (locale === 'es' ? 'Anual' : 'Annual') : (locale === 'es' ? 'Mensual' : 'Monthly')})
+                  DailySet {plan.nombre} ({ciclo === 'anual' ? txPagos.anual : txPagos.mensual})
                 </span>
               </div>
 
               {ciclo === 'anual' && ahorro > 0 && (
                 <div className="flex justify-between text-[var(--color-primary)]">
-                  <span>{locale === 'es' ? 'Descuento anual (-15%):' : 'Annual discount (-15%):'}</span>
+                  <span>{txPagos.descuentoAnual15}</span>
                   <span className="font-mono font-bold">-{ahorro.toFixed(2).replace('.', ',')} €</span>
                 </div>
               )}
 
               <div className="flex justify-between text-neutral-400">
-                <span>{locale === 'es' ? 'Impuestos (21% IVA incluido):' : 'Taxes (21% VAT included):'}</span>
+                <span>{txPagos.impuestos21IvaIncluido}</span>
                 <span className="font-mono text-neutral-300">
                   {esGratis ? '0,00 €' : `${ivaIncluido} €`}
                 </span>
@@ -275,7 +202,7 @@ export default function ModalContratarPlan({
 
               <div className="pt-2 border-t border-neutral-800 flex justify-between items-baseline">
                 <span className="font-black text-sm text-white">
-                  {locale === 'es' ? 'Total a pagar hoy:' : 'Total due today:'}
+                  {txPagos.totalAPagarHoy}
                 </span>
                 <div className="text-right">
                   <span className="text-xl sm:text-2xl font-black text-white font-mono">
@@ -292,126 +219,19 @@ export default function ModalContratarPlan({
               </div>
             </div>
 
-            {/* Métodos de Pago si es de pago */}
+            {/* Pago real con Stripe (tarjeta, Apple Pay, Google Pay según el dispositivo) */}
             {!esGratis && (
-              <div className="space-y-3">
-                <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
-                  {locale === 'es' ? 'Método de Pago Seguro' : 'Secure Payment Method'}
+              <div className="p-3 rounded-2xl bg-neutral-900/80 border border-neutral-800 text-xs text-neutral-400 flex items-start gap-2.5">
+                <Lock size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                <span>
+                  {tieneSuscripcionActiva
+                    ? txPagos.yaTienesUnaSuscripcionActiva: txPagos.elPagoSeRealizaEn}
                 </span>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMetodo('tarjeta')}
-                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      metodo === 'tarjeta'
-                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-white'
-                        : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <CreditCard size={18} />
-                    <span className="text-[11px] font-bold">Tarjeta</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMetodo('apple_pay')}
-                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      metodo === 'apple_pay'
-                        ? 'border-white bg-white/10 text-white'
-                        : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <span className="text-base font-black">Pay</span>
-                    <span className="text-[11px] font-bold">Apple Pay</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMetodo('google_pay')}
-                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      metodo === 'google_pay'
-                        ? 'border-blue-400 bg-blue-500/10 text-white'
-                        : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <span className="text-base font-bold text-blue-400">GPay</span>
-                    <span className="text-[11px] font-bold">Google</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMetodo('bizum')}
-                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      metodo === 'bizum'
-                        ? 'border-emerald-400 bg-emerald-500/10 text-white'
-                        : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <Smartphone size={18} className="text-emerald-400" />
-                    <span className="text-[11px] font-bold">Bizum</span>
-                  </button>
-                </div>
-
-                {/* Campos de pago simulados */}
-                {metodo === 'tarjeta' && (
-                  <div className="space-y-2 p-3 rounded-2xl bg-neutral-900/80 border border-neutral-800 text-xs">
-                    <div>
-                      <label className="text-[10px] text-neutral-400 font-bold uppercase block mb-1">
-                        {locale === 'es' ? 'Número de tarjeta' : 'Card number'}
-                      </label>
-                      <input
-                        type="text"
-                        value={numTarjeta}
-                        onChange={(e) => setNumTarjeta(e.target.value)}
-                        className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-white font-mono"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-neutral-400 font-bold uppercase block mb-1">
-                          {locale === 'es' ? 'Caducidad' : 'Expiry'}
-                        </label>
-                        <input
-                          type="text"
-                          value={caducidad}
-                          onChange={(e) => setCaducidad(e.target.value)}
-                          className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-white font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-neutral-400 font-bold uppercase block mb-1">
-                          CVC / CVV
-                        </label>
-                        <input
-                          type="text"
-                          value={cvc}
-                          onChange={(e) => setCvc(e.target.value)}
-                          className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-white font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {metodo === 'bizum' && (
-                  <div className="p-3 rounded-2xl bg-neutral-900/80 border border-neutral-800 text-xs space-y-1">
-                    <label className="text-[10px] text-neutral-400 font-bold uppercase block">
-                      {locale === 'es' ? 'Número de teléfono Bizum' : 'Bizum phone number'}
-                    </label>
-                    <input
-                      type="text"
-                      value={telefonoBizum}
-                      onChange={(e) => setTelefonoBizum(e.target.value)}
-                      className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-white font-mono"
-                    />
-                    <p className="text-[10px] text-neutral-500">
-                      {locale === 'es'
-                        ? 'Recibirás una notificación en la app de tu banco para validar el pago.'
-                        : 'You will receive a notification in your banking app to validate.'}
-                    </p>
-                  </div>
-                )}
+              </div>
+            )}
+            {esGratis && tieneSuscripcionActiva && (
+              <div className="p-3 rounded-2xl bg-neutral-900/80 border border-neutral-800 text-xs text-neutral-400">
+                {txPagos.paraVolverAlPlanFree}
               </div>
             )}
 
@@ -425,9 +245,7 @@ export default function ModalContratarPlan({
             <div className="flex items-center gap-2 text-[11px] text-neutral-400 pt-1">
               <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
               <span>
-                {locale === 'es'
-                  ? 'Garantía de reembolso de 14 días. Cancela cuando quieras en 1 clic.'
-                  : '14-day money-back guarantee. Cancel anytime in 1 click.'}
+                {txPagos.garantiaDeReembolsoDe14}
               </span>
             </div>
 
@@ -448,9 +266,7 @@ export default function ModalContratarPlan({
                 <>
                   <Loader2 size={18} className="animate-spin" />
                   <span>
-                    {locale === 'es'
-                      ? 'Procesando suscripción segura...'
-                      : 'Processing secure subscription...'}
+                    {txPagos.conectandoConStripe}
                   </span>
                 </>
               ) : (
@@ -458,18 +274,15 @@ export default function ModalContratarPlan({
                   <Lock size={16} />
                   <span>
                     {esGratis
-                      ? locale === 'es'
-                        ? 'Confirmar Plan Free'
-                        : 'Confirm Free Plan'
-                      : locale === 'es'
-                      ? `Pagar ${precioFinal.toFixed(2).replace('.', ',')} € y Activar`
-                      : `Pay €${precioFinal.toFixed(2)} and Activate`}
+                      ? tieneSuscripcionActiva
+                        ? txPagos.gestionarEnStripe: txPagos.seguirEnPlanFree: tieneSuscripcionActiva
+                      ? txPagos.cambiarDePlanEnStripe: locale === 'es'
+                      ? `Pagar ${precioFinal.toFixed(2).replace('.', ',')} € con Stripe`
+                      : `Pay €${precioFinal.toFixed(2)} with Stripe`}
                   </span>
                 </>
               )}
             </button>
-          </>
-        )}
       </div>
     </div>
   );

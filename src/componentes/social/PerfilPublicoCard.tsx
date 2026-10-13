@@ -3,9 +3,10 @@
 
 import type { PerfilPublico } from '../../types/social';
 import { useAuth } from '../../context/AuthContext';
-import { useI18n } from '../../context/I18nContext';
 import BotonSeguir from './BotonSeguir';
 import { User, Dumbbell, Users, Sparkles } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface PerfilPublicoCardProps {
   perfil: PerfilPublico;
@@ -15,7 +16,7 @@ interface PerfilPublicoCardProps {
 
 export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: PerfilPublicoCardProps) {
   const { user } = useAuth();
-  const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
 
   const esYo = user?.id === perfil.id;
 
@@ -84,12 +85,12 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
                   <Sparkles size={8} className={perfil.tipoSugerencia === 'nuevo' ? (isLight ? 'text-neutral-900' : 'text-white') : undefined} />
                   <span>
                     {perfil.tipoSugerencia === 'popular'
-                      ? (locale === 'es' ? 'Popular' : 'Popular')
+                      ? txSocialComponentes.popular
                       : perfil.tipoSugerencia === 'creador_activo'
-                      ? (locale === 'es' ? 'Creador Activo' : 'Active Creator')
+                      ? txSocialComponentes.creadorActivo
                       : perfil.tipoSugerencia === 'nuevo'
-                      ? (locale === 'es' ? 'Nuevo' : 'New')
-                      : (locale === 'es' ? 'Sugerido' : 'Suggested')}
+                      ? txSocialComponentes.nuevo
+                      : txSocialComponentes.sugerido}
                   </span>
                 </span>
               )}
@@ -121,7 +122,7 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
         >
           <div className={`flex items-center justify-center gap-1 text-xs mb-0.5 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
             <Dumbbell size={12} className="text-[var(--color-primary)]" />
-            <span>{locale === 'es' ? 'Rutinas' : 'Routines'}</span>
+            <span>{txSocialComponentes.rutinas}</span>
           </div>
           <p className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
             {perfil.rutinasCount ?? 0}
@@ -137,7 +138,7 @@ export default function PerfilPublicoCard({ perfil, onClick, isLight = false }: 
         >
           <div className={`flex items-center justify-center gap-1 text-xs mb-0.5 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
             <Users size={12} className={isLight ? 'text-neutral-500' : 'text-neutral-400'} />
-            <span>{locale === 'es' ? 'Seguidores' : 'Followers'}</span>
+            <span>{txSocialComponentes.seguidores}</span>
           </div>
           <p className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
             {perfil.seguidoresCount ?? 0}

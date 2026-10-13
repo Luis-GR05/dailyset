@@ -1,149 +1,93 @@
 // api/stripe-checkout.ts
+// Crea una sesión de Stripe Checkout para contratar Pro o Ultra.
+// Seguridad: el usuario se identifica con su token de Supabase (no con un userId del body).
+// Si ya tiene una suscripción activa, devuelve el portal de facturación para cambiar de plan
+// en vez de crear una segunda suscripción.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import Stripe from 'stripe';
-
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+import {
+  aplicarCors, clienteStripe, importeCentimos, precioConfigurado, responderError, supabaseAdmin, urlBase, usuarioAutenticado,
+  type Ciclo, type PlanPago,
+} from './_comun';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Configuración de CORS para peticiones desde Web y App móvil
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido. Usa POST.' });
-  }
-
-  if (!stripeSecretKey) {
-    return res.status(500).json({
-      error: 'La variable de entorno STRIPE_SECRET_KEY no está configurada.',
-    });
-  }
-
-  const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2025-02-24.acacia' as any,
-  });
+  if (aplicarCors(req, res)) return;
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido. Usa POST.' });
 
   try {
-    const { planId, ciclo, userId, userEmail, returnUrl } = req.body || {};
+    const usuario = await usuarioAutenticado(req);
+    if (!usuario) return res.status(401).json({ error: 'Debes iniciar sesión para contratar un plan.' });
 
-    if (!planId || !userId) {
-      return res.status(400).json({ error: 'Faltan parámetros requeridos (planId, userId).' });
-    }
-
+    const { planId, ciclo } = req.body || {};
     if (planId !== 'pro' && planId !== 'ultra') {
       return res.status(400).json({ error: 'El plan debe ser "pro" o "ultra".' });
     }
+    const plan: PlanPago = planId;
+    const cicloSel: Ciclo = ciclo === 'anual' ? 'anual' : 'mensual';
 
-    const cicloSeleccionado: 'mensual' | 'anual' = ciclo === 'anual' ? 'anual' : 'mensual';
+    const stripe = clienteStripe();
+    const db = supabaseAdmin();
+    const base = urlBase(req);
 
-    // Determinar precio en céntimos
-    // Pro: 2.99 €/mes o 30.50 €/año
-    // Ultra: 4.99 €/mes o 50.90 €/año
-    const amountInCents =
-      planId === 'pro'
-        ? cicloSeleccionado === 'mensual'
-          ? 299
-          : 3050
-        : cicloSeleccionado === 'mensual'
-        ? 499
-        : 5090;
+    const { data: sus } = await db
+      .from('suscripciones')
+      .select('stripe_customer_id, stripe_subscription_id, plan, estado')
+      .eq('usuario_id', usuario.id)
+      .maybeSingle();
 
-    const planNombre = planId === 'pro' ? 'DailySet Pro' : 'DailySet Ultra';
-    const planDesc =
-      planId === 'pro'
-        ? 'Plan básico avanzado para atletas comprometidos'
-        : 'Potencia total premium sin límites ni restricciones';
-
-    // Buscar o reutilizar cliente de Stripe
-    let customerId: string | undefined;
-    if (userEmail) {
-      const existingCustomers = await stripe.customers.list({
-        email: userEmail,
-        limit: 1,
+    // Ya tiene una suscripción de pago activa → gestionar el cambio en el portal de Stripe
+    if (sus?.stripe_subscription_id && sus.plan !== 'free' && ['active', 'trialing', 'past_due'].includes(sus.estado || 'active')) {
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: sus.stripe_customer_id,
+        return_url: `${base}/suscripciones`,
       });
-      if (existingCustomers.data.length > 0) {
-        customerId = existingCustomers.data[0].id;
-      } else {
-        const newCustomer = await stripe.customers.create({
-          email: userEmail,
-          metadata: { userId },
-        });
-        customerId = newCustomer.id;
-      }
+      return res.status(200).json({ url: portal.url, portal: true });
     }
 
-    const baseUrl = returnUrl || req.headers.origin || 'http://localhost:5173';
+    // Cliente de Stripe: reutilizar el guardado o crear uno nuevo ligado al usuario
+    let customerId: string | undefined = sus?.stripe_customer_id || undefined;
+    if (!customerId) {
+      const cliente = await stripe.customers.create({
+        email: usuario.email,
+        metadata: { userId: usuario.id },
+      });
+      customerId = cliente.id;
+      await db.from('suscripciones').upsert(
+        { usuario_id: usuario.id, stripe_customer_id: customerId, actualizado_en: new Date().toISOString() },
+        { onConflict: 'usuario_id' }
+      );
+    }
 
-    const priceId =
-      planId === 'pro'
-        ? cicloSeleccionado === 'mensual'
-          ? process.env.STRIPE_PRICE_PRO_MENSUAL
-          : process.env.STRIPE_PRICE_PRO_ANUAL
-        : cicloSeleccionado === 'mensual'
-        ? process.env.STRIPE_PRICE_ULTRA_MENSUAL
-        : process.env.STRIPE_PRICE_ULTRA_ANUAL;
-
+    const priceId = precioConfigurado(plan, cicloSel);
+    const nombre = plan === 'pro' ? 'DailySet Pro' : 'DailySet Ultra';
     const lineItems = priceId
       ? [{ price: priceId, quantity: 1 }]
       : [
           {
             price_data: {
               currency: 'eur',
-              unit_amount: amountInCents,
-              recurring: {
-                interval: (cicloSeleccionado === 'mensual' ? 'month' : 'year') as 'month' | 'year',
-              },
-              product_data: {
-                name: planNombre,
-                description: `${planDesc} (${cicloSeleccionado})`,
-              },
+              unit_amount: importeCentimos(plan, cicloSel),
+              recurring: { interval: (cicloSel === 'mensual' ? 'month' : 'year') as 'month' | 'year' },
+              product_data: { name: `${nombre} (${cicloSel})`, metadata: { planId: plan } },
             },
             quantity: 1,
           },
         ];
 
-    // Crear sesión de Stripe Checkout en modo suscripción recurrente
+    const metadata = { userId: usuario.id, planId: plan, ciclo: cicloSel };
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      payment_method_types: ['card'],
       customer: customerId,
-      customer_email: customerId ? undefined : userEmail,
-      client_reference_id: userId,
-      metadata: {
-        userId,
-        planId,
-        ciclo: cicloSeleccionado,
-      },
-      subscription_data: {
-        metadata: {
-          userId,
-          planId,
-          ciclo: cicloSeleccionado,
-        },
-      },
+      client_reference_id: usuario.id,
+      metadata,
+      subscription_data: { metadata },
       line_items: lineItems,
-      success_url: `${baseUrl}/suscripciones?status=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/suscripciones?status=cancelled`,
+      success_url: `${base}/suscripciones?status=success`,
+      cancel_url: `${base}/suscripciones?status=cancelled`,
       allow_promotion_codes: true,
     });
 
-    return res.status(200).json({
-      url: session.url,
-      sessionId: session.id,
-    });
-  } catch (err: any) {
-    console.error('Error al crear checkout session:', err);
-    return res.status(500).json({
-      error: err.message || 'Error interno al procesar el pago con Stripe.',
-    });
+    return res.status(200).json({ url: session.url });
+  } catch (err) {
+    return responderError(res, err, 'stripe-checkout');
   }
 }

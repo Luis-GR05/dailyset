@@ -26,6 +26,8 @@ import {
   Flag,
   Heart,
 } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface RutinaPublicaCardProps {
   rutina: RutinaPublica;
@@ -38,6 +40,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
   const { clonarRutinaSocial, reaccionarRutina } = useSocial();
   const { refrescar: refrescarMisRutinas } = useRutinas();
   const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
   const navigate = useNavigate();
 
   const [expandido, setExpandido] = useState(false);
@@ -151,7 +154,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
                     isLight ? 'bg-neutral-100 text-neutral-600 border border-neutral-200' : 'bg-neutral-800 text-neutral-400'
                   }`}
                 >
-                  {locale === 'es' ? 'Tú' : 'You'}
+                  {txSocialComponentes.tu}
                 </span>
               )}
             </div>
@@ -194,7 +197,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
               }`}
             >
               <Globe size={10} />
-              {locale === 'es' ? 'Pública' : 'Public'}
+              {txSocialComponentes.publica}
             </span>
           </div>
         </div>
@@ -208,7 +211,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
           <span className="flex items-center gap-1.5">
             <Dumbbell size={13} className={isLight ? 'text-neutral-400' : 'text-neutral-500'} />
             {rutina.ejerciciosCount || (rutina.ejercicios || []).length}{' '}
-            {locale === 'es' ? 'ejercicios' : 'exercises'}
+            {txSocialComponentes.ejercicios}
           </span>
         </div>
       </div>
@@ -226,10 +229,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
             <span className="flex items-center gap-1.5">
               <Dumbbell size={13} style={{ color: 'var(--color-primary)' }} />
               {expandido
-                ? locale === 'es'
-                  ? 'Ocultar ejercicios'
-                  : 'Hide exercises'
-                : locale === 'es'
+                ? txSocialComponentes.ocultarEjercicios: locale === 'es'
                 ? `Ver ejercicios (${rutina.ejercicios.length})`
                 : `View exercises (${rutina.ejercicios.length})`}
             </span>
@@ -285,29 +285,25 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
                   ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-200'
                   : 'bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700'
               }`}
-              title={
-                locale === 'es'
-                  ? 'Guardar una copia de esta rutina en tus rutinas'
-                  : 'Save a copy of this routine to your routines'
-              }
+              title={ txSocialComponentes.guardarUnaCopiaDeEsta}
             >
               {clonando ? (
                 <Loader2 size={13} className="animate-spin" />
               ) : clonadoExitoso ? (
                 <>
                   <Check size={13} />
-                  <span>{locale === 'es' ? '¡Clonada en tus rutinas!' : 'Cloned to routines!'}</span>
+                  <span>{txSocialComponentes.clonadaEnTusRutinas}</span>
                 </>
               ) : (
                 <>
                   <Copy size={13} />
-                  <span>{locale === 'es' ? 'Clonar rutina' : 'Clone routine'}</span>
+                  <span>{txSocialComponentes.clonarRutina}</span>
                 </>
               )}
             </button>
           ) : (
             <span className={`text-xs font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-500'}`}>
-              {locale === 'es' ? 'Tu rutina compartida' : 'Your shared routine'}
+              {txSocialComponentes.tuRutinaCompartida}
             </span>
           )}
 
@@ -327,13 +323,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
             }`}
             title={
               rutina.esLikeada
-                ? locale === 'es'
-                  ? 'Quitar reacción'
-                  : 'Remove reaction'
-                : locale === 'es'
-                ? 'Reaccionar'
-                : 'React'
-            }
+                ? txSocialComponentes.quitarReaccion: txSocialComponentes.reaccionar}
           >
             <Heart
               size={13}
@@ -353,7 +343,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
                 ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
             }`}
-            title={locale === 'es' ? 'Copiar enlace directo' : 'Copy direct link'}
+            title={txSocialComponentes.copiarEnlaceDirecto}
           >
             {copiadoLink ? <Check size={14} className="text-emerald-500" /> : <Share2 size={14} />}
           </button>
@@ -368,7 +358,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
                   ? 'text-neutral-400 hover:text-red-600 hover:bg-neutral-100'
                   : 'text-neutral-500 hover:text-red-400 hover:bg-neutral-800'
               }`}
-              title={locale === 'es' ? 'Reportar rutina' : 'Report routine'}
+              title={txSocialComponentes.reportarRutina}
             >
               <Flag size={13} />
             </button>
@@ -386,7 +376,7 @@ export default function RutinaPublicaCard({ rutina, onVerPerfil, isLight = false
           }}
         >
           <Play size={13} fill="#000000" />
-          <span>{locale === 'es' ? 'Entrenar' : 'Train'}</span>
+          <span>{txSocialComponentes.entrenar}</span>
         </button>
       </div>
 

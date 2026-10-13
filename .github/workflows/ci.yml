@@ -1,0 +1,60 @@
+# Comprobaciones automáticas de la web en cada push y pull request.
+# Además verifica que la app móvil (repo dailyset-app) tiene copiada la lógica compartida.
+name: CI web
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dailyset-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: dailyset-web
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dailyset-web/package-lock.json
+
+      - run: npm ci
+
+      - name: Tipos (TypeScript)
+        run: npx tsc -b
+
+      - name: Tipos de las funciones /api (Stripe)
+        run: npx tsc --noEmit --strict --skipLibCheck --module esnext --moduleResolution bundler --target es2022 --esModuleInterop --types node api/*.ts
+
+      - name: Tests de la lógica compartida
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  app-sincronizada:
+    # Aviso (no bloquea): la app debe ejecutar `npm run sync:web` tras cambiar src/lib, src/data...
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: dailyset-web
+      - uses: actions/checkout@v4
+        with:
+          repository: chocarro/dailyset-app
+          path: dailyset-app
+          # Necesario si el repo de la app es privado: un token con permiso de lectura
+          token: ${{ secrets.APP_REPO_TOKEN || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ¿La app tiene la última lógica compartida?
+        working-directory: dailyset-app
+        run: node scripts/sincronizar-web.mjs --comprobar

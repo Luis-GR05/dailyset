@@ -32,24 +32,18 @@ export default defineConfig(({ mode }) => {
     ''
   ).trim()
 
-  const supabaseServiceKey = (
-    process.env.VITE_SUPABASE_SERVICE_KEY ||
-    process.env.SUPABASE_SERVICE_KEY ||
-    env.VITE_SUPABASE_SERVICE_KEY ||
-    env.SUPABASE_SERVICE_KEY ||
-    ''
-  ).trim()
+  // La service_role key NUNCA debe llegar al navegador: sólo la usan las funciones de /api
+  // (process.env en Vercel). Por eso no se define aquí ni se expone con envPrefix.
 
   return {
     plugins: [react(), tailwindcss()],
-    envPrefix: ['VITE_', 'SUPABASE_'],
+    // Sólo VITE_*: el prefijo SUPABASE_ expondría SUPABASE_SERVICE_KEY al cliente.
+    envPrefix: ['VITE_'],
     define: {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
       'import.meta.env.SUPABASE_URL': JSON.stringify(supabaseUrl),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
       'import.meta.env.SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
-      'import.meta.env.VITE_SUPABASE_SERVICE_KEY': JSON.stringify(supabaseServiceKey),
-      'import.meta.env.SUPABASE_SERVICE_KEY': JSON.stringify(supabaseServiceKey),
     },
   }
 })

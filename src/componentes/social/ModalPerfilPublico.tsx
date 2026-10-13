@@ -22,6 +22,8 @@ import {
   Sparkles,
   Check,
 } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface ModalPerfilPublicoProps {
   perfilId: string;
@@ -39,6 +41,7 @@ export default function ModalPerfilPublico({
   const { user } = useAuth();
   const { bloqueadosIds, estaBloqueado, bloquearAtleta, desbloquearAtleta } = useSocial();
   const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
 
   const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
   const [rutinas, setRutinas] = useState<RutinaPublica[]>([]);
@@ -141,7 +144,7 @@ export default function ModalPerfilPublico({
                         ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60'
                         : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
                     }`}
-                    title={locale === 'es' ? 'Opciones de moderación' : 'Moderation options'}
+                    title={txSocialComponentes.opcionesDeModeracion}
                   >
                     <MoreVertical size={16} />
                   </button>
@@ -165,7 +168,7 @@ export default function ModalPerfilPublico({
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-red-500 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                       >
                         <Flag size={13} />
-                        <span>{locale === 'es' ? 'Reportar perfil' : 'Report profile'}</span>
+                        <span>{txSocialComponentes.reportarPerfil}</span>
                       </button>
 
                       {usuarioEstaBloqueado ? (
@@ -180,7 +183,7 @@ export default function ModalPerfilPublico({
                           }`}
                         >
                           <Check size={13} />
-                          <span>{locale === 'es' ? 'Desbloquear atleta' : 'Unblock athlete'}</span>
+                          <span>{txSocialComponentes.desbloquearAtleta}</span>
                         </button>
                       ) : (
                         <button
@@ -192,7 +195,7 @@ export default function ModalPerfilPublico({
                           className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-red-500 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                         >
                           <Ban size={13} />
-                          <span>{locale === 'es' ? 'Bloquear atleta' : 'Block athlete'}</span>
+                          <span>{txSocialComponentes.bloquearAtleta}</span>
                         </button>
                       )}
                     </div>
@@ -205,7 +208,7 @@ export default function ModalPerfilPublico({
                   isLight ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60' : ''
                 }`}
                 onClick={onCerrar}
-                title={locale === 'es' ? 'Cerrar' : 'Close'}
+                title={txSocialComponentes.cerrar}
               >
                 <X size={16} />
               </button>
@@ -220,9 +223,7 @@ export default function ModalPerfilPublico({
               }`}>
                 <Sparkles size={16} className="shrink-0" />
                 <span className="text-xs font-bold leading-tight">
-                  {locale === 'es'
-                    ? 'Has recibido una invitación de este atleta. ¡Síguelo para conectar y ver sus entrenamientos!'
-                    : 'You received an invitation from this athlete. Follow them to connect and view their workouts!'}
+                  {txSocialComponentes.hasRecibidoUnaInvitacionDe}
                 </span>
               </div>
             )}
@@ -232,7 +233,7 @@ export default function ModalPerfilPublico({
               <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Ban size={14} />
-                  <span>{locale === 'es' ? 'Has bloqueado a este atleta.' : 'You have blocked this athlete.'}</span>
+                  <span>{txSocialComponentes.hasBloqueadoAEsteAtleta}</span>
                 </div>
                 <button
                   type="button"
@@ -240,7 +241,7 @@ export default function ModalPerfilPublico({
                   disabled={bloqueando}
                   className="px-2.5 py-1 rounded-lg bg-red-500 text-white font-bold text-[11px] cursor-pointer"
                 >
-                  {locale === 'es' ? 'Desbloquear' : 'Unblock'}
+                  {txSocialComponentes.desbloquear}
                 </button>
               </div>
             )}
@@ -281,7 +282,7 @@ export default function ModalPerfilPublico({
                               : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
                           }`}
                         >
-                          {locale === 'es' ? 'Tu Perfil' : 'Your Profile'}
+                          {txSocialComponentes.tuPerfil}
                         </span>
                       )}
                     </div>
@@ -333,7 +334,7 @@ export default function ModalPerfilPublico({
                     }`}
                   >
                     <span className={`text-[11px] font-medium block ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                      {locale === 'es' ? 'Seguidores' : 'Followers'}
+                      {txSocialComponentes.seguidores}
                     </span>
                     <span className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                       {perfil.seguidoresCount ?? 0}
@@ -348,7 +349,7 @@ export default function ModalPerfilPublico({
                     }`}
                   >
                     <span className={`text-[11px] font-medium block ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                      {locale === 'es' ? 'Siguiendo' : 'Following'}
+                      {txSocialComponentes.siguiendo}
                     </span>
                     <span className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                       {perfil.siguiendoCount ?? 0}
@@ -363,7 +364,7 @@ export default function ModalPerfilPublico({
                     }`}
                   >
                     <span className={`text-[11px] font-medium block ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                      {locale === 'es' ? 'Rutinas' : 'Routines'}
+                      {txSocialComponentes.rutinas}
                     </span>
                     <span className={`text-base font-extrabold ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                       {perfil.rutinasCount ?? rutinas.length}
@@ -373,7 +374,7 @@ export default function ModalPerfilPublico({
               </div>
             ) : (
               <p className={`text-sm text-center py-4 ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                {locale === 'es' ? 'Perfil no encontrado' : 'Profile not found'}
+                {txSocialComponentes.perfilNoEncontrado}
               </p>
             )}
           </div>
@@ -397,18 +398,14 @@ export default function ModalPerfilPublico({
               <div className={`text-center py-8 px-4 rounded-xl border border-dashed ${isLight ? 'border-neutral-200 bg-white' : 'border-neutral-800'}`}>
                 <Ban size={28} className={`mx-auto mb-2 text-red-500`} />
                 <p className={`text-xs font-medium ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                  {locale === 'es'
-                    ? 'El contenido de este atleta está oculto porque lo has bloqueado.'
-                    : 'This athlete content is hidden because you blocked them.'}
+                  {txSocialComponentes.elContenidoDeEsteAtleta}
                 </p>
               </div>
             ) : rutinas.length === 0 ? (
               <div className={`text-center py-8 px-4 rounded-xl border border-dashed ${isLight ? 'border-neutral-200 bg-white' : 'border-neutral-800'}`}>
                 <Dumbbell size={28} className={`mx-auto mb-2 ${isLight ? 'text-neutral-400' : 'text-neutral-600'}`} />
                 <p className={`text-xs font-medium ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                  {locale === 'es'
-                    ? 'Este atleta aún no ha compartido rutinas públicas.'
-                    : 'This athlete has not shared any public routines yet.'}
+                  {txSocialComponentes.esteAtletaAunNoHa}
                 </p>
               </div>
             ) : (
@@ -458,9 +455,7 @@ export default function ModalPerfilPublico({
                   : `Block @${perfil.nombre_usuario}?`}
               </h4>
               <p className={`text-xs ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                {locale === 'es'
-                  ? 'Dejarán de seguirse mutuamente y no verás sus rutinas ni publicaciones en la comunidad.'
-                  : 'You will unfollow each other and you will not see their workouts in the community.'}
+                {txSocialComponentes.dejaranDeSeguirseMutuamenteY}
               </p>
             </div>
 
@@ -473,7 +468,7 @@ export default function ModalPerfilPublico({
                   isLight ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
                 }`}
               >
-                {locale === 'es' ? 'Cancelar' : 'Cancel'}
+                {txSocialComponentes.cancelar}
               </button>
 
               <button
@@ -487,7 +482,7 @@ export default function ModalPerfilPublico({
                 ) : (
                   <Ban size={13} />
                 )}
-                <span>{locale === 'es' ? 'Sí, Bloquear' : 'Yes, Block'}</span>
+                <span>{txSocialComponentes.siBloquear}</span>
               </button>
             </div>
           </div>

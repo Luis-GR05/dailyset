@@ -29,6 +29,7 @@ import MarcoAvatarNivel from '../componentes/perfil/MarcoAvatarNivel';
 import ChatSoporte from '../componentes/soporte/ChatSoporte';
 import { NIVELES, calcularRachas } from '../lib/gamificacion';
 import { eliminarDatosCuenta } from '../lib/cuentaService';
+import { abrirPortalFacturacion } from '../lib/stripeService';
 export type { NivelConfig } from '../lib/gamificacion';
 
 
@@ -279,19 +280,14 @@ export default function PerfilPage() {
     if (!user) return;
     setGuardandoRenovacion(true);
     setAvisoRenovacion(null);
-    const nuevoEstado = user.renovacionAutomatica === false ? true : false;
+    // La renovación se gestiona en el portal de Stripe (cancelar o reactivar);
+    // el webhook actualiza el plan y la app/web lo leen al volver.
     try {
-      await updateUser({ renovacionAutomatica: nuevoEstado });
-      setAvisoRenovacion(
-        nuevoEstado
-          ? (locale === 'es'
-              ? 'Renovación automática activada correctamente.'
-              : 'Automatic renewal successfully enabled.')
-          : (locale === 'es'
-              ? 'Renovación automática cancelada. Mantendrás tu plan hasta la fecha de expiración.'
-              : 'Automatic renewal cancelled. You will keep your plan until expiration date.')
-      );
-      setTimeout(() => setAvisoRenovacion(null), 4500);
+      const r = await abrirPortalFacturacion();
+      if (r.error) {
+        setAvisoRenovacion(r.error);
+        setTimeout(() => setAvisoRenovacion(null), 4500);
+      }
     } catch (e) {
       console.error('Error al actualizar renovación:', e);
     } finally {

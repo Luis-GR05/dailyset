@@ -4,8 +4,9 @@
 import { useState } from 'react';
 import { useSocial } from '../../context/SocialContext';
 import { useAuth } from '../../context/AuthContext';
-import { useI18n } from '../../context/I18nContext';
 import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface BotonSeguirProps {
   targetUserId: string;
@@ -24,7 +25,7 @@ export default function BotonSeguir({
 }: BotonSeguirProps) {
   const { user } = useAuth();
   const { estaSiguiendo, toggleSeguir } = useSocial();
-  const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
 
   const [cargando, setCargando] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -47,9 +48,7 @@ export default function BotonSeguir({
       onFollowChange?.(nuevoEstado);
     } catch (err: any) {
       if (err?.message === 'LIMIT_SEGUIDOS_FREE') {
-        const msg = locale === 'es'
-          ? 'Has alcanzado el límite de 20 atletas seguidos en el plan Gratuito. ¿Deseas ver los planes Pro y Ultra para seguir atletas sin límites?'
-          : 'You reached the limit of 20 followed athletes on the Free plan. Would you like to view Pro and Ultra plans for unlimited follows?';
+        const msg = txSocialComponentes.hasAlcanzadoElLimiteDe;
         if (window.confirm(msg)) {
           window.location.href = '/suscripciones?tab=planes';
         }
@@ -85,29 +84,23 @@ export default function BotonSeguir({
       } ${className}`}
       title={
         siguiendo
-          ? locale === 'es'
-            ? 'Dejar de seguir'
-            : 'Unfollow'
-          : locale === 'es'
-          ? 'Seguir a este atleta'
-          : 'Follow this athlete'
-      }
+          ? txSocialComponentes.dejarDeSeguir: txSocialComponentes.seguirAEsteAtleta}
     >
       {cargando ? (
         <Loader2 size={isSmall ? 12 : 14} className="animate-spin text-white" />
       ) : siguiendo ? (
         hovered ? (
-          <span>{locale === 'es' ? 'Dejar de seguir' : 'Unfollow'}</span>
+          <span>{txSocialComponentes.dejarDeSeguir}</span>
         ) : (
           <>
             <UserCheck size={isSmall ? 12 : 14} className="text-emerald-400" />
-            <span>{locale === 'es' ? 'Siguiendo' : 'Following'}</span>
+            <span>{txSocialComponentes.siguiendo}</span>
           </>
         )
       ) : (
         <>
           <UserPlus size={isSmall ? 12 : 14} className="text-white" />
-          <span className="text-white font-bold">{locale === 'es' ? 'Seguir' : 'Follow'}</span>
+          <span className="text-white font-bold">{txSocialComponentes.seguir}</span>
         </>
       )}
     </button>

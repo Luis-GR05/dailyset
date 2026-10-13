@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 /** Borra todos los datos del usuario (RGPD art. 17): social, series, sesiones, rutinas y perfil. */
 export async function eliminarDatosCuenta(userId: string) {
-  await supabase.from('social_seguidores').delete().or(`seguidor_id.eq.${userId},seguido_id.eq.${userId}`);
+  await supabase.from('follows').delete().or(`follower_id.eq.${userId},following_id.eq.${userId}`);
   
   const { data: userSessions } = await supabase
     .from('sesiones_entrenamiento')

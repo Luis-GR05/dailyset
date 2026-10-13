@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   Ban,
 } from 'lucide-react';
+import { useTextos } from '../../hooks/useTextos';
+import { textosSocialComponentes } from '../../data/textos/socialComponentes';
 
 interface ModalReportarProps {
   tipo: 'usuario' | 'rutina';
@@ -40,6 +42,7 @@ export default function ModalReportar({
 }: ModalReportarProps) {
   const { reportarContenidoSocial, bloquearAtleta } = useSocial();
   const { locale } = useI18n();
+  const txSocialComponentes = useTextos(textosSocialComponentes);
 
   const [motivoSeleccionado, setMotivoSeleccionado] = useState<MotivoReporte>('spam');
   const [detalles, setDetalles] = useState('');
@@ -75,7 +78,7 @@ export default function ModalReportar({
       }, 2500);
     } catch (err: any) {
       console.error('Error al enviar reporte:', err);
-      setErrorMsg(err?.message || (locale === 'es' ? 'Error al enviar el reporte' : 'Error sending report'));
+      setErrorMsg(err?.message || txSocialComponentes.errorAlEnviarElReporte);
     } finally {
       setEnviando(false);
     }
@@ -108,8 +111,7 @@ export default function ModalReportar({
             <div>
               <h3 className={`font-black text-lg sm:text-xl tracking-tight ${isLight ? 'text-neutral-900' : 'text-white'}`}>
                 {tipo === 'usuario'
-                  ? locale === 'es' ? 'Reportar Usuario' : 'Report User'
-                  : locale === 'es' ? 'Reportar Rutina' : 'Report Routine'}
+                  ? txSocialComponentes.reportarUsuario: txSocialComponentes.reportarRutina2}
               </h3>
               <p className={`text-xs ${isLight ? 'text-neutral-500' : 'text-neutral-400'}`}>
                 {tipo === 'usuario'
@@ -124,7 +126,7 @@ export default function ModalReportar({
               isLight ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60' : ''
             }`}
             onClick={onCerrar}
-            title={locale === 'es' ? 'Cerrar' : 'Close'}
+            title={txSocialComponentes.cerrar}
           >
             <X size={16} />
           </button>
@@ -137,12 +139,10 @@ export default function ModalReportar({
               <Check size={28} />
             </div>
             <h4 className={`text-lg font-black ${isLight ? 'text-neutral-900' : 'text-white'}`}>
-              {locale === 'es' ? 'Reporte Recibido' : 'Report Received'}
+              {txSocialComponentes.reporteRecibido}
             </h4>
             <p className={`text-xs max-w-sm mx-auto leading-relaxed ${isLight ? 'text-neutral-600' : 'text-neutral-400'}`}>
-              {locale === 'es'
-                ? 'Gracias por ayudarnos a mantener segura la comunidad de DailySet. Nuestro equipo revisará el contenido reportado con la mayor brevedad.'
-                : 'Thank you for keeping DailySet community safe. Our team will review the reported content shortly.'}
+              {txSocialComponentes.graciasPorAyudarnosAMantener}
             </p>
             {bloquearTambien && (
               <p className="text-xs font-semibold text-emerald-500">
@@ -166,7 +166,7 @@ export default function ModalReportar({
               <label className={`text-xs font-bold uppercase tracking-wider block ${
                 isLight ? 'text-neutral-700' : 'text-neutral-300'
               }`}>
-                {locale === 'es' ? '¿Cuál es el motivo del reporte?' : 'What is the reason for reporting?'}
+                {txSocialComponentes.cualEsElMotivoDel}
               </label>
 
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -212,16 +212,12 @@ export default function ModalReportar({
               <label className={`text-xs font-bold uppercase tracking-wider block ${
                 isLight ? 'text-neutral-700' : 'text-neutral-300'
               }`}>
-                {locale === 'es' ? 'Detalles adicionales (opcional)' : 'Additional details (optional)'}
+                {txSocialComponentes.detallesAdicionalesOpcional}
               </label>
               <textarea
                 value={detalles}
                 onChange={e => setDetalles(e.target.value)}
-                placeholder={
-                  locale === 'es'
-                    ? 'Proporciona contexto adicional sobre este reporte...'
-                    : 'Provide additional context for this report...'
-                }
+                placeholder={ txSocialComponentes.proporcionaContextoAdicionalSobreEste}
                 rows={3}
                 className={`w-full p-3 text-xs rounded-xl border transition-all resize-none ${
                   isLight
@@ -261,9 +257,7 @@ export default function ModalReportar({
                 <span className={`text-[11px] leading-tight block mt-0.5 ${
                   isLight ? 'text-neutral-500' : 'text-neutral-400'
                 }`}>
-                  {locale === 'es'
-                    ? 'Ocultará inmediatamente todas sus publicaciones y romperá cualquier seguimiento mutuo.'
-                    : 'Will instantly hide all their posts and remove any mutual follows.'}
+                  {txSocialComponentes.ocultaraInmediatamenteTodasSusPublicaciones}
                 </span>
               </div>
             </label>
@@ -280,7 +274,7 @@ export default function ModalReportar({
                     : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
                 }`}
               >
-                {locale === 'es' ? 'Cancelar' : 'Cancel'}
+                {txSocialComponentes.cancelar}
               </button>
 
               <button
@@ -291,12 +285,12 @@ export default function ModalReportar({
                 {enviando ? (
                   <>
                     <Loader2 size={13} className="animate-spin" />
-                    <span>{locale === 'es' ? 'Enviando...' : 'Sending...'}</span>
+                    <span>{txSocialComponentes.enviando}</span>
                   </>
                 ) : (
                   <>
                     <Flag size={13} />
-                    <span>{locale === 'es' ? 'Enviar Reporte' : 'Submit Report'}</span>
+                    <span>{txSocialComponentes.enviarReporte}</span>
                   </>
                 )}
               </button>

@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
+import { obtenerSuscripcion, SUSCRIPCION_FREE } from "../lib/suscripcionService";
 
 export interface User {
   id: string;
@@ -30,10 +31,13 @@ export interface User {
   nivelActividad?: 'sedentario' | 'ligero' | 'moderado' | 'intenso' | 'muy_intenso' | string | null;
   objetivo?: 'definicion' | 'volumen' | 'mantenimiento' | 'fuerza' | string | null;
   // Plan de suscripción
+  // Plan de suscripción: SÓLO LECTURA. Viene de la tabla `suscripciones`, que únicamente
+  // modifica el webhook de Stripe. updateUser() ignora estos campos.
   plan?: 'free' | 'pro' | 'ultra';
   cicloFacturacion?: 'mensual' | 'anual';
   fechaRenovacionPlan?: string;
   renovacionAutomatica?: boolean;
+  tieneClienteStripe?: boolean;
 }
 
 interface AuthContextType {
@@ -48,6 +52,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   iniciarComoInvitado: () => void;
+  /** Vuelve a leer el perfil y el plan (p. ej. al volver de Stripe Checkout). */
+  refrescarUsuario: () => Promise<void>;
 }
 
 export const DEFAULT_GUEST_USER: User = {
@@ -70,9 +76,8 @@ export const DEFAULT_GUEST_USER: User = {
   genero: "masculino",
   nivelActividad: "moderado",
   objetivo: "ganar_musculo",
-  plan: (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || "free",
-  cicloFacturacion: (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || "mensual",
-  renovacionAutomatica: localStorage.getItem("dailyset_user_renovacion") !== 'false',
+  plan: "free",
+  renovacionAutomatica: false,
 };
 
 export function getGuestUser(): User {
@@ -81,7 +86,8 @@ export function getGuestUser(): User {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") {
-        return { ...DEFAULT_GUEST_USER, ...parsed };
+        // El modo invitado siempre es Free (el plan guardado en local no se respeta)
+        return { ...DEFAULT_GUEST_USER, ...parsed, plan: "free", renovacionAutomatica: false };
       }
     }
   } catch {
@@ -113,12 +119,18 @@ function mapAuthUser(authUser: SupabaseUser): User {
     totalSets: "0",
     racha: 0,
     pesoTotal: "0",
-    plan: (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || "free",
-    cicloFacturacion: (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || "mensual",
+    plan: "free",
   };
 }
 
 async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
+  const perfil = await fetchPerfilBase(authUser);
+  if (!perfil) return null;
+  const suscripcion = await obtenerSuscripcion(authUser.id).catch(() => SUSCRIPCION_FREE);
+  return { ...perfil, ...suscripcion };
+}
+
+async function fetchPerfilBase(authUser: SupabaseUser): Promise<User | null> {
   try {
     // Obtener perfil desde la tabla 'perfiles'
     const { data, error } = await supabase
@@ -197,11 +209,7 @@ async function fetchProfile(authUser: SupabaseUser): Promise<User | null> {
       genero: prefs.genero ?? null,
       nivelActividad: prefs.nivelActividad ?? null,
       objetivo: prefs.objetivo ?? null,
-      // Plan de suscripción
-      plan: (prefs.plan as 'free' | 'pro' | 'ultra') || (localStorage.getItem("dailyset_user_plan") as 'free' | 'pro' | 'ultra') || 'free',
-      cicloFacturacion: (prefs.cicloFacturacion as 'mensual' | 'anual') || (localStorage.getItem("dailyset_user_ciclo") as 'mensual' | 'anual') || 'mensual',
-      fechaRenovacionPlan: prefs.fechaRenovacionPlan as string | undefined,
-      renovacionAutomatica: (prefs.renovacionAutomatica as boolean | undefined) ?? (localStorage.getItem("dailyset_user_renovacion") !== 'false'),
+      // El plan se añade en fetchProfile() desde la tabla `suscripciones`
     };
   } catch (err) {
     console.error("Error in fetchProfile:", err);
@@ -424,8 +432,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(guest);
   };
 
-  const updateUser = async (data: Partial<User>) => {
+  const updateUser = async (datos: Partial<User>) => {
     if (!user) throw new Error("No hay sesión activa");
+    // Los campos del plan no se pueden modificar desde el cliente (sólo vía Stripe).
+    const {
+      plan: _plan,
+      cicloFacturacion: _ciclo,
+      fechaRenovacionPlan: _fecha,
+      renovacionAutomatica: _renov,
+      tieneClienteStripe: _cliente,
+      ...data
+    } = datos;
+    void _plan; void _ciclo; void _fecha; void _renov; void _cliente;
 
     // Si es usuario invitado / offline, persistir en localStorage y actualizar estado reactivo
     if (user.id === "invitado") {
@@ -468,22 +486,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...(data.genero !== undefined && { genero: data.genero }),
       ...(data.nivelActividad !== undefined && { nivelActividad: data.nivelActividad }),
       ...(data.objetivo !== undefined && { objetivo: data.objetivo }),
-      // Plan y ciclo
-      ...(data.plan !== undefined && { plan: data.plan }),
-      ...(data.cicloFacturacion !== undefined && { cicloFacturacion: data.cicloFacturacion }),
-      ...(data.fechaRenovacionPlan !== undefined && { fechaRenovacionPlan: data.fechaRenovacionPlan }),
-      ...(data.renovacionAutomatica !== undefined && { renovacionAutomatica: data.renovacionAutomatica }),
     };
-
-    if (data.plan !== undefined) {
-      localStorage.setItem("dailyset_user_plan", data.plan);
-    }
-    if (data.cicloFacturacion !== undefined) {
-      localStorage.setItem("dailyset_user_ciclo", data.cicloFacturacion);
-    }
-    if (data.renovacionAutomatica !== undefined) {
-      localStorage.setItem("dailyset_user_renovacion", String(data.renovacionAutomatica));
-    }
 
     const dbData: Record<string, unknown> = {
       preferencias: newPrefs,
@@ -518,9 +521,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updatedProfile ?? mapAuthUser(authUser));
   };
 
+  const refrescarUsuario = async () => {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    if (!authUser) return;
+    const perfil = await withTimeout(fetchProfile(authUser));
+    if (perfil) setUser(perfil);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, updateUser, iniciarComoInvitado }}
+      value={{ user, loading, login, register, logout, updateUser, iniciarComoInvitado, refrescarUsuario }}
     >
       {children}
     </AuthContext.Provider>

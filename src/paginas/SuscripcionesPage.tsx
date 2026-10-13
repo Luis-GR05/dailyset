@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AppLayout, TituloPagina } from '../componentes';
 import { useAuth } from '../context/AuthContext';
+import { esperarCambioDePlan } from '../lib/suscripcionService';
 import { useI18n } from '../context/I18nContext';
 import { DESGLOSE_FINANCIERO } from '../data/planesSuscripcion';
 import type { CicloFacturacion, DesgloseFinanciero, TipoPlan } from '../types/suscripcion';
@@ -25,9 +26,9 @@ import {
 type TabSeccion = 'planes' | 'matriz' | 'cuotas' | 'faq';
 
 export default function SuscripcionesPage() {
-  const { user } = useAuth();
+  const { user, refrescarUsuario } = useAuth();
   const { locale } = useI18n();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const tabQuery = searchParams.get('tab') as TabSeccion | null;
   const [tabActiva, setTabActiva] = useState<TabSeccion>(
@@ -85,6 +86,46 @@ export default function SuscripcionesPage() {
     }, 5000);
   };
 
+  // Vuelta desde Stripe Checkout (?status=success | cancelled)
+  const estadoPago = searchParams.get('status');
+  const [confirmandoPago, setConfirmandoPago] = useState(false);
+  useEffect(() => {
+    if (!estadoPago || !user?.id || user.id === 'invitado') return;
+    const limpiarParametro = () => {
+      const p = new URLSearchParams(searchParams);
+      p.delete('status');
+      p.delete('session_id');
+      setSearchParams(p, { replace: true });
+    };
+    if (estadoPago === 'cancelled') {
+      setMensajeExito(locale === 'es' ? 'Pago cancelado. No se ha realizado ningún cargo.' : 'Payment cancelled. You have not been charged.');
+      limpiarParametro();
+      return;
+    }
+    if (estadoPago !== 'success') return;
+    let cancelado = false;
+    setConfirmandoPago(true);
+    esperarCambioDePlan(user.id, 'free').then(async (sus) => {
+      if (cancelado) return;
+      await refrescarUsuario();
+      setConfirmandoPago(false);
+      if (sus.plan !== 'free') {
+        handleExitoContratacion(sus.plan);
+      } else {
+        setMensajeExito(
+          locale === 'es'
+            ? 'Pago recibido. Tu plan se activará en unos segundos; recarga la página si no lo ves.'
+            : 'Payment received. Your plan will be active in a few seconds; reload if you do not see it.'
+        );
+      }
+      limpiarParametro();
+    });
+    return () => {
+      cancelado = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estadoPago, user?.id]);
+
   const infoPlanActual =
     DESGLOSE_FINANCIERO.find((p) => p.planId === planActual) || DESGLOSE_FINANCIERO[0];
 
@@ -92,6 +133,12 @@ export default function SuscripcionesPage() {
     <AppLayout>
       <div className="space-y-8 pb-12 animate-fade-in">
         {/* ── Banner de Éxito Flotante / Alerta ── */}
+        {confirmandoPago && (
+          <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm font-bold text-neutral-200 flex items-center gap-3">
+            <span className="w-4 h-4 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+            {locale === 'es' ? 'Confirmando tu pago con Stripe...' : 'Confirming your payment with Stripe...'}
+          </div>
+        )}
         {mensajeExito && (
           <div className="p-4 rounded-2xl bg-[var(--color-primary)] text-black font-bold flex items-center justify-between shadow-[0_0_30px_var(--color-primary-glow)]">
             <div className="flex items-center gap-3">
