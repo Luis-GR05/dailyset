@@ -4,6 +4,7 @@ import { Logo } from '../componentes';
 import DotGrid from '../componentes/FondoAnimado';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { Check } from 'lucide-react';
 
 export default function RegistroPage() {
   const { t, locale } = useI18n();
@@ -16,12 +17,22 @@ export default function RegistroPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!aceptaTerminos) {
+      setError(
+        locale === 'es'
+          ? 'Debes aceptar los Términos y Condiciones y la Política de Privacidad para registrarte'
+          : 'You must accept the Terms and Conditions and Privacy Policy to register'
+      );
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError(locale === 'es' ? 'Las contraseñas no coinciden' : 'Passwords do not match');
@@ -68,13 +79,13 @@ export default function RegistroPage() {
 
   const EyeIcon = ({ visible }: { visible: boolean }) => visible ? (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   ) : (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
 
@@ -266,48 +277,95 @@ export default function RegistroPage() {
                 </div>
               )}
 
+
+
+              {/* Checkbox Términos y Condiciones */}
+              <div className="pt-1">
+                <label className="flex items-start gap-3 cursor-pointer select-none group text-left">
+                  <input
+                    type="checkbox"
+                    checked={aceptaTerminos}
+                    onChange={(e) => {
+                      setAceptaTerminos(e.target.checked);
+                      if (error && (error.includes('Términos') || error.includes('Terms'))) {
+                        setError('');
+                      }
+                    }}
+                    className="sr-only"
+                    disabled={loading}
+                  />
+                  <div
+                    className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all duration-200 shrink-0 mt-0.5 ${
+                      aceptaTerminos
+                        ? 'border-transparent text-black'
+                        : 'bg-white/5 border-white/20 group-hover:border-white/40 text-transparent'
+                    }`}
+                    style={{
+                      backgroundColor: aceptaTerminos ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.05)',
+                      boxShadow: aceptaTerminos ? '0 0 14px var(--color-primary-glow)' : 'none',
+                    }}
+                  >
+                    <Check size={13} strokeWidth={3.5} />
+                  </div>
+                  <span className="text-xs text-neutral-400 leading-snug">
+                    {locale === 'es' ? 'Acepto los ' : 'I accept the '}
+                    <Link
+                      to="/terminos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-white underline underline-offset-2 hover:text-[var(--color-primary)] transition-colors font-medium"
+                    >
+                      {locale === 'es' ? 'Términos y Condiciones' : 'Terms & Conditions'}
+                    </Link>
+                    {locale === 'es' ? ' y la ' : ' and the '}
+                    <Link
+                      to="/privacidad"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-white underline underline-offset-2 hover:text-[var(--color-primary)] transition-colors font-medium"
+                    >
+                      {locale === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}
+                    </Link>
+                    .
+                  </span>
+                </label>
+              </div>
+
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all hover:pr-8 active:scale-95 uppercase text-sm tracking-widest italic text-black disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                  disabled={loading || !aceptaTerminos}
+                  className="group relative w-full overflow-hidden font-black py-4 rounded-full transition-all uppercase text-sm tracking-widest italic text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 hover:pr-8 active:scale-95"
                   style={{
                     backgroundColor: 'var(--color-primary)',
-                    boxShadow: '0 15px 30px var(--color-primary-glow)',
+                    boxShadow: !loading && aceptaTerminos ? '0 15px 30px var(--color-primary-glow)' : 'none',
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
+                    if (!loading && aceptaTerminos) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary-hover)';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
+                    if (!loading && aceptaTerminos) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-primary)';
                   }}
                 >
                   {loading ? (
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
                       {locale === 'es' ? 'Creando cuenta...' : 'Creating account...'}
                     </span>
                   ) : (
                     <>
                       <span className="relative z-10">{t.auth.register}</span>
-                      <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+                      {aceptaTerminos && (
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all font-bold">→</span>
+                      )}
                     </>
                   )}
                 </button>
-
-                <p className="text-[10px] text-neutral-500 text-center mt-3">
-                  {locale === 'es' ? 'Al registrarte, aceptas nuestros ' : 'By creating an account, you agree to our '}
-                  <Link to="/terminos" className="text-neutral-400 hover:text-white underline">
-                    {locale === 'es' ? 'Términos' : 'Terms'}
-                  </Link>
-                  {locale === 'es' ? ' y ' : ' and '}
-                  <Link to="/privacidad" className="text-neutral-400 hover:text-white underline">
-                    {locale === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}
-                  </Link>.
-                </p>
               </div>
             </form>
 
