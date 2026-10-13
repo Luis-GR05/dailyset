@@ -1,5 +1,5 @@
 # Comprobaciones automáticas de la web en cada push y pull request.
-# Además verifica que la app móvil (repo dailyset-app) tiene copiada la lógica compartida.
+# Además avisa si la app móvil (repo dailyset-app) no tiene copiada la lógica compartida.
 name: CI web
 
 on:
@@ -46,11 +46,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: dailyset-web
+      # Si el repo de la app es privado, crea el secret APP_REPO_TOKEN (token de sólo lectura)
       - uses: actions/checkout@v4
         with:
           repository: chocarro/dailyset-app
           path: dailyset-app
-          # Necesario si el repo de la app es privado: un token con permiso de lectura
           token: ${{ secrets.APP_REPO_TOKEN || github.token }}
       - uses: actions/setup-node@v4
         with:
