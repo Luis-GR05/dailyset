@@ -5,6 +5,7 @@ import { useEjercicios, type Ejercicio } from '../../context/EjerciciosContext';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../context/I18nContext';
 import { RUTINAS_PREDEFINIDAS, getCategoriaColor } from '../../data/rutinasPredefinidas';
+import { coincideFiltroMuscular } from '../../lib/filtrosEjercicios';
 import { X, Plus, Eye, ArrowUp, ArrowDown, Search, Dumbbell, Lock, Globe, Zap, Sparkles } from 'lucide-react';
 
 interface FormularioRutinaProps {
@@ -130,32 +131,7 @@ export default function FormularioRutina({ rutina, onGuardar, onCerrar }: Formul
             // Filtro por grupo muscular
             if (filtroMusculo === 'Todos') return true;
 
-            const allM = [
-                e.grupo ?? '',
-                e.categoriaEjercicio ?? '',
-                ...(e.musculosPrimarios ?? []),
-                ...(e.musculosSecundarios ?? []),
-                e.nombre,
-            ].join(' ').toLowerCase();
-
-            switch (filtroMusculo) {
-                case 'Pecho':
-                    return allM.includes('pecho') || allM.includes('chest') || allM.includes('pectoral');
-                case 'Espalda':
-                    return allM.includes('espalda') || allM.includes('back') || allM.includes('dorsal') || allM.includes('lat') || allM.includes('trapecio');
-                case 'Piernas':
-                    return allM.includes('pierna') || allM.includes('leg') || allM.includes('quad') || allM.includes('cuádricep') || allM.includes('glúteo') || allM.includes('glute') || allM.includes('femoral') || allM.includes('isquio') || allM.includes('gemelo') || allM.includes('calf');
-                case 'Hombros':
-                    return allM.includes('hombro') || allM.includes('shoulder') || allM.includes('deltoid');
-                case 'Brazos':
-                    return allM.includes('brazo') || allM.includes('arm') || allM.includes('bicep') || allM.includes('bícep') || allM.includes('tricep') || allM.includes('trícep') || allM.includes('antebrazo');
-                case 'Core':
-                    return allM.includes('core') || allM.includes('abs') || allM.includes('abdom') || allM.includes('oblicuo') || allM.includes('lumbar');
-                case 'Cardio':
-                    return allM.includes('cardio') || allM.includes('plyometric') || allM.includes('salto') || allM.includes('jump') || allM.includes('burpee') || allM.includes('hiit');
-                default:
-                    return true;
-            }
+            return coincideFiltroMuscular(e, filtroMusculo);
         });
     }, [allEjercicios, seleccionados, busqueda, filtroMusculo]);
 

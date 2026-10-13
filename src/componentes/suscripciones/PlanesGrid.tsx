@@ -1,6 +1,6 @@
 // src/componentes/suscripciones/PlanesGrid.tsx
 import { Check, Zap, Crown, Sparkles, ArrowRight, Star } from 'lucide-react';
-import { DESGLOSE_FINANCIERO } from '../../data/planesSuscripcion';
+import { DESGLOSE_FINANCIERO, FEATURES_POR_PLAN } from '../../data/planesSuscripcion';
 import type { CicloFacturacion, DesgloseFinanciero, TipoPlan } from '../../types/suscripcion';
 import { useI18n } from '../../context/I18nContext';
 
@@ -19,68 +19,7 @@ export default function PlanesGrid({
 }: PlanesGridProps) {
   const { locale } = useI18n();
 
-  const featuresPorPlan: Record<TipoPlan, { es: string[]; en: string[] }> = {
-    free: {
-      es: [
-        'Hasta 4 rutinas activas (Torso-Pierna / PPL)',
-        'Historial y calendario de los últimos 45 días',
-        'Búsqueda y guías técnicas básicas',
-        'Gráfica de volumen semanal',
-        'Seguir hasta 20 personas en el feed',
-        'Ver y clonar rutinas de la comunidad',
-        'Soporte estándar de la comunidad',
-      ],
-      en: [
-        'Up to 4 active routines (Upper-Lower / PPL)',
-        'Calendar & history of the last 45 days',
-        'Search and basic exercise technical guides',
-        'Weekly workout volume analytics',
-        'Follow up to 20 community athletes',
-        'Explore and clone community routines',
-        'Standard community support',
-      ],
-    },
-    pro: {
-      es: [
-        'Hasta 12 rutinas + duplicación instantánea',
-        '1 año de historial + tonelaje total acumulado',
-        'Catálogo completo + histórico de marcas y récords',
-        'Gráfica de progresión por ejercicio (1 año)',
-        'Seguir y feed sin límite de usuarios',
-        'Publicar y compartir rutinas propias',
-        'Hasta 10 rutinas personalizadas',
-      ],
-      en: [
-        'Up to 12 routines + instant duplication',
-        '1 year of history + cumulative tonnage stats',
-        'Full catalog + PR history & record tracker',
-        'Progression charts per exercise (1 year)',
-        'Unlimited social follow and feed',
-        'Publish and share your own custom workouts',
-        'Up to 10 custom routines',
-      ],
-    },
-    ultra: {
-      es: [
-        'Rutinas activas ilimitadas + importar/exportar',
-        'Historial vitalicio completo + exportación CSV/PDF',
-        'Catálogo completo + notas privadas por ejercicio',
-        'Gráficas avanzadas: balance muscular y comparativas',
-        'Seguir y feed ilimitado con métricas de atletas',
-        'Estadísticas exclusivas de quién usa tus rutinas',
-        'Rutinas y ejercicios personalizados ilimitados',
-      ],
-      en: [
-        'Unlimited routines + athlete import/export',
-        'Lifetime workout history + CSV/PDF export',
-        'Full catalog + private notes per exercise',
-        'Advanced charts: muscular balance & comparisons',
-        'Unlimited social follow with athlete telemetry',
-        'Exclusive analytics on who uses your routines',
-        'Unlimited custom routines & custom exercises',
-      ],
-    },
-  };
+  const featuresPorPlan = FEATURES_POR_PLAN;
 
   return (
     <div className="w-full space-y-8">

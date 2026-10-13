@@ -16,6 +16,8 @@ import {
 import flagEs from "../assets/flags/es.svg";
 import flagEn from "../assets/flags/en.svg";
 import { supabase } from "../lib/supabaseClient";
+import { eliminarDatosCuenta } from "../lib/cuentaService";
+import { generarCSVDatosUsuario } from "../lib/exportacionDatos";
 import { esNombreUsuarioDisponible, getPerfilesBloqueados, desbloquearUsuario } from "../lib/socialService";
 import { useHistorial } from "../context/HistorialContext";
 import { useRutinas } from "../context/RutinasContext";
@@ -310,81 +312,8 @@ export default function PerfilConfigPage() {
   const handleExportarCSV = () => {
     setExportandoCSV(true);
     try {
-      const lineas: string[] = [];
       const fechaHoy = new Date().toISOString().split('T')[0];
-
-      // Cabecera informativa RGPD
-      lineas.push('# DAILYSET - EXPORTACIÓN DE DATOS PERSONALES (RGPD / GDPR)');
-      lineas.push(`# Fecha de exportación: ${new Date().toISOString()}`);
-      lineas.push('');
-
-      // 1. DATOS DE PERFIL
-      lineas.push('# 1. DATOS DE PERFIL');
-      lineas.push('ID,Nombre,NombreUsuario,Email,PesoKg,AlturaCm,Edad,Genero,NivelActividad,Objetivo,UnidadesKg');
-      lineas.push(
-        [
-          `"${user?.id || ''}"`,
-          `"${(user?.nombre || '').replace(/"/g, '""')}"`,
-          `"${(user?.nombre_usuario || '').replace(/"/g, '""')}"`,
-          `"${(user?.email || '').replace(/"/g, '""')}"`,
-          user?.pesoKg ?? '',
-          user?.alturaCm ?? '',
-          user?.edad ?? '',
-          `"${user?.genero || ''}"`,
-          `"${user?.nivelActividad || ''}"`,
-          `"${user?.objetivo || ''}"`,
-          user?.unidadesKg ? 'kg' : 'lbs',
-        ].join(',')
-      );
-      lineas.push('');
-
-      // 2. RUTINAS
-      lineas.push('# 2. RUTINAS CREADAS');
-      lineas.push('ID,Nombre,Categoria,DuracionMinutos,EsPublica');
-      rutinas.forEach(r => {
-        lineas.push(
-          [
-            r.id,
-            `"${(r.nombre || '').replace(/"/g, '""')}"`,
-            `"${r.categoria || ''}"`,
-            r.duracion || 0,
-            r.is_public ? 'Si' : 'No',
-          ].join(',')
-        );
-      });
-      lineas.push('');
-
-      // 3. HISTORIAL DE SESIONES Y SERIES DE ENTRENAMIENTO
-      lineas.push('# 3. HISTORIAL DE SESIONES Y SERIES DE ENTRENAMIENTO');
-      lineas.push('SesionID,Fecha,Rutina,DuracionMinutos,Puntuacion,Ejercicio,NumeroSerie,Kg,Reps,Completada');
-      sesiones.forEach(s => {
-        if (!s.ejercicios || s.ejercicios.length === 0) {
-          lineas.push([s.id, s.fecha, `"${(s.rutina || '').replace(/"/g, '""')}"`, s.duracionMin || 0, s.puntuacion || '', '', '', '', '', ''].join(','));
-        } else {
-          s.ejercicios.forEach(ej => {
-            if (!ej.series || ej.series.length === 0) {
-              lineas.push([s.id, s.fecha, `"${(s.rutina || '').replace(/"/g, '""')}"`, s.duracionMin || 0, s.puntuacion || '', `"${(ej.nombre || '').replace(/"/g, '""')}"`, '', '', '', ''].join(','));
-            } else {
-              ej.series.forEach(sr => {
-                lineas.push([
-                  s.id,
-                  s.fecha,
-                  `"${(s.rutina || '').replace(/"/g, '""')}"`,
-                  s.duracionMin || 0,
-                  s.puntuacion || '',
-                  `"${(ej.nombre || '').replace(/"/g, '""')}"`,
-                  sr.numero,
-                  sr.kg,
-                  sr.reps,
-                  sr.completada ? 'Si' : 'No',
-                ].join(','));
-              });
-            }
-          });
-        }
-      });
-
-      const csvContent = lineas.join('\n');
+      const csvContent = generarCSVDatosUsuario(user, rutinas, sesiones);
       const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -412,28 +341,8 @@ export default function PerfilConfigPage() {
     setErrorEliminar('');
 
     try {
-      // 1. Eliminar seguidores / seguidos
-      await supabase.from('social_seguidores').delete().or(`seguidor_id.eq.${user.id},seguido_id.eq.${user.id}`);
-      
-      // 2. Obtener IDs de sesiones para eliminar series
-      const { data: userSessions } = await supabase
-        .from('sesiones_entrenamiento')
-        .select('id')
-        .eq('usuario_id', user.id);
-      
-      if (userSessions && userSessions.length > 0) {
-        const sessionIds = userSessions.map(s => s.id);
-        await supabase.from('series').delete().in('sesion_id', sessionIds);
-      }
-
-      // 3. Eliminar sesiones
-      await supabase.from('sesiones_entrenamiento').delete().eq('usuario_id', user.id);
-
-      // 4. Eliminar rutinas creadas
-      await supabase.from('rutinas').delete().eq('usuario_id', user.id);
-
-      // 5. Eliminar perfil público
-      await supabase.from('perfiles').delete().eq('id', user.id);
+      // 1-5. Seguidores, series, sesiones, rutinas y perfil (lógica compartida con la app)
+      await eliminarDatosCuenta(user.id);
 
       // 6. Limpieza de almacenamiento local
       localStorage.clear();

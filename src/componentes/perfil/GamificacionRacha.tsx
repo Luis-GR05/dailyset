@@ -9,7 +9,7 @@ import {
   Lock,
   Crown,
 } from 'lucide-react';
-import type { NivelConfig } from '../../paginas/PerfilPage';
+import type { NivelConfig } from '../../lib/gamificacion';
 
 export interface GamificacionRachaProps {
   locale: string;

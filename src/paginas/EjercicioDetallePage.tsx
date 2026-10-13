@@ -6,24 +6,7 @@ import { useI18n } from '../context/I18nContext';
 import { useEjercicios } from '../context/EjerciciosContext';
 import { useHistorial } from '../context/HistorialContext';
 import { ArrowLeft, Dumbbell, Target, Zap, BarChart2, TrendingUp } from 'lucide-react';
-import { MUSCLE_TRANSLATIONS, EQUIPMENT_TRANSLATIONS } from './EjerciciosPage';
-
-const LEVEL_COLORS: Record<string, string> = {
-  principiante: '#34d399',
-  intermedio:   '#f59e0b',
-  avanzado:     '#ef4444',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  strength:    'Fuerza',
-  stretching:  'Estiramiento',
-  plyometrics: 'Pliométrico',
-  strongman:   'Strongman',
-  powerlifting:'Powerlifting',
-  olympic_weightlifting: 'Halterofilia',
-  cardio:      'Cardio',
-  general:     'General',
-};
+import { MUSCLE_TRANSLATIONS, EQUIPMENT_TRANSLATIONS, LEVEL_COLORS, CATEGORY_LABELS } from '../data/etiquetasEjercicios';
 
 function formatFecha(fecha: string, locale: string): string {
   const d = new Date(fecha + 'T12:00:00');

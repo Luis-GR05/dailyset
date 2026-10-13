@@ -6,21 +6,12 @@ import type { Ejercicio } from '../context/EjerciciosContext';
 import FormularioEjercicio from '../componentes/forms/FormularioEjercicio';
 import { Dumbbell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { CATEGORY_LABELS, getMuscleTextHelper, getEquipmentTextHelper } from '../data/etiquetasEjercicios';
+export { MUSCLE_TRANSLATIONS, EQUIPMENT_TRANSLATIONS } from '../data/etiquetasEjercicios';
 
 type Modal =
   | { tipo: 'crear' }
   | null;
-
-const CATEGORY_LABELS: Record<string, string> = {
-  strength: 'Fuerza',
-  stretching: 'Estiramiento',
-  plyometrics: 'Pliométrico',
-  strongman: 'Strongman',
-  powerlifting: 'Powerlifting',
-  olympic_weightlifting: 'Halterofilia',
-  cardio: 'Cardio',
-  general: 'General',
-};
 
 const CATEGORY_COLORS: Record<string, string> = {
   strength: 'var(--color-primary)',
@@ -33,54 +24,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   general: 'var(--color-neutral-2000)',
 };
 
-export const MUSCLE_TRANSLATIONS: Record<string, { es: string; en: string }> = {
-  abductors: { es: 'Abductores', en: 'Abductors' },
-  abs: { es: 'Abdominales', en: 'Abs' },
-  adductors: { es: 'Aductores', en: 'Adductors' },
-  biceps: { es: 'Bíceps', en: 'Biceps' },
-  calves: { es: 'Gemelos', en: 'Calves' },
-  cardio: { es: 'Cardio', en: 'Cardio' },
-  delts: { es: 'Deltoides (Hombros)', en: 'Deltoids' },
-  forearms: { es: 'Antebrazos', en: 'Forearms' },
-  glutes: { es: 'Glúteos', en: 'Glutes' },
-  hamstrings: { es: 'Isquiotibiales', en: 'Hamstrings' },
-  lats: { es: 'Dorsales', en: 'Lats' },
-  'levator-scapulae': { es: 'Elevador de la escápula', en: 'Levator Scapulae' },
-  pectorals: { es: 'Pectorales', en: 'Pectorals' },
-  quads: { es: 'Cuádriceps', en: 'Quads' },
-  'serratus-anterior': { es: 'Serrato anterior', en: 'Serratus Anterior' },
-  spine: { es: 'Espina / Lumbar', en: 'Spine / Lower Back' },
-  traps: { es: 'Trapecios', en: 'Traps' },
-  triceps: { es: 'Tríceps', en: 'Triceps' },
-  'upper-back': { es: 'Espalda superior', en: 'Upper Back' },
-};
-
-export const EQUIPMENT_TRANSLATIONS: Record<string, { es: string; en: string }> = {
-  barbell: { es: 'Barra', en: 'Barbell' },
-  dumbbell: { es: 'Mancuerna', en: 'Dumbbell' },
-  cable: { es: 'Polea', en: 'Cable' },
-  machine: { es: 'Máquina', en: 'Machine' },
-  bodyweight: { es: 'Peso corporal', en: 'Bodyweight' },
-  band: { es: 'Banda elástica', en: 'Band' },
-  kettlebell: { es: 'Pesa rusa (Kettlebell)', en: 'Kettlebell' },
-  smith: { es: 'Máquina Smith', en: 'Smith' },
-  'ez-bar': { es: 'Barra Z', en: 'EZ Bar' },
-  lever: { es: 'Palanca', en: 'Lever' },
-  other: { es: 'Otro', en: 'Other' },
-};
-
 const MIN_EXERCISES_PER_CATEGORY = 2;
 const normalizeCategory = (cat?: string) => (cat === 'general' ? 'all' : (cat ?? 'all'));
-
-function getMuscleTextHelper(m: string, locale: string) {
-  const item = MUSCLE_TRANSLATIONS[m.toLowerCase()];
-  return item ? (locale === 'es' ? item.es : item.en) : m;
-}
-
-function getEquipmentTextHelper(eq: string, locale: string) {
-  const item = EQUIPMENT_TRANSLATIONS[eq.toLowerCase()];
-  return item ? (locale === 'es' ? item.es : item.en) : eq;
-}
 
 export default function EjerciciosPage() {
   const { ejercicios, cargando, error, agregarEjercicio } = useEjercicios();

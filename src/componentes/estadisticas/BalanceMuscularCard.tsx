@@ -12,6 +12,7 @@ import {
 import { Target, Lock, ShieldCheck, Activity, Award } from 'lucide-react';
 import type { Sesion } from '../../context/HistorialContext';
 import { useI18n } from '../../context/I18nContext';
+import { calcularBalanceMuscular } from '../../lib/analiticaAvanzada';
 
 interface BalanceMuscularCardProps {
   sesiones: Sesion[];
@@ -27,90 +28,7 @@ export default function BalanceMuscularCard({
   const { locale } = useI18n();
 
   // Calcular volumen por grupo muscular a partir del historial
-  const { datosRadar, ratioPushPull, grupoPredominante } = useMemo(() => {
-    const grupos: Record<string, number> = {
-      Pecho: 0,
-      Espalda: 0,
-      Piernas: 0,
-      Hombros: 0,
-      Brazos: 0,
-      Core: 0,
-    };
-
-    sesiones.forEach((s) => {
-      s.ejercicios?.forEach((ej) => {
-        const nom = (ej.nombre || '').toLowerCase();
-        const vol = ej.series?.reduce((acc, ser) => acc + (ser.kg || 0) * (ser.reps || 0), 0) || 0;
-
-        if (nom.includes('banca') || nom.includes('pecho') || nom.includes('chest') || nom.includes('apertura') || nom.includes('fondos')) {
-          grupos.Pecho += vol;
-        } else if (nom.includes('remo') || nom.includes('espalda') || nom.includes('back') || nom.includes('dominada') || nom.includes('jalon') || nom.includes('pull')) {
-          grupos.Espalda += vol;
-        } else if (nom.includes('sentadilla') || nom.includes('squat') || nom.includes('prensa') || nom.includes('pierna') || nom.includes('leg') || nom.includes('peso muerto') || nom.includes('deadlift') || nom.includes('gemelo') || nom.includes('femoral') || nom.includes('cuadriceps')) {
-          grupos.Piernas += vol;
-        } else if (nom.includes('militar') || nom.includes('hombro') || nom.includes('shoulder') || nom.includes('lateral') || nom.includes('pajaros')) {
-          grupos.Hombros += vol;
-        } else if (nom.includes('biceps') || nom.includes('triceps') || nom.includes('curl') || nom.includes('brazo') || nom.includes('frances')) {
-          grupos.Brazos += vol;
-        } else {
-          grupos.Core += vol > 0 ? vol : (ej.series?.length || 1) * 50;
-        }
-      });
-    });
-
-    const sumVol = Object.values(grupos).reduce((a, b) => a + b, 0);
-
-    // Si el usuario es nuevo o no tiene datos suficientes, usamos un perfil de atleta equilibrado para preview
-    const base = sumVol > 0 ? grupos : {
-      Pecho: 5200,
-      Espalda: 5800,
-      Piernas: 7400,
-      Hombros: 3400,
-      Brazos: 3100,
-      Core: 1800,
-    };
-
-    const maxVal = Math.max(...Object.values(base), 1);
-
-    const nombresGrupos: Record<string, { es: string; en: string }> = {
-      Pecho: { es: 'Pecho', en: 'Chest' },
-      Espalda: { es: 'Espalda', en: 'Back' },
-      Piernas: { es: 'Piernas', en: 'Legs' },
-      Hombros: { es: 'Hombros', en: 'Shoulders' },
-      Brazos: { es: 'Brazos', en: 'Arms' },
-      Core: { es: 'Core / Abdomen', en: 'Core' },
-    };
-
-    const datos = Object.entries(base).map(([key, val]) => {
-      const pct = Math.round((val / maxVal) * 100);
-      return {
-        grupo: locale === 'es' ? nombresGrupos[key].es : nombresGrupos[key].en,
-        volumen: val,
-        puntuacion: pct > 20 ? pct : 20,
-      };
-    });
-
-    // Ratio Push vs Pull (Pecho + Hombros vs Espalda)
-    const push = (base.Pecho || 0) + (base.Hombros || 0);
-    const pull = base.Espalda || 1;
-    const ratio = (push / pull).toFixed(2);
-
-    let maxG = 'Piernas';
-    let maxGVal = 0;
-    Object.entries(base).forEach(([k, v]) => {
-      if (v > maxGVal) {
-        maxGVal = v;
-        maxG = k;
-      }
-    });
-
-    return {
-      datosRadar: datos,
-      totalVolumen: sumVol > 0 ? sumVol : 26700,
-      ratioPushPull: ratio,
-      grupoPredominante: locale === 'es' ? nombresGrupos[maxG].es : nombresGrupos[maxG].en,
-    };
-  }, [sesiones, locale]);
+  const { datosRadar, ratioPushPull, grupoPredominante } = useMemo(() => calcularBalanceMuscular(sesiones, locale), [sesiones, locale]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl p-6 md:p-8">

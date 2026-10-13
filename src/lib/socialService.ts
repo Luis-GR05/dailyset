@@ -158,7 +158,7 @@ async function getFeedPublicoFallback({
       avatar_url: null,
       nivel_entrenamiento: 'ATLETA',
     };
-    perfil.esSeguido = seguidosPorMi.includes(r.usuario_id);
+    Object.assign(perfil, { esSeguido: seguidosPorMi.includes(r.usuario_id) });
     const ejercicios = ejerciciosPorRutina[r.id] || [];
     const reacc = reaccionesMap[r.id] || { count: 0, userLiked: false };
 

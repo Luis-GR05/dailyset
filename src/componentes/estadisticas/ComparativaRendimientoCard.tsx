@@ -13,6 +13,7 @@ import {
 import { GitCompare, Lock, ArrowUpRight, ArrowDownRight, Calendar, Clock, Dumbbell } from 'lucide-react';
 import type { Sesion } from '../../context/HistorialContext';
 import { useI18n } from '../../context/I18nContext';
+import { calcularComparativaMensual } from '../../lib/analiticaAvanzada';
 
 interface ComparativaRendimientoCardProps {
   sesiones: Sesion[];
@@ -28,97 +29,7 @@ export default function ComparativaRendimientoCard({
   const { locale } = useI18n();
 
   // Calcular métricas de Mes Actual vs Mes Anterior
-  const { metricasComparadas, datosGrafico } = useMemo(() => {
-    const now = new Date();
-    const curYear = now.getFullYear();
-    const curMonth = now.getMonth();
-
-    const prevMonthDate = new Date(curYear, curMonth - 1, 1);
-    const prevYear = prevMonthDate.getFullYear();
-    const prevMonth = prevMonthDate.getMonth();
-
-    const curSesiones = sesiones.filter((s) => {
-      const d = new Date(s.fecha + 'T12:00:00');
-      return d.getFullYear() === curYear && d.getMonth() === curMonth;
-    });
-
-    const prevSesiones = sesiones.filter((s) => {
-      const d = new Date(s.fecha + 'T12:00:00');
-      return d.getFullYear() === prevYear && d.getMonth() === prevMonth;
-    });
-
-    const calcVol = (list: Sesion[]) =>
-      list.reduce(
-        (acc, s) =>
-          acc +
-          (s.ejercicios?.reduce(
-            (eAcc, ej) =>
-              eAcc + (ej.series?.reduce((sAcc, ser) => sAcc + (ser.kg || 0) * (ser.reps || 0), 0) || 0),
-            0
-          ) || 0),
-        0
-      );
-
-    const curVol = calcVol(curSesiones);
-    const prevVol = calcVol(prevSesiones);
-
-    const curMin = curSesiones.reduce((acc, s) => acc + (s.duracionMin || 0), 0);
-    const prevMin = prevSesiones.reduce((acc, s) => acc + (s.duracionMin || 0), 0);
-
-    // Si no hay datos suficientes para comparar, simulamos una comparativa realista para el preview
-    const baseCurVol = curVol > 0 ? curVol : 28400;
-    const basePrevVol = prevVol > 0 ? prevVol : 24900;
-    const baseCurSes = curSesiones.length > 0 ? curSesiones.length : 16;
-    const basePrevSes = prevSesiones.length > 0 ? prevSesiones.length : 14;
-    const baseCurMin = curMin > 0 ? curMin : 1120;
-    const basePrevMin = prevMin > 0 ? prevMin : 980;
-
-    const diffVolPct = Math.round(((baseCurVol - basePrevVol) / (basePrevVol || 1)) * 100);
-    const diffSes = baseCurSes - basePrevSes;
-    const diffMinPct = Math.round(((baseCurMin - basePrevMin) / (basePrevMin || 1)) * 100);
-
-    const curMonthName = now.toLocaleString(locale === 'es' ? 'es-ES' : 'en-US', { month: 'short' });
-    const prevMonthName = prevMonthDate.toLocaleString(locale === 'es' ? 'es-ES' : 'en-US', { month: 'short' });
-
-    const data = [
-      {
-        metrica: locale === 'es' ? 'Volumen (Ton)' : 'Volume (Ton)',
-        [prevMonthName]: parseFloat((basePrevVol / 1000).toFixed(1)),
-        [curMonthName]: parseFloat((baseCurVol / 1000).toFixed(1)),
-      },
-      {
-        metrica: locale === 'es' ? 'Sesiones' : 'Sessions',
-        [prevMonthName]: basePrevSes,
-        [curMonthName]: baseCurSes,
-      },
-      {
-        metrica: locale === 'es' ? 'Horas' : 'Hours',
-        [prevMonthName]: parseFloat((basePrevMin / 60).toFixed(1)),
-        [curMonthName]: parseFloat((baseCurMin / 60).toFixed(1)),
-      },
-    ];
-
-    return {
-      metricasComparadas: {
-        volActualTon: (baseCurVol / 1000).toFixed(1),
-        volPrevTon: (basePrevVol / 1000).toFixed(1),
-        diffVolPct,
-        sesActual: baseCurSes,
-        sesPrev: basePrevSes,
-        diffSes,
-        horasActual: (baseCurMin / 60).toFixed(1),
-        horasPrev: (basePrevMin / 60).toFixed(1),
-        diffMinPct,
-        curMonthName,
-        prevMonthName,
-      },
-      datosGrafico: {
-        data,
-        curMonthName,
-        prevMonthName,
-      },
-    };
-  }, [sesiones, locale]);
+  const { metricasComparadas, datosGrafico } = useMemo(() => calcularComparativaMensual(sesiones, locale), [sesiones, locale]);
 
   const { metricasComparadas: m, datosGrafico: dg } = { metricasComparadas, datosGrafico };
 

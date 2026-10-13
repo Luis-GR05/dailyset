@@ -562,7 +562,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const getSavedLocale = (): Locale => {
     const saved = localStorage.getItem('locale');
     if (saved === 'es' || saved === 'en') return saved;
-    const browser = navigator.language.slice(0, 2);
+    const browser = typeof navigator !== 'undefined' && typeof navigator.language === 'string'
+      ? navigator.language.slice(0, 2)
+      : 'es';
     return browser === 'es' ? 'es' : 'en';
   };
 
@@ -576,7 +578,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = translations[locale] as Translations;
 
   useEffect(() => {
-    document.documentElement.lang = locale;
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.lang = locale;
+    }
   }, [locale]);
 
   return (
