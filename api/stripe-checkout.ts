@@ -5,7 +5,7 @@
 // en vez de crear una segunda suscripción.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
-  aplicarCors, clienteStripe, importeCentimos, precioConfigurado, responderError, supabaseAdmin, urlBase, usuarioAutenticado,
+  aplicarCors, clienteStripe, configPortal, importeCentimos, precioConfigurado, responderError, supabaseAdmin, urlBase, usuarioAutenticado,
   type Ciclo, type PlanPago,
 } from './_comun.js';
 
@@ -37,6 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Ya tiene una suscripción de pago activa → gestionar el cambio en el portal de Stripe
     if (sus?.stripe_subscription_id && sus.plan !== 'free' && ['active', 'trialing', 'past_due'].includes(sus.estado || 'active')) {
       const portal = await stripe.billingPortal.sessions.create({
+        ...configPortal(),
         customer: sus.stripe_customer_id,
         return_url: `${base}/suscripciones`,
       });

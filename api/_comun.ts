@@ -11,7 +11,10 @@ export type Ciclo = 'mensual' | 'anual';
 // ── Variables de entorno (configurar en Vercel → Settings → Environment Variables) ──
 // NUNCA uses el prefijo VITE_ para claves secretas: Vite las incrustaría en el JS público.
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '')
+  .trim()
+  .replace(/\/rest\/v1\/?$/i, '')
+  .replace(/\/+$/, '') || undefined;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
 /** URL pública de la web, usada para las URLs de retorno de Stripe. */
@@ -60,6 +63,11 @@ export async function usuarioAutenticado(req: VercelRequest): Promise<{ id: stri
   const { data, error } = await supabaseAdmin().auth.getUser(token);
   if (error || !data?.user) return null;
   return { id: data.user.id, email: data.user.email ?? undefined };
+}
+
+/** Configuración del portal de cliente (opcional; si no, Stripe usa la predeterminada). */
+export function configPortal(): { configuration?: string } {
+  return process.env.STRIPE_PORTAL_CONFIG ? { configuration: process.env.STRIPE_PORTAL_CONFIG } : {};
 }
 
 /** Precio de Stripe configurado para cada plan y ciclo. */

@@ -3,7 +3,7 @@
 // renovación, actualizar la tarjeta, descargar facturas).
 // Seguridad: sólo abre el portal del cliente de Stripe ligado al usuario autenticado.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { aplicarCors, clienteStripe, responderError, supabaseAdmin, urlBase, usuarioAutenticado } from './_comun.js';
+import { aplicarCors, configPortal, clienteStripe, responderError, supabaseAdmin, urlBase, usuarioAutenticado } from './_comun.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (aplicarCors(req, res)) return;
@@ -24,6 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const portal = await clienteStripe().billingPortal.sessions.create({
+      ...configPortal(),
       customer: sus.stripe_customer_id,
       return_url: `${urlBase(req)}/suscripciones`,
     });
