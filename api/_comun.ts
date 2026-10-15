@@ -39,7 +39,8 @@ export function aplicarCors(req: VercelRequest, res: VercelResponse): boolean {
 
 export function clienteStripe(): Stripe {
   if (!STRIPE_SECRET_KEY) throw new ErrorConfig('STRIPE_SECRET_KEY no está configurada.');
-  return new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' as any });
+  // Versión de la API: la que trae el SDK instalado (Managed Payments exige 2025-03-31.basil o posterior)
+  return new Stripe(STRIPE_SECRET_KEY);
 }
 
 /** Cliente de Supabase con la service_role key: ignora RLS. Sólo en el servidor. */
